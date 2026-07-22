@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUNET — Subsistema | BUNKER SYSTEM V2.0</title>
+<meta name="description" content="MUNET - Museo Nacional de Energía y Tecnología. BUNKER es la productora In-House exclusiva.">
+<link rel="icon" type="image/png" href="img/logo-bunker.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/pages/servicios.css">
+<link rel="stylesheet" href="css/pages/munet.css">
+<script src="js/login-gate.js"></script>
+</head>
+<body class="munet-page">
+
+<div class="sys-grid-bg"></div>
+<div class="scan-sweep"></div>
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="curR"></div>
+<div class="page-transition" id="page-transition">
+  <div class="pt-text">CARGANDO SUBSISTEMA: MUNET</div>
+  <div class="pt-bar"><div class="pt-bar-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav class="sys-nav" role="navigation">
+  <div class="nav-brand">
+    <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="eager"></a>
+    <span class="sys-tag">SYS V2.0</span>
+  </div>
+  <div class="nav-status"><span class="nav-status-dot"></span><span>SYSTEM ONLINE</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">INICIO</a>
+    <a href="esencia.html" class="nav-link">ESENCIA</a>
+    <a href="servicios.html" class="nav-link">SERVICIOS</a>
+    <a href="talento.html" class="nav-link">EQUIPO</a>
+    <a href="proyectos.html" class="nav-link">PROYECTOS</a>
+    <a href="munet.html" class="nav-link active">MUNET</a>
+    <a href="index.html#contacto" class="nav-link">CONTACTO</a>
+  </div>
+  <div class="nav-coords">LAT 19.4326 // LONG -99.1332</div>
+  <button class="nav-ham" id="ham" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="mob-drawer" id="mob">
+  <a href="index.html" class="mob-link">INICIO</a>
+  <a href="esencia.html" class="mob-link">ESENCIA</a>
+  <a href="servicios.html" class="mob-link">SERVICIOS</a>
+  <a href="talento.html" class="mob-link">EQUIPO</a>
+  <a href="proyectos.html" class="mob-link">PROYECTOS</a>
+  <a href="munet.html" class="mob-link active">MUNET</a>
+  <a href="index.html#contacto" class="mob-link">CONTACTO</a>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="sys-inner">
+    <div class="page-header-inner">
+      <div>
+        <a href="index.html" class="page-header-back">TERMINAL PRINCIPAL</a>
+        <div class="sys-label">SUBSISTEMA_05</div>
+        <h1 class="page-header-title"><span>MUNET</span></h1>
+      </div>
+      <div class="page-header-meta">
+        STATUS: OPERATIONAL<br>
+        TYPE: IN-HOUSE PRODUCER<br>
+        ESPACIOS: 8 ACTIVOS
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MUNET CONTENT -->
+<section class="sys-section">
+  <div class="sys-inner">
+
+    <!-- Alliance section -->
+    <div class="munet-alliance rev">
+      <div class="munet-intro">
+        <div class="sys-label">ALIANZA EXCLUSIVA &middot; PRODUCTORA IN-HOUSE</div>
+        <h2 class="t-section" style="color:var(--munet)">MUNET</h2>
+        <div class="munet-full-name">Museo Nacional de Energía y Tecnología</div>
+        <p class="munet-quote">BUNKER es el brazo auxiliar exclusivo para la operación y supervisión técnica de todos los eventos en las distintas instalaciones de este complejo cultural.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="cotizador-munet/" class="hud-btn hud-btn--munet">
+            <span>COTIZA TU EVENTO</span><span class="hud-btn-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="munet-svc-grid">
+        <div class="munet-svc-panel rev" id="munet-alianza">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">MNT_01</div>
+            <div class="munet-svc-name">Alianza Estratégica</div>
+            <div class="munet-svc-status">ACTIVE</div>
+          </div>
+          <div class="munet-svc-body">
+            <p class="munet-svc-desc">Tenemos una relación comercial con <strong>BUNKER CREATIVIDAD EMPRESARIAL, SAPI SA de CV</strong>, constituyéndose en uno de sus principales brazos auxiliares para la operación y supervisión técnica de los eventos en las distintas instalaciones de este complejo cultural.</p>
+            <div class="munet-tipos">
+              <span class="munet-tipo">Culturales</span>
+              <span class="munet-tipo">Educativas</span>
+              <span class="munet-tipo">Artísticas</span>
+              <span class="munet-tipo">Tecnológicas</span>
+              <span class="munet-tipo">Institucionales</span>
+            </div>
+            <button class="munet-svc-expand" data-expand="munet-alianza-exp" aria-expanded="false">
+              <span>VER DETALLE</span><span class="munet-svc-expand-ico">&darr;</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="munet-svc-exp-panel" id="munet-alianza-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">MNT_01 // ALIANZA.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING ALLIANCE DATA...</div>
+              <p>La simbiosis comercial abarca también la preferencia en sus socios <strong>Juan Carlos Rojas Caballero, Héctor Martínez Leal y Edgar Torres Sánchez</strong> para programar:</p>
+              <ul class="svc-exp-list">
+                <li>Eventos públicos</li>
+                <li>Eventos privados</li>
+                <li>Activaciones</li>
+                <li>Exposiciones</li>
+                <li>Producciones especiales</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Espacios -->
+    <div class="espacios-section">
+      <div class="hud-divider">
+        <span class="hud-divider-text">// INFRAESTRUCTURA //</span>
+      </div>
+
+      <div class="espacios-header rev">
+        <div class="sys-label">ESPACIOS DEL COMPLEJO</div>
+        <h2 class="espacios-title">NUESTROS ESPACIOS</h2>
+        <p class="espacios-sub">Espacios versátiles para eventos privados, públicos, corporativos, culturales y experiencias de alto impacto.</p>
+      </div>
+
+      <div class="espacios-grid">
+
+        <!-- ═══ FILA 1: ESP 01 + 02 + 03 + 04 ═══ -->
+        <div class="munet-svc-panel esp-compact rev" id="esp01">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_01</div>
+            <div class="munet-svc-name">Explanada</div>
+            <div class="munet-svc-status">10,000 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp02">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_02</div>
+            <div class="munet-svc-name">Foro</div>
+            <div class="munet-svc-status">1,400 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp03">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_03</div>
+            <div class="munet-svc-name">Lobby</div>
+            <div class="munet-svc-status">1,200 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp04">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_04</div>
+            <div class="munet-svc-name">Auditorio</div>
+            <div class="munet-svc-status">246 personas</div>
+          </div>
+        </div>
+
+        <!-- Expand panels fila 1 -->
+        <div class="munet-svc-exp-panel" id="esp01-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_01 // EXPLANADA.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p>Superficie total de <strong>10,000 m²</strong>. El espacio más grande del complejo, diseñado para eventos de alto impacto y montajes de gran escala.</p>
+              <ul class="svc-exp-list">
+                <li>Conciertos y festivales</li>
+                <li>Ferias y exposiciones masivas</li>
+                <li>Activaciones de marca</li>
+                <li>Experiencias inmersivas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp02-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_02 // FORO.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p><strong>1,400 m²</strong> de foro principal + <strong>400 m²</strong> de oficinas. Espacio versátil para producciones profesionales.</p>
+              <ul class="svc-exp-list">
+                <li>Eventos corporativos</li>
+                <li>Foros especializados</li>
+                <li>Montajes integrales</li>
+                <li>Producciones audiovisuales</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp03-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_03 // LOBBY.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p><strong>1,200 m²</strong> de superficie. Espacio de recepción principal del complejo.</p>
+              <ul class="svc-exp-list">
+                <li>Recepciones y cócteles</li>
+                <li>Registros y check-in</li>
+                <li>Exhibiciones</li>
+                <li>Encuentros institucionales</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp04-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_04 // AUDITORIO.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p>Capacidad para <strong>246 personas</strong>. Equipado para presentaciones profesionales y contenido escénico.</p>
+              <ul class="svc-exp-list">
+                <li>Conferencias</li>
+                <li>Presentaciones y lanzamientos</li>
+                <li>Charlas y paneles</li>
+                <li>Contenidos escénicos</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ FILA 2: ESP 05 + 06 + 07 + 08 ═══ -->
+        <div class="munet-svc-panel esp-compact rev" id="esp05">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_05</div>
+            <div class="munet-svc-name">Jardín Social</div>
+            <div class="munet-svc-status">2,576 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp06">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_06</div>
+            <div class="munet-svc-name">Sala Exposiciones</div>
+            <div class="munet-svc-status">812 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp07">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_07</div>
+            <div class="munet-svc-name">Velaria</div>
+            <div class="munet-svc-status">350 m&sup2;</div>
+          </div>
+        </div>
+        <div class="munet-svc-panel esp-compact rev" id="esp08">
+          <div class="munet-svc-header">
+            <div class="munet-svc-num">ESP_08</div>
+            <div class="munet-svc-name">Salas Capacitación</div>
+            <div class="munet-svc-status">4 SALAS</div>
+          </div>
+        </div>
+
+        <!-- Expand panels fila 2 -->
+        <div class="munet-svc-exp-panel" id="esp05-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_05 // JARDIN_SOCIAL.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p><strong>2,576 m²</strong> al aire libre con capacidad para <strong>400 personas</strong>.</p>
+              <ul class="svc-exp-list">
+                <li>Eventos sociales</li>
+                <li>Experiencias al aire libre</li>
+                <li>Encuentros de marca</li>
+                <li>Activaciones outdoor</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp06-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_06 // SALA_EXPO.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p><strong>812 m²</strong> con capacidad para <strong>200 personas</strong>. Espacio diseñado para experiencias visuales.</p>
+              <ul class="svc-exp-list">
+                <li>Exposiciones</li>
+                <li>Instalaciones artísticas</li>
+                <li>Showcases</li>
+                <li>Eventos curatoriales</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp07-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_07 // VELARIA.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p><strong>350 m²</strong> con capacidad para <strong>300 personas</strong>. Espacio techado semi-abierto.</p>
+              <ul class="svc-exp-list">
+                <li>Activaciones</li>
+                <li>Presentaciones</li>
+                <li>Reuniones especiales</li>
+                <li>Eventos semi-abiertos</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="munet-svc-exp-panel" id="esp08-exp">
+          <div class="munet-svc-terminal">
+            <div class="munet-svc-term-bar">
+              <span class="munet-svc-term-title">ESP_08 // SALAS_CAP.DAT</span>
+              <span class="munet-svc-term-dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="munet-svc-term-body svc-term-body">
+              <div class="svc-term-line">> LOADING SPACE DATA...</div>
+              <p>Cuatro salas independientes: <strong>S1: 78m²</strong>, <strong>S2-S3: 66m²</strong>, <strong>S4: 60m²</strong>.</p>
+              <ul class="svc-exp-list">
+                <li>Talleres y workshops</li>
+                <li>Reuniones ejecutivas</li>
+                <li>Capacitaciones</li>
+                <li>Actividades de trabajo</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="munet-cta rev">
+      <div class="munet-cta-title">Tienes un evento para el MUNET?</div>
+      <div class="munet-cta-btns">
+        <a href="cotizador-munet/" class="hud-btn hud-btn--primary">
+          <span>[ COTIZA TU EVENTO AQUÍ ]</span><span class="hud-btn-arrow">&rarr;</span>
+        </a>
+        <a href="https://www.museomunet.com/" target="_blank" rel="noopener" class="hud-btn hud-btn--munet">
+          <span>SITIO OFICIAL MUNET</span><span class="hud-btn-arrow">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="sys-footer">
+  <div class="sys-inner">
+    <div class="foot-brand">
+      <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy"></a>
+      <span class="foot-version">BNK-SYS V2.0 // 2026</span>
+    </div>
+    <div class="foot-center">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV<br>MÉXICO &middot; USA &middot; CENTROAMÉRICA &middot; ESPAÑA</div>
+    <div class="foot-links">
+      <a href="index.html" class="foot-link">Inicio</a>
+      <a href="servicios.html" class="foot-link">Servicios</a>
+      <a href="proyectos.html" class="foot-link">Proyectos</a>
+      <a href="talento.html" class="foot-link">Equipo</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/system.js"></script>
+</body>
+</html>

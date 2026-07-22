@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUNKER SYSTEM V2.0 | Creatividad Empresarial</title>
+<meta name="description" content="BUNKER Creatividad Empresarial — Producción de espectáculos y entretenimiento en gran formato. 30+ años de experiencia. México, USA, Centroamérica.">
+<meta property="og:title" content="BUNKER — Entertainment | Gran Formato">
+<meta property="og:description" content="Producimos los espectáculos más grandes del continente. Donde el arte y la estrategia crean momentos que no se olvidan.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="img/logo-bunker-full.png">
+<link rel="icon" type="image/png" href="img/logo-bunker.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/pages/dashboard.css">
+<script src="js/login-gate.js"></script>
+</head>
+<body>
+
+<!-- Grid background -->
+<div class="sys-grid-bg"></div>
+
+<!-- Scan sweep -->
+<div class="scan-sweep"></div>
+
+<!-- Custom cursor -->
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="curR"></div>
+
+<!-- Page transition overlay -->
+<div class="page-transition" id="page-transition">
+  <div class="pt-text">BUNKER SYSTEM V2.0</div>
+  <div class="pt-bar"><div class="pt-bar-fill"></div></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     NAVIGATION
+     ══════════════════════════════════════ -->
+<nav class="sys-nav" role="navigation" aria-label="Navegación principal">
+  <div class="nav-brand">
+    <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER Creatividad Empresarial" loading="eager"></a>
+    <span class="sys-tag">SYS V2.0</span>
+  </div>
+  <div class="nav-status">
+    <span class="nav-status-dot"></span>
+    <span>SYSTEM ONLINE</span>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a href="index.html" class="nav-link active">INICIO</a>
+    <a href="esencia.html" class="nav-link">ESENCIA</a>
+    <a href="servicios.html" class="nav-link">SERVICIOS</a>
+    <a href="talento.html" class="nav-link">EQUIPO</a>
+    <a href="proyectos.html" class="nav-link">PROYECTOS</a>
+    <a href="munet.html" class="nav-link">MUNET</a>
+    <a href="#contacto" class="nav-link">CONTACTO</a>
+  </div>
+  <div class="nav-coords">LAT 19.4326 // LONG -99.1332</div>
+  <button class="nav-ham" id="ham" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="mob-drawer" id="mob" role="navigation" aria-label="Menú móvil">
+  <a href="index.html" class="mob-link">INICIO</a>
+  <a href="esencia.html" class="mob-link">ESENCIA</a>
+  <a href="servicios.html" class="mob-link">SERVICIOS</a>
+  <a href="talento.html" class="mob-link">EQUIPO</a>
+  <a href="proyectos.html" class="mob-link">PROYECTOS</a>
+  <a href="munet.html" class="mob-link">MUNET</a>
+  <a href="#contacto" class="mob-link">CONTACTO</a>
+</div>
+
+<!-- ══════════════════════════════════════
+     BOOT SEQUENCE + HERO
+     ══════════════════════════════════════ -->
+<section class="boot-screen" id="inicio">
+  <canvas id="binary-rain"></canvas>
+  <div id="boot-sequence">
+    <div class="boot-line" data-text="> INITIALIZING BUNKER SYSTEM V2.0..."> INITIALIZING BUNKER SYSTEM V2.0...</div>
+    <div class="boot-line" data-text="> LOADING CORE MODULES............"> LOADING CORE MODULES............</div>
+    <div class="boot-line" data-text="> SERVICIOS_BNK     [OK]"> SERVICIOS_BNK     [OK]</div>
+    <div class="boot-line" data-text="> PROYECTOS_DB      [OK]"> PROYECTOS_DB      [OK]</div>
+    <div class="boot-line" data-text="> MUNET_SUBSYSTEM   [OK]"> MUNET_SUBSYSTEM   [OK]</div>
+    <div class="boot-line" data-text="> TALENTO_DIR       [OK]"> TALENTO_DIR       [OK]</div>
+    <div class="boot-line boot-line--success" data-text="> ALL SYSTEMS OPERATIONAL"> ALL SYSTEMS OPERATIONAL</div>
+    <div class="boot-line boot-line--highlight" data-text="> WELCOME TO BUNKER."> WELCOME TO BUNKER.</div>
+  </div>
+
+  <div id="main-content">
+    <div class="hero sys-inner">
+      <div class="hero-left">
+        <div class="hero-eyebrow rev">Entertainment &middot; Gran Formato &middot; Internacional</div>
+        <div class="hero-logo rev">
+          <img src="img/logo-bunker-full.png" alt="BUNKER Creatividad Empresarial" loading="eager">
+        </div>
+        <p class="hero-claim rev">
+          Producimos los espectáculos más grandes del continente.<br>
+          <em>Donde el arte y la estrategia crean momentos que no se olvidan.</em>
+        </p>
+        <div class="hero-actions rev">
+          <a href="servicios.html" class="hud-btn hud-btn--primary">
+            <span>01</span>
+            <span>VER SERVICIOS</span>
+            <span class="hud-btn-arrow">&rarr;</span>
+          </a>
+          <a href="talento.html" class="hud-btn">
+            <span>02</span>
+            <span>VER EQUIPO</span>
+            <span class="hud-btn-arrow">&rarr;</span>
+          </a>
+          <a href="proyectos.html" class="hud-btn">
+            <span>03</span>
+            <span>VER PROYECTOS</span>
+            <span class="hud-btn-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-geo">México &middot; USA &middot; Centroamérica &middot; España</div>
+        <div class="hero-stats">
+          <div class="hud-stat rev">
+            <div class="hud-stat-num" data-count="30" data-count-suffix="+">0</div>
+            <div class="hud-stat-label">Años de trayectoria</div>
+            <div class="hud-stat-desc">Producción live de clase mundial</div>
+          </div>
+          <div class="hud-stat rev">
+            <div class="hud-stat-num" data-count="30" data-count-prefix="+" data-count-suffix="">0</div>
+            <div class="hud-stat-label">Arenas y estadios</div>
+            <div class="hud-stat-desc">En el continente americano</div>
+          </div>
+          <div class="hud-stat rev">
+            <div class="hud-stat-num" data-count="4" data-count-suffix="M+">0</div>
+            <div class="hud-stat-label">Discos vendidos</div>
+            <div class="hud-stat-desc">Por artistas desarrollados</div>
+          </div>
+          <div class="hud-stat rev">
+            <div class="hud-stat-num" data-count="1" data-count-suffix="">0</div>
+            <div class="hud-stat-label">Productora In-House MUNET</div>
+            <div class="hud-stat-desc">Complejo cultural exclusivo</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-big-num"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     MODULES GRID — Dashboard
+     ══════════════════════════════════════ -->
+<section class="modules-section sys-section">
+  <div class="sys-inner">
+    <div class="sys-section-header rev">
+      <div class="sys-label">TERMINAL PRINCIPAL</div>
+      <h2 class="t-section">MÓDULOS <span>DEL SISTEMA</span></h2>
+    </div>
+    <div class="modules-grid">
+
+      <!-- ESENCIA -->
+      <div class="mod-panel rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">01</span>
+          <span class="mod-label">ESENCIA</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Manifiesto<br>& Sistema BNK</div>
+          <div class="mod-desc">Filosofía, propósito, visión y misión. El ADN de BUNKER y nuestro método de trabajo.</div>
+          <div class="mod-meta">FILOSOFÍA // PROPÓSITO // VISIÓN // MISIÓN</div>
+          <a href="esencia.html" class="mod-action">
+            <span>ACCEDER</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- SERVICIOS -->
+      <div class="mod-panel rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">02</span>
+          <span class="mod-label">SERVICIOS</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Servicios<br>BNK</div>
+          <div class="mod-desc">Producción de espectáculos, giras internacionales, desarrollo artístico, audiovisual, venues y streaming.</div>
+          <div class="mod-meta">6 MÓDULOS DE SERVICIO ACTIVOS</div>
+          <a href="servicios.html" class="mod-action">
+            <span>ACCEDER AL MÓDULO</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- TALENTO -->
+      <div class="mod-panel rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">03</span>
+          <span class="mod-label">TALENTO</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Directorio<br>de Personal</div>
+          <div class="mod-desc">Tres décadas de experiencia en la industria del entretenimiento. Socios fundadores y equipo técnico.</div>
+          <div class="mod-meta">3 SOCIOS + EQUIPO TÉCNICO</div>
+          <a href="talento.html" class="mod-action">
+            <span>ACCEDER AL MÓDULO</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- PROYECTOS -->
+      <div class="mod-panel rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">04</span>
+          <span class="mod-label">PROYECTOS</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Archivo de<br>Proyectos</div>
+          <div class="mod-desc">Trayectoria completa: TV, giras, cine, management, venues y discografía. Desde 1991 hasta hoy.</div>
+          <div class="mod-meta">27+ REGISTROS // 6 CATEGORÍAS</div>
+          <a href="proyectos.html" class="mod-action">
+            <span>ACCEDER AL MÓDULO</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- MUNET -->
+      <div class="mod-panel mod-panel--munet rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">05</span>
+          <span class="mod-label">MUNET</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Subsistema<br>MUNET</div>
+          <div class="mod-desc">Museo Nacional de Energía y Tecnología. Productora In-House exclusiva. 8 espacios de alto impacto.</div>
+          <div class="mod-meta">ALIANZA EXCLUSIVA // IN-HOUSE PRODUCER</div>
+          <a href="munet.html" class="mod-action">
+            <span>ACCEDER AL SUBSISTEMA</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- HUB -->
+      <div class="mod-panel mod-panel--terra rev">
+        <div class="mod-panel-header">
+          <span class="mod-num">06</span>
+          <span class="mod-label">HUB EMPRESARIAL</span>
+          <span class="mod-status">ONLINE</span>
+        </div>
+        <div class="mod-body">
+          <div class="mod-title">Hub<br>Empresarial</div>
+          <div class="mod-desc">Estrategia legal, fiscal y creativa. Plataformas integradas para empresas de alto nivel.</div>
+          <div class="mod-meta">LEGAL-FISCAL // INDUSTRIAS CREATIVAS</div>
+          <a href="hub.html" class="mod-action">
+            <span>ACCEDER AL MÓDULO</span>
+            <span class="mod-action-arrow">&rarr;</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     METRICAS / NUMEROS
+     ══════════════════════════════════════ -->
+<section class="metrics-section">
+  <div class="sys-inner">
+    <div class="metrics-grid">
+      <div class="metric-item rev">
+        <div class="metric-num" data-count="30" data-count-suffix="+">0</div>
+        <div class="metric-label">Años de trayectoria en producción live</div>
+        <div class="metric-bar">
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span>
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg"></span><span class="metric-bar-seg"></span>
+        </div>
+      </div>
+      <div class="metric-item rev">
+        <div class="metric-num" data-count="30" data-count-suffix="+">0</div>
+        <div class="metric-label">Arenas y estadios operados en el continente</div>
+        <div class="metric-bar">
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span>
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg"></span><span class="metric-bar-seg"></span>
+        </div>
+      </div>
+      <div class="metric-item rev">
+        <div class="metric-num" data-count="4" data-count-suffix="M+">0</div>
+        <div class="metric-label">Discos vendidos por artistas desarrollados</div>
+        <div class="metric-bar">
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span>
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span>
+        </div>
+      </div>
+      <div class="metric-item rev">
+        <div class="metric-num" data-count="4" data-count-suffix="">0</div>
+        <div class="metric-label">Países de operación activa</div>
+        <div class="metric-bar">
+          <span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg on"></span><span class="metric-bar-seg"></span>
+          <span class="metric-bar-seg"></span><span class="metric-bar-seg"></span><span class="metric-bar-seg"></span><span class="metric-bar-seg"></span><span class="metric-bar-seg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     CONTACTO
+     ══════════════════════════════════════ -->
+<section id="contacto" class="contact-section sys-section">
+  <div class="sys-inner">
+    <div class="contact-header rev">
+      <div class="sys-label">CANAL DE COMUNICACIÓN</div>
+      <h2 class="contact-title">HABLEMOS</h2>
+      <p class="contact-sub">Tienes un proyecto que merece convertirse en un espectáculo memorable?</p>
+    </div>
+
+    <div class="contact-cards rev">
+      <div class="contact-card">
+        <div class="cc-name">Héctor Martínez</div>
+        <div class="cc-role">Producción Creativa</div>
+        <div class="cc-email"><a href="mailto:hector@bunkermx.com">hector@bunkermx.com</a></div>
+      </div>
+      <div class="contact-card">
+        <div class="cc-name">Edgar Torres</div>
+        <div class="cc-role">Production Manager</div>
+        <div class="cc-email"><a href="mailto:edgar@bunkermx.com">edgar@bunkermx.com</a></div>
+      </div>
+      <div class="contact-card">
+        <div class="cc-name">Juan Carlos Rojas</div>
+        <div class="cc-role">Estrategia Corporativa</div>
+        <div class="cc-email"><a href="mailto:cacho@bunkermx.com">cacho@bunkermx.com</a></div>
+      </div>
+    </div>
+
+    <form id="contact-form" class="contact-form rev">
+      <div class="form-group">
+        <label class="hud-label">Nombre</label>
+        <input type="text" name="nombre" required class="hud-input" placeholder="Tu nombre">
+      </div>
+      <div class="form-group">
+        <label class="hud-label">Empresa</label>
+        <input type="text" name="empresa" class="hud-input" placeholder="Tu empresa">
+      </div>
+      <div class="form-group">
+        <label class="hud-label">Email</label>
+        <input type="email" name="email" required class="hud-input" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="form-group">
+        <label class="hud-label">Tipo de servicio</label>
+        <select name="servicio" class="hud-select">
+          <option value="">Seleccionar...</option>
+          <option value="espectáculos">Producción de Espectáculos</option>
+          <option value="giras">Giras Internacionales</option>
+          <option value="desarrollo">Desarrollo Artístico</option>
+          <option value="audiovisual">Producción Audiovisual</option>
+          <option value="venues">Dirección de Venues</option>
+          <option value="munet">Evento en MUNET</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group form-group--full">
+        <label class="hud-label">Mensaje</label>
+        <textarea name="mensaje" rows="4" required class="hud-input" placeholder="Describe tu proyecto..."></textarea>
+      </div>
+      <div class="form-group form-group--full form-submit">
+        <button type="submit" class="hud-btn hud-btn--primary">
+          <span>[ TRANSMITIR MENSAJE ]</span>
+        </button>
+      </div>
+      <div class="form-group form-group--full">
+        <div class="form-status" id="form-status"></div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FOOTER
+     ══════════════════════════════════════ -->
+<footer class="sys-footer">
+  <div class="sys-inner">
+    <div class="foot-brand">
+      <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy"></a>
+      <span class="foot-version">BNK-SYS V2.0 // 2026</span>
+    </div>
+    <div class="foot-center">
+      &copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV<br>
+      MÉXICO &middot; USA &middot; CENTROAMÉRICA &middot; ESPAÑA<br>
+      ENTERTAINMENT | GRAN FORMATO
+    </div>
+    <div class="foot-links">
+      <a href="servicios.html" class="foot-link">Servicios</a>
+      <a href="proyectos.html" class="foot-link">Proyectos</a>
+      <a href="munet.html" class="foot-link">MUNET</a>
+      <a href="talento.html" class="foot-link">Equipo</a>
+      <a href="#contacto" class="foot-link">Contacto</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/system.js"></script>
+<script src="js/pages/dashboard.js"></script>
+</body>
+</html>

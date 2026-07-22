@@ -1,0 +1,322 @@
+/* ============================================================
+   SUBSISTEMA: MUNET
+   Accent override: --munet (green)
+   ============================================================ */
+
+.munet-page .sys-nav::after{
+  background:linear-gradient(90deg,transparent,var(--munet-dim),rgba(46,139,110,.25),var(--munet-dim),transparent);
+}
+.munet-page .page-header-title span{color:var(--munet)}
+.munet-page .sys-label::before{color:var(--munet-dim)}
+.munet-page .sys-label{color:var(--munet)}
+
+/* ── Alliance Panel ── */
+.munet-alliance{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+  margin-bottom:60px;
+}
+.munet-intro{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.munet-full-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-lg);
+  font-weight:300;
+  color:#fff;
+}
+.munet-quote{
+  color:#fff;
+  line-height:1.7;
+  font-size:var(--fs-base);
+  border-left:3px solid var(--munet);
+  padding-left:16px;
+}
+.munet-alliance-box{
+  padding:24px;
+  background:rgba(46,139,110,.04);
+  border:1px solid rgba(46,139,110,.2);
+  clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
+}
+.munet-alliance-label{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:var(--munet);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.munet-alliance-text{
+  color:#fff;
+  font-size:var(--fs-sm);
+  line-height:1.7;
+  margin-bottom:12px;
+}
+.munet-tipos{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:12px;
+}
+.munet-tipo{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--munet);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:3px 8px;
+  border:1px solid rgba(46,139,110,.25);
+}
+
+/* ── Alliance Service Card ── */
+.munet-svc-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  row-gap:0;
+}
+.munet-svc-panel{
+  background:rgba(46,139,110,.08);
+  border:1px solid rgba(46,139,110,.35);
+  clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
+  transition:border-color .3s;
+  overflow:hidden;
+}
+.munet-svc-panel:hover{border-color:var(--munet)}
+.munet-svc-header{
+  display:grid;
+  grid-template-columns:70px 1fr auto;
+  gap:16px;
+  align-items:center;
+  padding:20px 24px;
+  position:relative;
+}
+.munet-svc-header::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--munet),transparent 60%);
+}
+.munet-svc-header::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(46,139,110,.06),transparent);
+}
+.munet-svc-num{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:#5EEABC;
+  letter-spacing:2px;
+  position:relative;z-index:1;
+}
+.munet-svc-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-md);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#fff;
+  position:relative;z-index:1;
+}
+.munet-svc-status{
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  letter-spacing:2px;
+  color:#5EEABC;
+  border:1px solid rgba(94,234,188,.35);
+  padding:3px 10px;
+  text-transform:uppercase;
+  position:relative;z-index:1;
+}
+.munet-svc-body{
+  padding:0 24px 20px;
+}
+.munet-svc-desc{
+  color:#fff;
+  font-size:var(--fs-sm);
+  line-height:1.7;
+  margin-bottom:14px;
+}
+.munet-svc-expand{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--munet);
+  background:none;border:none;cursor:pointer;
+  padding:8px 0;
+  transition:gap .2s;
+}
+.munet-svc-expand:hover{gap:12px}
+.munet-svc-expand-ico{
+  transition:transform .2s;font-size:10px;
+}
+.munet-svc-expand.open .munet-svc-expand-ico{transform:rotate(180deg)}
+
+/* Expand panel — Terminal style */
+.munet-svc-exp-panel{
+  grid-column:1 / -1;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .5s ease;
+}
+.munet-svc-exp-panel.open{
+  max-height:800px;
+  margin-bottom:16px;
+}
+.munet-svc-terminal{
+  border:1px solid rgba(46,139,110,.35);
+  background:var(--bg-panel);
+  margin:0 0 16px;
+}
+.munet-svc-term-bar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid rgba(46,139,110,.3);
+  background:var(--bg-panel);
+}
+.munet-svc-term-title{
+  font-family:'Space Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:#5EEABC;text-transform:uppercase;
+}
+.munet-svc-term-dots{display:flex;gap:4px}
+.munet-svc-term-dots span{
+  width:6px;height:6px;border-radius:50%;
+  border:1px solid rgba(94,234,188,.4);
+}
+.munet-svc-term-dots span:first-child{background:#5EEABC}
+.munet-svc-term-body{
+  padding:20px 24px;
+}
+.munet-svc-term-body .svc-term-line{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);color:#5EEABC;
+  margin-bottom:12px;opacity:0;
+  transition:opacity .3s;
+}
+.munet-svc-exp-panel.open .svc-term-line{opacity:1}
+.munet-svc-term-body p{
+  color:#fff;line-height:1.7;
+  margin-bottom:14px;font-size:var(--fs-sm);
+  opacity:0;transition:opacity .3s;
+}
+.munet-svc-exp-panel.open p{opacity:1}
+.munet-svc-term-body .svc-exp-list{
+  list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:12px;
+}
+.munet-svc-term-body .svc-exp-list li{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-sm);
+  color:#fff;
+  padding-left:20px;
+  position:relative;
+  opacity:0;transform:translateX(-8px);
+  transition:opacity .3s,transform .3s;
+}
+.munet-svc-term-body .svc-exp-list li.vis{
+  opacity:1;transform:translateX(0);
+}
+.munet-svc-term-body .svc-exp-list li::before{
+  content:'>> ';position:absolute;left:0;
+  font-family:'Space Mono',monospace;font-size:9px;
+  color:#5EEABC;
+}
+.munet-svc-exp-panel.open .svc-exp-list li{
+  opacity:1;transform:none;
+}
+
+/* Compact space cards */
+.esp-compact{cursor:pointer}
+.esp-compact .munet-svc-name{
+  font-size:var(--fs-lg);
+}
+
+/* ── Espacios Grid ── */
+.espacios-section{
+  margin-top:40px;
+}
+.espacios-header{
+  margin-bottom:32px;
+}
+.espacios-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-xl);
+  font-weight:800;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+.espacios-sub{
+  color:#fff;
+  margin-top:8px;
+  max-width:600px;
+}
+.espacios-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+}
+.espacios-grid .munet-svc-exp-panel{
+  grid-column:1 / -1;
+}
+.esp-card{
+  padding:24px;
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+  transition:border-color var(--dur-fast);
+}
+.esp-card:hover{border-color:rgba(46,139,110,.4)}
+.esp-card--big{
+  grid-column:1/-1;
+  border-color:rgba(46,139,110,.25);
+  background:rgba(46,139,110,.04);
+}
+.esp-card-name{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-sm);
+  color:var(--munet);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.esp-card-size{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-lg);
+  color:#fff;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.esp-card-desc{
+  font-size:var(--fs-sm);
+  color:rgba(255,255,255,.6);
+  line-height:1.5;
+}
+
+/* ── CTA ── */
+.munet-cta{
+  text-align:center;
+  padding:60px 0 0;
+}
+.munet-cta-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-xl);
+  font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+.munet-cta-btns{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+}
+
+/* ── Responsive ── */
+@media(max-width:1024px){
+  .munet-alliance{grid-template-columns:1fr}
+}
+@media(max-width:1024px){
+  .espacios-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .espacios-grid{grid-template-columns:1fr}
+  .espacios-grid .munet-svc-exp-panel{grid-column:auto}
+}

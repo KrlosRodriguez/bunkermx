@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SERVICIOS BNK | BUNKER SYSTEM V2.0</title>
+<meta name="description" content="Servicios BUNKER: Producción de espectáculos, giras internacionales, desarrollo artístico, audiovisual, venues y streaming.">
+<link rel="icon" type="image/png" href="img/logo-bunker.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/pages/servicios.css">
+<script src="js/login-gate.js"></script>
+</head>
+<body>
+
+<div class="sys-grid-bg"></div>
+<div class="scan-sweep"></div>
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="curR"></div>
+<div class="page-transition" id="page-transition">
+  <div class="pt-text">CARGANDO MÓDULO: SERVICIOS</div>
+  <div class="pt-bar"><div class="pt-bar-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav class="sys-nav" role="navigation">
+  <div class="nav-brand">
+    <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="eager"></a>
+    <span class="sys-tag">SYS V2.0</span>
+  </div>
+  <div class="nav-status"><span class="nav-status-dot"></span><span>SYSTEM ONLINE</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">INICIO</a>
+    <a href="esencia.html" class="nav-link">ESENCIA</a>
+    <a href="servicios.html" class="nav-link active">SERVICIOS</a>
+    <a href="talento.html" class="nav-link">EQUIPO</a>
+    <a href="proyectos.html" class="nav-link">PROYECTOS</a>
+    <a href="munet.html" class="nav-link">MUNET</a>
+    <a href="index.html#contacto" class="nav-link">CONTACTO</a>
+  </div>
+  <div class="nav-coords">LAT 19.4326 // LONG -99.1332</div>
+  <button class="nav-ham" id="ham" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="mob-drawer" id="mob">
+  <a href="index.html" class="mob-link">INICIO</a>
+  <a href="esencia.html" class="mob-link">ESENCIA</a>
+  <a href="servicios.html" class="mob-link active">SERVICIOS</a>
+  <a href="talento.html" class="mob-link">EQUIPO</a>
+  <a href="proyectos.html" class="mob-link">PROYECTOS</a>
+  <a href="munet.html" class="mob-link">MUNET</a>
+  <a href="index.html#contacto" class="mob-link">CONTACTO</a>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="sys-inner">
+    <div class="page-header-inner">
+      <div>
+        <a href="index.html" class="page-header-back">TERMINAL PRINCIPAL</a>
+        <div class="sys-label">MÓDULO_02</div>
+        <h1 class="page-header-title">SERVICIOS <span style="color:var(--gold)">BNK</span></h1>
+      </div>
+      <div class="page-header-meta">
+        STATUS: OPERATIONAL<br>
+        MODULES: 6 ACTIVE<br>
+        LAST UPDATE: 2026
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SERVICIOS -->
+<section class="svc-section">
+  <div class="sys-inner">
+    <div class="svc-grid">
+
+      <!-- ═══ FILA 1: SVC 01 + 02 ═══ -->
+      <div class="svc-panel rev" id="s01">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_01</div>
+          <div class="svc-name">Producción de Espectáculos</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">Diseño, producción técnica y logística de shows en gran formato. Tecnología escénica de clase mundial.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">Conciertos</span>
+            <span class="svc-tag">Shows masivos</span>
+            <span class="svc-tag">Corporativos</span>
+          </div>
+          <button class="svc-expand" data-expand="s01-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="svc-panel rev" id="s02">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_02</div>
+          <div class="svc-name">Giras Internacionales</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">Gestión integral de giras en México, Centroamérica y USA. Más de 30 arenas y estadios operados.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">México</span>
+            <span class="svc-tag">USA</span>
+            <span class="svc-tag">Centroamérica</span>
+          </div>
+          <button class="svc-expand" data-expand="s02-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expand panels fila 1 -->
+      <div class="svc-exp-panel" id="s01-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_01 // ESPECTACULOS.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <p>Ejecutamos proyectos de entretenimiento de cualquier escala. Audio, luz, video, efectos y logística integral.</p>
+            <ul class="svc-exp-list">
+              <li>Diseño y dirección de shows en gran formato</li>
+              <li>Producción técnica integral</li>
+              <li>Logística y coordinación de equipos</li>
+              <li>Eventos corporativos de alto perfil</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="svc-exp-panel" id="s02-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_02 // GIRAS_INTL.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <p>Booking y negociación de venues, production management, stage management y coordinación técnica en destino.</p>
+            <ul class="svc-exp-list">
+              <li>Booking y negociación de venues internacionales</li>
+              <li>Production Management en destino</li>
+              <li>Stage Management y site coordination</li>
+              <li>Gestión de riders técnicos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ FILA 2: SVC 03 + 04 ═══ -->
+      <div class="svc-panel rev" id="s03">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_03</div>
+          <div class="svc-name">Desarrollo Artístico</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">Dirección creativa, management estratégico y construcción de star systems con visión de largo plazo.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">Management</span>
+            <span class="svc-tag">A&amp;R</span>
+            <span class="svc-tag">Talento</span>
+          </div>
+          <button class="svc-expand" data-expand="s03-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="svc-panel rev" id="s04">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_04</div>
+          <div class="svc-name">Producción Audiovisual</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">TV, cine, plataformas digitales y streaming. Con estímulos fiscales para maximizar el retorno de inversión.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">TV</span>
+            <span class="svc-tag">Streaming</span>
+            <span class="svc-tag">Cine</span>
+          </div>
+          <button class="svc-expand" data-expand="s04-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expand panels fila 2 -->
+      <div class="svc-exp-panel" id="s03-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_03 // DEV_ARTISTICO.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <p>30+ años descubriendo y proyectando artistas al más alto nivel. De EMI Music México a las plataformas globales.</p>
+            <ul class="svc-exp-list">
+              <li>Dirección artistica y musical</li>
+              <li>A&amp;R y scouting de talento</li>
+              <li>Management estratégico</li>
+              <li>Vinculación con plataformas y medios</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="svc-exp-panel" id="s04-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_04 // AUDIOVISUAL.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <p>Producción de contenido de alto valor para los principales medios y plataformas con gestión de estímulos fiscales EFICINE.</p>
+            <ul class="svc-exp-list">
+              <li>Producción para TV abierta y plataformas OTT</li>
+              <li>Producción cinematográfica y soundtracks</li>
+              <li>Gestión de estímulos fiscales</li>
+              <li>Branded content audiovisual</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ FILA 3: SVC 05 + 06 ═══ -->
+      <div class="svc-panel svc-panel--feat rev" id="s05">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_05</div>
+          <div class="svc-name">Dirección de Venues</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">Operación estratégica de recintos icónicos. Experiencia directa en Auditorio Nacional, Foro GNP, Arena CDMX, Lunario, Madison Square Garden y más.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">Auditorio Nacional</span>
+            <span class="svc-tag">MUNET</span>
+            <span class="svc-tag">MSG Nueva York</span>
+            <span class="svc-tag">Estadio Azteca</span>
+          </div>
+
+          <!-- MUNET link -->
+          <div class="munet-inline munet-inline--compact">
+            <div class="munet-inline-badge">IN-HOUSE PRODUCER &middot; MUNET</div>
+            <a href="munet.html" class="hud-btn hud-btn--munet">
+              <span>VER MUNET</span><span class="hud-btn-arrow">&rarr;</span>
+            </a>
+          </div>
+
+          <button class="svc-expand" data-expand="s05-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="svc-panel rev" id="s06">
+        <div class="svc-panel-header">
+          <div class="svc-num">SVC_06</div>
+          <div class="svc-name">Streaming &amp; Difusión</div>
+          <div class="svc-status">ACTIVE</div>
+        </div>
+        <div class="svc-body">
+          <p class="svc-desc">Producción técnica para transmisiónes en vivo. Alcance digital global para cada espectáculo.</p>
+          <div class="svc-tags">
+            <span class="svc-tag">Live streaming</span>
+            <span class="svc-tag">Difusión</span>
+            <span class="svc-tag">Digital</span>
+          </div>
+          <button class="svc-expand" data-expand="s06-exp" aria-expanded="false">
+            <span>VER DETALLE</span><span class="svc-expand-ico">&darr;</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expand panels fila 3 -->
+      <div class="svc-exp-panel" id="s05-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_05 // VENUES_DIR.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <ul class="svc-exp-list">
+              <li>Operación técnica integral de recintos</li>
+              <li>Producción en venues de gran capacidad</li>
+              <li>Coordinación con promotores internacionales</li>
+              <li>Supervisión de riders técnicos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="svc-exp-panel" id="s06-exp">
+        <div class="svc-terminal">
+          <div class="svc-term-bar">
+            <span class="svc-term-title">SVC_06 // STREAMING.DAT</span>
+            <span class="svc-term-dots"><span></span><span></span><span></span></span>
+          </div>
+          <div class="svc-term-body">
+            <div class="svc-term-line">> LOADING MODULE DATA...</div>
+            <p>Llevamos cada espectáculo más allá del recinto físico con transmisiónes de máxima calidad.</p>
+            <ul class="svc-exp-list">
+              <li>Streaming multiplataforma</li>
+              <li>Cobertura audiovisual de eventos y giras</li>
+              <li>Postproducción y distribución de contenido</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="sys-section" style="border-top:1px solid var(--border)">
+  <div class="sys-inner" style="text-align:center">
+    <div class="sys-label" style="justify-content:center">SIGUIENTE PASO</div>
+    <p style="color:var(--text-mid);margin:16px 0 24px;font-size:var(--fs-md)">Necesitas alguno de nuestros servicios?</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="index.html#contacto" class="hud-btn hud-btn--primary">
+        <span>[ INICIAR COMUNICACIÓN ]</span><span class="hud-btn-arrow">&rarr;</span>
+      </a>
+      <a href="proyectos.html" class="hud-btn">
+        <span>VER PROYECTOS</span><span class="hud-btn-arrow">&rarr;</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="sys-footer">
+  <div class="sys-inner">
+    <div class="foot-brand">
+      <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy"></a>
+      <span class="foot-version">BNK-SYS V2.0 // 2026</span>
+    </div>
+    <div class="foot-center">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV<br>MÉXICO &middot; USA &middot; CENTROAMÉRICA &middot; ESPAÑA</div>
+    <div class="foot-links">
+      <a href="index.html" class="foot-link">Inicio</a>
+      <a href="proyectos.html" class="foot-link">Proyectos</a>
+      <a href="munet.html" class="foot-link">MUNET</a>
+      <a href="talento.html" class="foot-link">Equipo</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/system.js"></script>
+</body>
+</html>

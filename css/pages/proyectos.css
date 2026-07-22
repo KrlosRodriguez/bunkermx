@@ -1,0 +1,564 @@
+/* ============================================================
+   MODULO: ARCHIVO DE PROYECTOS — Dossier Grid
+   ============================================================ */
+
+/* ── Filters ── */
+.filter-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-bottom:40px;
+  padding:16px 0;
+  border-bottom:1px solid var(--border);
+}
+.f-btn{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:var(--text-dim);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:7px 16px;
+  border:1px solid var(--border);
+  background:transparent;
+  cursor:none;
+  transition:all var(--dur-fast);
+  clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px));
+  position:relative;
+}
+.f-btn::before{
+  content:'';
+  position:absolute;
+  left:4px;top:50%;
+  width:0;height:0;
+  border-radius:50%;
+  background:var(--gold);
+  transform:translateY(-50%);
+  transition:all var(--dur-fast);
+  box-shadow:none;
+}
+.f-btn:hover{
+  border-color:var(--border-gold);
+  color:var(--gold);
+}
+.f-btn.active{
+  background:var(--gold-dim);
+  border-color:var(--gold);
+  color:var(--gold);
+  padding-left:22px;
+}
+.f-btn.active::before{
+  width:5px;height:5px;
+  box-shadow:0 0 6px var(--gold);
+}
+
+/* ── Counter ── */
+.filter-count{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--text-dim);
+  letter-spacing:1px;
+  margin-left:auto;
+  align-self:center;
+  padding:4px 0;
+}
+.filter-count span{
+  color:var(--gold);
+}
+
+/* ── Project Grid ── */
+.proj-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:16px;
+}
+
+/* ── Project Card — Dossier Style ── */
+.proj-card{
+  position:relative;
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  clip-path:polygon(
+    0 0,
+    calc(100% - var(--clip-sm)) 0,
+    100% var(--clip-sm),
+    100% 100%,
+    var(--clip-sm) 100%,
+    0 calc(100% - var(--clip-sm))
+  );
+  transition:border-color var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+  cursor:none;
+  overflow:hidden;
+}
+
+/* Scan overlay on card */
+.proj-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 2px,
+    rgba(0,224,80,.01) 2px,rgba(0,224,80,.01) 4px
+  );
+  z-index:1;
+}
+
+/* Hover sweep effect */
+.proj-card::after{
+  content:'';
+  position:absolute;
+  top:0;left:-100%;
+  width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,224,80,.04),transparent);
+  pointer-events:none;
+  z-index:2;
+  transition:left .6s var(--ease-out);
+}
+.proj-card:hover::after{
+  left:100%;
+}
+
+.proj-card:hover{
+  border-color:var(--border-gold);
+  box-shadow:var(--glow-gold);
+  transform:translateY(-2px);
+}
+
+/* Category accent — left border */
+.proj-card-accent{
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:3px;
+  background:var(--gold);
+  opacity:.4;
+  transition:opacity var(--dur-fast);
+  z-index:3;
+}
+.proj-card:hover .proj-card-accent{
+  opacity:1;
+  box-shadow:0 0 8px rgba(0,224,80,.4);
+}
+
+/* Hover glow matches accent color per category */
+.proj-card[data-c="giras"]:hover{border-color:var(--border-terra);box-shadow:var(--glow-terra)}
+.proj-card[data-c="giras"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(10,132,255,.4)}
+.proj-card[data-c="management"]:hover{border-color:var(--border-munet);box-shadow:var(--glow-munet)}
+.proj-card[data-c="management"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(255,214,0,.4)}
+.proj-card[data-c="cine"]:hover{border-color:rgba(139,110,201,.25);box-shadow:0 0 12px rgba(139,110,201,.35),0 0 4px rgba(139,110,201,.2)}
+.proj-card[data-c="cine"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(139,110,201,.4)}
+.proj-card[data-c="discografia"]:hover{border-color:rgba(201,122,76,.25);box-shadow:0 0 12px rgba(201,122,76,.35),0 0 4px rgba(201,122,76,.2)}
+.proj-card[data-c="discografia"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(201,122,76,.4)}
+
+/* Accent colors per category */
+.proj-card[data-c="tv"] .proj-card-accent{background:var(--gold)}
+.proj-card[data-c="giras"] .proj-card-accent{background:var(--terra)}
+.proj-card[data-c="cine"] .proj-card-accent{background:#8B6EC9}
+.proj-card[data-c="management"] .proj-card-accent{background:var(--munet)}
+.proj-card[data-c="venues"] .proj-card-accent{background:var(--arena)}
+.proj-card[data-c="discografia"] .proj-card-accent{background:#C97A4C}
+
+/* Card header bar */
+.proj-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.proj-card-head::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,var(--gold-dim),transparent 60%);
+}
+
+.proj-card-year{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:var(--text-dim);
+  letter-spacing:2px;
+}
+
+.proj-card-badge{
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  color:var(--gold);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border:1px solid var(--border-gold);
+  clip-path:polygon(0 0,calc(100% - 3px) 0,100% 3px,100% 100%,3px 100%,0 calc(100% - 3px));
+}
+
+/* Badge colors */
+.proj-card[data-c="giras"] .proj-card-badge{color:var(--terra);border-color:rgba(10,132,255,.3)}
+.proj-card[data-c="cine"] .proj-card-badge{color:#8B6EC9;border-color:rgba(139,110,201,.3)}
+.proj-card[data-c="management"] .proj-card-badge{color:var(--munet);border-color:rgba(46,139,110,.3)}
+.proj-card[data-c="venues"] .proj-card-badge{color:var(--arena);border-color:rgba(184,189,179,.25)}
+.proj-card[data-c="discografia"] .proj-card-badge{color:#C97A4C;border-color:rgba(201,122,76,.3)}
+
+/* Card body */
+.proj-card-body{
+  padding:16px;
+  position:relative;
+  z-index:3;
+}
+
+.proj-card-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-md);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  line-height:1.2;
+  margin-bottom:6px;
+  color:var(--text);
+  transition:color var(--dur-fast);
+}
+.proj-card:hover .proj-card-name{
+  color:var(--gold-light);
+}
+
+.proj-card-role{
+  font-size:var(--fs-sm);
+  color:var(--text-dim);
+  line-height:1.5;
+}
+
+/* Card footer — decorative data readout */
+.proj-card-foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 16px;
+  border-top:1px solid var(--border);
+  position:relative;
+  z-index:3;
+}
+.proj-card-id{
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  color:var(--text-ghost);
+  letter-spacing:1px;
+}
+.proj-card-arrow{
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:var(--gold-dim);
+  transition:color var(--dur-fast), transform var(--dur-fast);
+}
+.proj-card:hover .proj-card-arrow{
+  color:var(--gold);
+  transform:translateX(4px);
+}
+
+/* ── Featured Card — 2 columns wide ── */
+.proj-card.featured{
+  grid-column:span 2;
+}
+.proj-card.featured .proj-card-body{
+  padding:20px;
+}
+.proj-card.featured .proj-card-name{
+  font-size:var(--fs-lg);
+}
+.proj-card.featured .proj-card-role{
+  font-size:var(--fs-base);
+  color:var(--text-mid);
+}
+
+/* Featured highlight line */
+.proj-card.featured .proj-card-head::after{
+  content:'DESTACADO';
+  font-family:'Space Mono',monospace;
+  font-size:7px;
+  color:var(--gold-dim);
+  letter-spacing:2px;
+  position:absolute;
+  right:80px;top:50%;
+  transform:translateY(-50%);
+}
+
+/* ── Expandable Card ── */
+.proj-card--expand{
+  cursor:none;
+}
+.proj-card--expand .proj-card-arrow{
+  transition:transform var(--dur-fast);
+}
+.proj-card--expand.open .proj-card-arrow{
+  transform:rotate(90deg);
+}
+
+.proj-card-expand{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height var(--dur-med) var(--ease-out);
+  border-top:none;
+}
+.proj-card-expand.open{
+  max-height:300px;
+  border-top:1px solid var(--border);
+}
+.proj-card-expand-inner{
+  padding:16px 20px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  background:rgba(0,224,80,.02);
+}
+.proj-card-expand-icon{
+  width:36px;height:36px;
+  border:1px solid var(--munet);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-sm);
+  color:var(--munet);
+  clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px));
+}
+.proj-card-expand-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-md);
+  font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.proj-card-expand-text{
+  font-size:var(--fs-sm);
+  color:var(--text-mid);
+  line-height:1.6;
+}
+
+/* ── Region Separators ── */
+.region-sep{
+  grid-column:1 / -1;
+  font-family:'Space Mono',monospace;
+  font-size:var(--fs-xs);
+  color:var(--gold);
+  letter-spacing:3px;
+  text-transform:uppercase;
+  padding:12px 0 4px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.region-sep::before{
+  content:'//';
+  color:var(--gold-dim);
+}
+.region-sep::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--gold-dim),transparent);
+}
+.region-sep .region-coords{
+  font-size:8px;
+  color:var(--text-ghost);
+  letter-spacing:1px;
+}
+
+/* ── Year Groups ── */
+.yr-group{
+  grid-column:1 / -1;
+}
+.yr-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  padding:14px 20px;
+  background:#0A0A0A;
+  border:1px solid var(--border);
+  border-left:3px solid var(--gold-dim);
+  cursor:none;
+  transition:border-color var(--dur-fast),background var(--dur-fast);
+  font-family:'Space Mono',monospace;
+}
+.yr-head:hover{
+  border-color:var(--border-gold);
+  border-left-color:var(--gold);
+  background:#0D0D0D;
+}
+.yr-head.open{
+  border-color:var(--gold-dim);
+  border-left-color:var(--gold);
+  background:#0D0D0D;
+  border-bottom-color:transparent;
+}
+.yr-mark{
+  font-size:10px;
+  color:var(--gold-dim);
+  letter-spacing:2px;
+}
+.yr-year{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:var(--fs-lg);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:3px;
+  color:var(--text);
+  transition:color var(--dur-fast);
+}
+.yr-head:hover .yr-year,
+.yr-head.open .yr-year{
+  color:var(--gold-light);
+}
+.yr-count{
+  font-size:9px;
+  color:var(--text-dim);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-left:auto;
+}
+.yr-ico{
+  font-size:12px;
+  color:var(--gold-dim);
+  transition:transform var(--dur-fast);
+}
+.yr-head.open .yr-ico{
+  transform:rotate(180deg);
+}
+
+/* Year cards container — collapsed by default */
+.yr-cards{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .5s var(--ease-out);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  border:1px solid var(--border);
+  border-top:none;
+  background:rgba(0,224,80,.01);
+  padding:0 16px;
+}
+.yr-cards.open{
+  max-height:3000px;
+  padding:16px;
+}
+
+/* Featured cards inside yr-cards */
+.yr-cards .proj-card.featured{
+  grid-column:span 2;
+}
+
+/* ── Filtered mode — hide year groups, show cards flat ── */
+.proj-grid--filtered .yr-group{
+  display:contents;
+}
+.proj-grid--filtered .yr-head{
+  display:none;
+}
+.proj-grid--filtered .yr-cards{
+  display:contents;
+  max-height:none;
+  overflow:visible;
+  border:none;
+  background:none;
+  padding:0;
+}
+
+/* ── Filter Transition States ── */
+.proj-card.hidden{
+  display:none;
+}
+.proj-card.fading-out{
+  opacity:0;
+  transform:scale(.95);
+  transition:opacity .2s, transform .2s;
+}
+.proj-card.fading-in{
+  animation:card-enter .4s var(--ease-out) forwards;
+}
+
+@keyframes card-enter{
+  from{
+    opacity:0;
+    transform:translateY(16px) scale(.97);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+/* ── Stagger delays for reveal ── */
+.proj-card.rev:nth-child(1){transition-delay:.05s}
+.proj-card.rev:nth-child(2){transition-delay:.1s}
+.proj-card.rev:nth-child(3){transition-delay:.15s}
+.proj-card.rev:nth-child(4){transition-delay:.2s}
+.proj-card.rev:nth-child(5){transition-delay:.25s}
+.proj-card.rev:nth-child(6){transition-delay:.3s}
+.proj-card.rev:nth-child(7){transition-delay:.35s}
+.proj-card.rev:nth-child(8){transition-delay:.4s}
+.proj-card.rev:nth-child(9){transition-delay:.45s}
+
+/* ── Responsive: Tablet ── */
+@media(max-width:1024px){
+  .proj-grid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
+  }
+  .proj-card.featured{
+    grid-column:span 2;
+  }
+  .yr-cards{
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+}
+
+/* ── Responsive: Mobile ── */
+@media(max-width:640px){
+  .proj-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .proj-card.featured{
+    grid-column:span 1;
+  }
+  .proj-card.featured .proj-card-head::after{
+    display:none;
+  }
+  .proj-card-name{
+    font-size:var(--fs-base);
+  }
+  .proj-card.featured .proj-card-name{
+    font-size:var(--fs-md);
+  }
+  .filter-bar{
+    gap:4px;
+  }
+  .f-btn{
+    font-size:9px;
+    padding:4px 8px;
+  }
+  .f-btn.active{
+    padding-left:16px;
+  }
+  .filter-count{
+    width:100%;
+    text-align:right;
+    margin-left:0;
+  }
+  .yr-cards{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  .yr-cards .proj-card.featured{
+    grid-column:span 1;
+  }
+  .yr-head{
+    padding:10px 14px;
+    gap:8px;
+  }
+  .yr-year{
+    font-size:var(--fs-md);
+  }
+}

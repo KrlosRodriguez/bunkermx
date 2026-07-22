@@ -1,0 +1,411 @@
+/* ============================================================
+   MODULO: DIRECTORIO DE TALENTO — ID CARDS
+   ============================================================ */
+
+.team-section{
+  padding:var(--space-section) 0;
+}
+.team-intro{
+  color:var(--text-mid);
+  font-size:var(--fs-md);
+  line-height:1.6;
+  max-width:700px;
+  margin-bottom:48px;
+}
+
+/* ── ID Card Grid ── */
+.team-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+}
+
+/* ── ID Card ── */
+.id-card{
+  background:#0A0A0A;
+  border:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;
+}
+.id-card:hover{
+  border-color:var(--gold-dim);
+  box-shadow:0 0 20px rgba(0,224,80,.08);
+}
+.id-card::after{
+  content:'';
+  position:absolute;inset:0;
+  pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,224,80,.01) 2px,rgba(0,224,80,.01) 4px);
+}
+
+/* Header bar */
+.id-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 16px;
+  border-bottom:1px solid var(--border);
+  background:#111;
+}
+.id-header-label{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--text-dim);
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+.id-header-code{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--gold-dim);
+  letter-spacing:2px;
+}
+
+/* Body — photo + data */
+.id-body{
+  display:grid;
+  grid-template-columns:140px 1fr;
+  gap:20px;
+  padding:20px;
+  position:relative;
+  z-index:1;
+}
+
+/* Photo area */
+.id-photo{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+.id-photo-frame{
+  width:120px;
+  height:140px;
+  border:1px solid var(--border-gold);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--gold-ultra);
+  position:relative;
+  overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;
+}
+.id-card:hover .id-photo-frame{
+  box-shadow:0 0 16px rgba(0,224,80,.15);
+}
+.id-photo-frame::before{
+  content:'';
+  position:absolute;
+  inset:3px;
+  border:1px solid rgba(0,224,80,.1);
+  pointer-events:none;
+}
+.id-photo-frame img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.id-photo-init{
+  font-family:'Space Mono',monospace;
+  font-size:36px;
+  font-weight:700;
+  color:var(--gold);
+  letter-spacing:4px;
+}
+.id-photo-status{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  color:var(--munet);
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+.id-dot{
+  width:5px;height:5px;
+  background:var(--munet);
+  border-radius:50%;
+  animation:pulse-dot 2s infinite;
+}
+
+/* Data fields (always visible) */
+.id-data{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+  z-index:1;
+}
+.id-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(16px,2vw,20px);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:var(--text);
+  padding-bottom:8px;
+  border-bottom:2px solid var(--gold-dim);
+  margin-bottom:4px;
+}
+.id-field{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  color:var(--text-mid);
+  line-height:1.6;
+}
+.id-label{
+  color:var(--gold);
+  font-weight:700;
+  letter-spacing:1px;
+}
+
+/* Hover prompt */
+.id-prompt{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--gold-dim);
+  letter-spacing:1px;
+  margin-top:6px;
+  animation:blink-cursor 1s step-end infinite;
+  border-right:2px solid var(--gold-dim);
+  display:inline-block;
+  padding-right:4px;
+  transition:opacity .3s;
+}
+.id-card:hover .id-prompt{
+  opacity:0;
+}
+
+/* ── Expand panel (hidden by default, reveals on hover) ── */
+.id-expand{
+  max-height:0;
+  overflow:hidden;
+  padding:0 20px;
+  border-top:1px solid transparent;
+  background:rgba(0,224,80,.02);
+  transition:max-height .5s ease-out,padding .4s,border-color .3s;
+  position:relative;
+  z-index:1;
+}
+.id-card:hover .id-expand{
+  max-height:400px;
+  padding:16px 20px;
+  border-top-color:var(--border);
+}
+.id-expand-line{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--gold);
+  letter-spacing:1px;
+  margin-bottom:10px;
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .3s .1s,transform .3s .1s;
+}
+.id-card:hover .id-expand-line{
+  opacity:1;
+  transform:translateY(0);
+}
+.id-expand-field{
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  color:var(--text-mid);
+  line-height:1.7;
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .3s .2s,transform .3s .2s;
+}
+.id-card:hover .id-expand-field{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* Tags */
+.id-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:10px;
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .3s .35s,transform .3s .35s;
+}
+.id-card:hover .id-tags{
+  opacity:1;
+  transform:translateY(0);
+}
+.id-tag{
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  color:var(--text-dim);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:2px 7px;
+  border:1px solid var(--border);
+  transition:border-color var(--dur-fast),color var(--dur-fast);
+}
+.id-tag:hover{
+  border-color:var(--border-gold);
+  color:var(--gold);
+}
+
+/* Footer */
+.id-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:6px 16px;
+  border-top:1px solid var(--border);
+  background:#0D0D0D;
+  font-family:'Space Mono',monospace;
+  font-size:8px;
+  color:var(--text-dim);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  position:relative;
+  z-index:1;
+}
+.id-footer-coords{
+  color:var(--gold-dim);
+}
+
+/* BNK Team variant */
+.id-card--bnk{
+  border-color:var(--border-gold);
+}
+.id-card--bnk .id-header{
+  border-bottom-color:var(--border-gold);
+}
+.id-card--bnk .id-photo-frame{
+  border-color:var(--gold);
+  background:var(--gold-dim);
+}
+.id-card--bnk .id-photo-init{
+  color:var(--gold-light);
+}
+
+/* ── Responsive ── */
+@media(max-width:1024px){
+  .team-grid{grid-template-columns:1fr}
+  .id-body{grid-template-columns:120px 1fr;gap:16px;padding:16px}
+}
+
+/* Mobile: tap to expand */
+@media(max-width:768px){
+  .id-prompt{display:none}
+  .id-card{
+    cursor:pointer;
+    border-color:var(--border-mid,rgba(255,255,255,.12));
+    margin-bottom:8px;
+  }
+  .id-card--bnk{
+    border-color:var(--gold-dim);
+  }
+  .id-header{
+    background:rgba(0,224,80,.06);
+    border-bottom-color:var(--border-mid,rgba(255,255,255,.12));
+  }
+  .id-footer{
+    border-top-color:var(--border-mid,rgba(255,255,255,.12));
+  }
+
+  /* Expand stays collapsed until tapped */
+  .id-expand{
+    max-height:0;
+    overflow:hidden;
+    padding:0 20px;
+    border-top-color:transparent;
+  }
+
+  /* Tap prompt replaces hover prompt */
+  .id-card::before{
+    content:'> TAP PARA VER EXPEDIENTE';
+    display:block;
+    font-family:'Space Mono',monospace;
+    font-size:8px;
+    color:var(--gold-dim);
+    letter-spacing:1px;
+    text-align:right;
+    padding:4px 16px 0;
+  }
+  .id-card.expanded::before{
+    content:'> EXPEDIENTE ABIERTO — TAP PARA CERRAR';
+  }
+
+  /* When tapped open */
+  .id-card.expanded .id-expand{
+    max-height:500px;
+    padding:16px 20px;
+    border-top-color:var(--border);
+    overflow:visible;
+  }
+  .id-card.expanded .id-expand-line,
+  .id-card.expanded .id-expand-field,
+  .id-card.expanded .id-tags{
+    opacity:1;
+    transform:none;
+  }
+  .id-card.expanded{
+    border-color:var(--gold-dim);
+  }
+}
+@media(max-width:640px){
+  .team-grid{
+    gap:20px;
+  }
+  .id-body{
+    grid-template-columns:1fr;
+    gap:12px;
+    padding:16px;
+  }
+  .id-photo{
+    flex-direction:row;
+    align-items:center;
+    gap:14px;
+  }
+  .id-photo-frame{
+    width:72px;
+    height:86px;
+    flex-shrink:0;
+  }
+  .id-photo-init{font-size:22px}
+  .id-photo-status{font-size:7px}
+  .id-title{
+    font-size:13px;
+    letter-spacing:1.5px;
+    padding-bottom:6px;
+  }
+  .id-field{font-size:10px}
+  .id-expand{
+    padding:12px 16px;
+  }
+  .id-expand-field{
+    font-size:10px;
+    line-height:1.6;
+  }
+  .id-expand-line{
+    font-size:8px;
+    margin-bottom:8px;
+  }
+  .id-tags{
+    gap:4px;
+    margin-top:8px;
+  }
+  .id-tag{
+    font-size:7px;
+    padding:3px 6px;
+  }
+  .id-header{
+    padding:6px 12px;
+  }
+  .id-header-label,
+  .id-header-code{
+    font-size:8px;
+  }
+  .id-footer{
+    padding:5px 12px;
+    font-size:7px;
+  }
+}

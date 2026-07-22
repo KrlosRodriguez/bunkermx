@@ -1,0 +1,41 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/node_modules/**",
+      "assets/**",
+      "**/*.psd",
+      "bunker_v2.html",
+      "document_pdf*.pdf",
+      "capturas/**",
+      "CLAUDE.md",
+      "simulador de cotizaciones/**",
+      ".tmp.driveupload/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/cotizador-munet",
+        "destination": "/cotizador-munet/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.webp",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000" }
+        ]
+      },
+      {
+        "source": "**/*.{css,js}",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=604800" }
+        ]
+      }
+    ]
+  }
+}

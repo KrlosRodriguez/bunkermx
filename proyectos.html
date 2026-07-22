@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCHIVO DE PROYECTOS | BUNKER SYSTEM V2.0</title>
+<meta name="description" content="Trayectoria completa de BUNKER: TV, giras, cine, management, venues y discografía desde 1991.">
+<link rel="icon" type="image/png" href="img/logo-bunker.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/system.css">
+<link rel="stylesheet" href="css/pages/servicios.css">
+<link rel="stylesheet" href="css/pages/proyectos.css">
+<script src="js/login-gate.js"></script>
+</head>
+<body>
+
+<div class="sys-grid-bg"></div>
+<div class="scan-sweep"></div>
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="curR"></div>
+<div class="page-transition" id="page-transition">
+  <div class="pt-text">CARGANDO MÓDULO: PROYECTOS</div>
+  <div class="pt-bar"><div class="pt-bar-fill"></div></div>
+</div>
+
+<!-- NAV -->
+<nav class="sys-nav" role="navigation">
+  <div class="nav-brand">
+    <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="eager"></a>
+    <span class="sys-tag">SYS V2.0</span>
+  </div>
+  <div class="nav-status"><span class="nav-status-dot"></span><span>SYSTEM ONLINE</span></div>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">INICIO</a>
+    <a href="esencia.html" class="nav-link">ESENCIA</a>
+    <a href="servicios.html" class="nav-link">SERVICIOS</a>
+    <a href="talento.html" class="nav-link">EQUIPO</a>
+    <a href="proyectos.html" class="nav-link active">PROYECTOS</a>
+    <a href="munet.html" class="nav-link">MUNET</a>
+    <a href="index.html#contacto" class="nav-link">CONTACTO</a>
+  </div>
+  <div class="nav-coords">LAT 19.4326 // LONG -99.1332</div>
+  <button class="nav-ham" id="ham" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+</nav>
+<div class="mob-drawer" id="mob">
+  <a href="index.html" class="mob-link">INICIO</a>
+  <a href="esencia.html" class="mob-link">ESENCIA</a>
+  <a href="servicios.html" class="mob-link">SERVICIOS</a>
+  <a href="talento.html" class="mob-link">EQUIPO</a>
+  <a href="proyectos.html" class="mob-link active">PROYECTOS</a>
+  <a href="munet.html" class="mob-link">MUNET</a>
+  <a href="index.html#contacto" class="mob-link">CONTACTO</a>
+</div>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="sys-inner">
+    <div class="page-header-inner">
+      <div>
+        <a href="index.html" class="page-header-back">TERMINAL PRINCIPAL</a>
+        <div class="sys-label">MÓDULO_04</div>
+        <h1 class="page-header-title">ARCHIVO DE <span style="color:var(--gold)">PROYECTOS</span></h1>
+      </div>
+      <div class="page-header-meta">
+        RECORDS: 27+<br>
+        CATEGORIES: 6<br>
+        RANGE: 1991 — 2025
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROYECTOS -->
+<section class="sys-section">
+  <div class="sys-inner">
+
+    <!-- Filters -->
+    <div class="filter-bar rev">
+      <button class="f-btn active" data-f="all">TODOS</button>
+      <button class="f-btn" data-f="tv">TV &amp; STREAMING</button>
+      <button class="f-btn" data-f="giras">GIRAS &amp; SHOWS</button>
+      <button class="f-btn" data-f="cine">CINE &amp; MÚSICA</button>
+      <button class="f-btn" data-f="management">MANAGEMENT</button>
+      <button class="f-btn" data-f="venues">VENUES</button>
+      <button class="f-btn" data-f="discografia">DISCOGRAFÍA</button>
+      <div class="filter-count">MOSTRANDO: <span id="projCount">27</span> REGISTROS</div>
+    </div>
+
+    <!-- Project Grid -->
+    <div class="proj-grid" id="projGrid">
+
+      <!-- ═══ YEAR GROUPS (visible in TODOS mode) ═══ -->
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2025"><span class="yr-mark">//</span><span class="yr-year">2025</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="giras"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2025</span><span class="proj-card-badge">Giras</span></div><div class="proj-card-body"><div class="proj-card-name">Cañaveral &mdash; Gira Huipipi</div><div class="proj-card-role">Production Manager &middot; México, Centroamérica y USA</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-027</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2024"><span class="yr-mark">//</span><span class="yr-year">2024</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card featured" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2024</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">La Academia 2024</div><div class="proj-card-role">Productor Creativo y Director &middot; TV Azteca &middot; Continuación del programa #1 de México</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-026</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2023"><span class="yr-mark">//</span><span class="yr-year">2023</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="giras"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2023</span><span class="proj-card-badge">Giras</span></div><div class="proj-card-body"><div class="proj-card-name">Temerarios &mdash; Gira Hasta Siempre</div><div class="proj-card-role">Stage Manager &amp; Site Coordinator &middot; México, USA y Centroamérica</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-025</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2022"><span class="yr-mark">//</span><span class="yr-year">2022</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="management"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2022</span><span class="proj-card-badge">Mgmt</span></div><div class="proj-card-body"><div class="proj-card-name">Polinesios &mdash; Producción Creativa Musical</div><div class="proj-card-role">Productor Creativo &middot; Creadores de contenido más importantes de habla hispana</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-024</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="management"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2022</span><span class="proj-card-badge">Show</span></div><div class="proj-card-body"><div class="proj-card-name">Museo Frida Kahlo &mdash; Experiencia Sensorial</div><div class="proj-card-role">Productor Creativo &middot; Tulum, Los Cabos &amp; Gira LATAM</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-023</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2021"><span class="yr-mark">//</span><span class="yr-year">2021</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="cine"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2021</span><span class="proj-card-badge">Cine</span></div><div class="proj-card-body"><div class="proj-card-name">Sexo, Pudor y Lágrimas 2</div><div class="proj-card-role">Soundtrack &middot; Producción cinematográfica</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-022</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card featured" data-c="giras"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2021</span><span class="proj-card-badge">Show</span></div><div class="proj-card-body"><div class="proj-card-name">Catarsis</div><div class="proj-card-role">Productor General &middot; Espectáculo más impresionante de México &middot; Producción a gran escala</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-021</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2020"><span class="yr-mark">//</span><span class="yr-year">2020</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2020</span><span class="proj-card-badge">Stream</span></div><div class="proj-card-body"><div class="proj-card-name">Sobrevivi &mdash; YouTube Prime</div><div class="proj-card-role">Productor Musical &middot; Primera serie en español para YouTube Prime</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-020</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2020</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">México Tiene Talento</div><div class="proj-card-role">Director y Talento &middot; TV Azteca</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-019</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2019"><span class="yr-mark">//</span><span class="yr-year">2019</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2019</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">The People's League</div><div class="proj-card-role">Productor Musical &middot; TV Azteca</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-018</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2018"><span class="yr-mark">//</span><span class="yr-year">2018</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card featured" data-c="giras"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2018</span><span class="proj-card-badge">Giras</span></div><div class="proj-card-body"><div class="proj-card-name">J Balvin &mdash; World Tour</div><div class="proj-card-role">Director Nacional &middot; Proshowproductions &middot; Show mundial de uno de los artistas más grandes del reggaeton</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-017</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card featured" data-c="giras"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2018</span><span class="proj-card-badge">Corp</span></div><div class="proj-card-body"><div class="proj-card-name">Herbalife &mdash; Evento Corporativo</div><div class="proj-card-role">Director Nacional &middot; Evento corporativo de alto nivel</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-016</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2017"><span class="yr-mark">//</span><span class="yr-year">2017</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2017</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">Nada Personal &mdash; TV Azteca</div><div class="proj-card-role">Soundtrack &middot; Producción Musical</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-015</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2014"><span class="yr-mark">//</span><span class="yr-year">2014</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="management"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2014</span><span class="proj-card-badge">Mgmt</span></div><div class="proj-card-body"><div class="proj-card-name">Azteca Music &amp; Entertainment</div><div class="proj-card-role">Director &middot; Estrategia artistica, editora musical y joint ventures &middot; TV Azteca</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-014</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2013"><span class="yr-mark">//</span><span class="yr-year">2013</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2013</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">Conecta y Canta</div><div class="proj-card-role">Productor Creativo y Musical &middot; BTF / Disney</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-013</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2010"><span class="yr-mark">//</span><span class="yr-year">2010</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="management"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2010</span><span class="proj-card-badge">Mgmt</span></div><div class="proj-card-body"><div class="proj-card-name">Univision Networks &mdash; Dirección de Talento</div><div class="proj-card-role">Director de Desarrollo de Talento &amp; Música &middot; Univision, UniMás, Galavisión</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-012</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2010</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">Soy Tu Doble</div><div class="proj-card-role">Director y Talento &middot; TV Azteca</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-011</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2006"><span class="yr-mark">//</span><span class="yr-year">2006</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2006</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">Premios de la Radio &mdash; Los Angeles</div><div class="proj-card-role">Productor Creativo &middot; Principal galardón música regional mexicana en USA</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-010</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2005"><span class="yr-mark">//</span><span class="yr-year">2005</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2005</span><span class="proj-card-badge">Show</span></div><div class="proj-card-body"><div class="proj-card-name">Latin Grammys &mdash; Presentaciones Especiales</div><div class="proj-card-role">Director Artístico &middot; Duetos, tríos y momentos especiales</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-009</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card featured" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2005</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">Selena Vive! &mdash; Univision</div><div class="proj-card-role">Director Artístico &middot; Programa más visto en historia de la TV latina USA &middot; +20 artistas &middot; Momento histórico</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-008</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2004"><span class="yr-mark">//</span><span class="yr-year">2004</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="cine"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2004</span><span class="proj-card-badge">Música</span></div><div class="proj-card-body"><div class="proj-card-name">Chavela Vargas &mdash; Desde Carnegie Hall NY</div><div class="proj-card-role">Producción discográfica &middot; Disco de culto en Europa y mercado anglo USA</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-007</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="cine"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2004</span><span class="proj-card-badge">Cine</span></div><div class="proj-card-body"><div class="proj-card-name">Rosario Tijeras &middot; Vivir Mata &middot; Puños Rosas</div><div class="proj-card-role">Soundtracks &middot; Coproducción México, España, Colombia y Brasil</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-006</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="2001"><span class="yr-mark">//</span><span class="yr-year">2001</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card featured" data-c="tv"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2001</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">La Academia &mdash; TV Azteca</div><div class="proj-card-role">Director Artístico y Talento &middot; Programa #1 de México &middot; +4M discos vendidos &middot; Fenómeno cultural</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-005</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="1999"><span class="yr-mark">//</span><span class="yr-year">1999</span><span class="yr-count">2 REGISTROS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card" data-c="cine"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">1999</span><span class="proj-card-badge">Cine</span></div><div class="proj-card-body"><div class="proj-card-name">Sexo, Pudor y Lágrimas &mdash; Soundtrack</div><div class="proj-card-role">Producción Musical &middot; Pelicula que abrio el mercado hispanohablante</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-004</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="cine"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">1999</span><span class="proj-card-badge">TV</span></div><div class="proj-card-body"><div class="proj-card-name">DKDA &middot; Primer Amor &middot; Sentimientos Ajenos</div><div class="proj-card-role">Soundtracks &middot; Telenovelas Televisa &middot; EMI Music México</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-003</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <div class="yr-group rev"><button class="yr-head" data-yr="1991"><span class="yr-mark">//</span><span class="yr-year">1991</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card featured" data-c="management"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">1991</span><span class="proj-card-badge">Mgmt</span></div><div class="proj-card-body"><div class="proj-card-name">EMI Music México &mdash; A&amp;R &amp; General Manager</div><div class="proj-card-role">10 años &middot; Empresa #2 del mercado &middot; Thalía, Paulina Rubio, Alejandra Guzmán &middot; Inicio de carrera</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-001</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <!-- ═══ VENUES ═══ -->
+      <div class="yr-group yr-group--venues rev"><button class="yr-head" data-yr="venues"><span class="yr-mark">//</span><span class="yr-year">VENUES</span><span class="yr-count">17 RECINTOS</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="region-sep" data-region>MÉXICO <span class="region-coords">LAT 19.43 // LONG -99.13</span></div>
+        <div class="proj-card proj-card--expand" data-c="venues" id="munetProjCard"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2024</span><span class="proj-card-badge" style="border-color:rgba(46,139,110,.3);color:var(--munet)">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">MUNET &mdash; Museo Nacional de Energía y Tecnología</div><div class="proj-card-role">Productora In-House &middot; Supervisión y producción exclusiva</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V01</span><span class="proj-card-arrow">&darr;</span></div><div class="proj-card-expand" id="munetProjExp"><div class="proj-card-expand-inner"><div class="proj-card-expand-icon">M</div><div><div class="proj-card-expand-title">Productora In-House del MUNET</div><p class="proj-card-expand-text">Supervisamos y producimos todos los eventos del Museo Nacional de Energía y Tecnología, siendo el brazo auxiliar exclusivo de BUNKER CREATIVIDAD EMPRESARIAL, SAPI SA de CV para este complejo cultural de vanguardia.</p></div></div></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">1996</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Auditorio Nacional &mdash; 18 Años</div><div class="proj-card-role">Subdirector de Producción &middot; Venue icónico de México</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V02</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Foro Sol / Foro GNP</div><div class="proj-card-role">Production Manager &middot; +65,000 personas</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V03</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Estadio Azteca</div><div class="proj-card-role">Production Manager &middot; Estadio más grande de México y Latinoamérica</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V04</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Arena Ciudad de México</div><div class="proj-card-role">Production Manager &middot; Principal arena de la capital</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V05</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2014</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Lunario del Auditorio Nacional</div><div class="proj-card-role">Director de Producción &middot; Conciertos y eventos especiales</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V06</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Teatro Macedonio Alcalá &mdash; Oaxaca</div><div class="proj-card-role">Productor &middot; Sede Pasatono Orquesta</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V07</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Arena Monterrey</div><div class="proj-card-role">Production Manager &middot; Principal arena del norte</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V08</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Arena VFG Guadalajara</div><div class="proj-card-role">Production Manager &middot; Principal arena del occidente</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V09</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Explanada de los Heroes &mdash; Monterrey</div><div class="proj-card-role">Production Manager &middot; Eventos masivos al aire libre</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V10</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="region-sep" data-region>ESTADOS UNIDOS <span class="region-coords">LAT 34.05 // LONG -118.24</span></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Madison Square Garden &mdash; Nueva York</div><div class="proj-card-role">Production Manager &middot; El venue más famoso del mundo</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V11</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">BMO Stadium &mdash; Los Angeles</div><div class="proj-card-role">Production Manager &middot; Mercado latino más importante de USA</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V12</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Honda Center &mdash; Anaheim</div><div class="proj-card-role">Production Manager &middot; Sur de California</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V13</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2005</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Carnegie Hall &mdash; Nueva York</div><div class="proj-card-role">Productor &middot; Chavela Vargas &middot; Recinto más prestigioso</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V14</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">American Airlines Arena &mdash; Miami</div><div class="proj-card-role">Production Manager &middot; Principal venue del sureste de USA</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V15</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Toyota Center &mdash; Houston</div><div class="proj-card-role">Production Manager &middot; Principal mercado latino del sur de Texas</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V16</span><span class="proj-card-arrow">&rarr;</span></div></div>
+        <div class="region-sep" data-region>CENTROAMÉRICA <span class="region-coords">LAT 14.63 // LONG -90.51</span></div>
+        <div class="proj-card" data-c="venues"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">&mdash;</span><span class="proj-card-badge">Venue</span></div><div class="proj-card-body"><div class="proj-card-name">Guatemala &middot; Costa Rica &middot; El Salvador &middot; Honduras</div><div class="proj-card-role">Production Manager &middot; Giras Temerarios y Cañaveral &middot; +10 venues</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-V17</span><span class="proj-card-arrow">&rarr;</span></div></div>
+      </div></div>
+
+      <!-- ═══ DISCOGRAFÍA ═══ -->
+      <div class="yr-group yr-group--disc rev"><button class="yr-head" data-yr="discografia"><span class="yr-mark">//</span><span class="yr-year">DISCOGRAFÍA</span><span class="yr-count">1 REGISTRO</span><span class="yr-ico">&darr;</span></button><div class="yr-cards">
+        <div class="proj-card proj-card--expand" data-c="discografia" id="pasatonoCard"><div class="proj-card-accent"></div><div class="proj-card-head"><span class="proj-card-year">2025</span><span class="proj-card-badge">Disc</span></div><div class="proj-card-body"><div class="proj-card-name">Pasatono Orquesta</div><div class="proj-card-role">Producción Musical &middot; Teatro Macedonio Alcalá, Oaxaca</div></div><div class="proj-card-foot"><span class="proj-card-id">BNK-D01</span><span class="proj-card-arrow">&darr;</span></div><div class="proj-card-expand" id="pasatonoExp"><div class="proj-card-expand-inner"><div class="proj-card-expand-icon">P</div><div><div class="proj-card-expand-title">Pasatono Orquesta — Oaxaca</div><p class="proj-card-expand-text">El objetivo de este proyecto es enlazar y producir un concierto con un concepto musical completamente nuevo e innovador entre el pasado y el presente, presentados en el Teatro Macedonio Alcalá — el recinto más emblemático de Oaxaca.</p></div></div></div></div>
+      </div></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="sys-footer">
+  <div class="sys-inner">
+    <div class="foot-brand">
+      <a href="index.html"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy"></a>
+      <span class="foot-version">BNK-SYS V2.0 // 2026</span>
+    </div>
+    <div class="foot-center">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV<br>MÉXICO &middot; USA &middot; CENTROAMÉRICA &middot; ESPAÑA</div>
+    <div class="foot-links">
+      <a href="index.html" class="foot-link">Inicio</a>
+      <a href="servicios.html" class="foot-link">Servicios</a>
+      <a href="munet.html" class="foot-link">MUNET</a>
+      <a href="talento.html" class="foot-link">Equipo</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/system.js"></script>
+<script src="js/pages/proyectos.js"></script>
+</body>
+</html>

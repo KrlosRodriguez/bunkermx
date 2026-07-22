@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUNET — Simulador de Costos</title>
+<meta name="description" content="Cotizador de espacios para eventos en el MUNET — Museo Nacional de Energía y Tecnología.">
+<link rel="icon" type="image/webp" href="../img/logo-bunker.webp">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="js/login-gate.js"></script>
+<link rel="stylesheet" href="css/cotizador-munet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+
+<div class="sys-grid-bg"></div>
+<div class="cur" id="cur"></div>
+<div class="cur-r" id="curR"></div>
+
+<!-- NAV -->
+<nav class="v2-nav">
+  <img src="../img/logo-munet.webp" alt="MUNET" class="v2-nav-logo-munet">
+  <div class="v2-nav-links">
+    <span class="v2-nav-tag">SIMULADOR DE COSTOS</span>
+    <span class="v2-nav-sep">&middot;</span>
+    <span class="v2-nav-tag">RENTA DE ESPACIOS</span>
+    <span class="v2-nav-sep">&middot;</span>
+    <span class="v2-nav-tag">2026</span>
+  </div>
+  <img src="../img/logo-bunker-full.webp" alt="BUNKER" class="v2-nav-logo-bunker">
+</nav>
+
+<!-- WIZARD -->
+<main class="v2-main">
+
+  <!-- PASO 1 — DATOS DE CONTACTO -->
+  <section class="v2-step v2-step--active" id="step1">
+    <div class="v2-step-header" data-step="1">
+      <div class="v2-step-number">01</div>
+      <div class="v2-step-title">DATOS DE CONTACTO</div>
+      <div class="v2-step-status">
+        <span class="v2-status-icon v2-status-icon--edit">&#9998;</span>
+        <span class="v2-status-icon v2-status-icon--check">&#10003;</span>
+        <span class="v2-status-icon v2-status-icon--lock">&#9608;</span>
+      </div>
+    </div>
+    <div class="v2-step-body">
+      <div class="v2-form">
+        <div class="v2-field">
+          <label class="v2-field-label" for="v2Cliente">NOMBRE DEL CLIENTE</label>
+          <input type="text" class="v2-field-input" id="v2Cliente" placeholder="Nombre completo o razón social">
+        </div>
+        <div class="v2-field">
+          <label class="v2-field-label" for="v2Agencia">PRODUCTORA / AGENCIA</label>
+          <input type="text" class="v2-field-input" id="v2Agencia" placeholder="Opcional">
+        </div>
+        <div class="v2-field">
+          <label class="v2-field-label" for="v2Contacto">NOMBRE DEL CONTACTO</label>
+          <input type="text" class="v2-field-input" id="v2Contacto" placeholder="Persona de contacto">
+        </div>
+        <div class="v2-field-row">
+          <div class="v2-field">
+            <label class="v2-field-label" for="v2Telefono">TELÉFONO</label>
+            <input type="tel" class="v2-field-input" id="v2Telefono" placeholder="+52 55 1234 5678">
+          </div>
+          <div class="v2-field">
+            <label class="v2-field-label" for="v2Correo">CORREO ELECTRÓNICO</label>
+            <input type="email" class="v2-field-input" id="v2Correo" placeholder="correo@ejemplo.com">
+          </div>
+        </div>
+        <div class="v2-field-row">
+          <div class="v2-field">
+            <label class="v2-field-label" for="v2FechaInicio">FECHA INICIO</label>
+            <input type="date" class="v2-field-input" id="v2FechaInicio">
+          </div>
+          <div class="v2-field">
+            <label class="v2-field-label" for="v2FechaFin">FECHA FIN</label>
+            <input type="date" class="v2-field-input" id="v2FechaFin">
+          </div>
+        </div>
+        <div class="v2-field-row">
+          <div class="v2-field">
+            <label class="v2-field-label" for="v2Asistentes">ASISTENTES ESPERADOS</label>
+            <input type="number" class="v2-field-input" id="v2Asistentes" placeholder="Número aprox." min="1">
+          </div>
+          <div class="v2-field"></div>
+        </div>
+      </div>
+      <div class="v2-step-next">
+        <button class="v2-next-btn" id="btnNext1" disabled>CONTINUAR &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 2 — TIPO DE EVENTO -->
+  <section class="v2-step v2-step--locked" id="step2">
+    <div class="v2-step-header" data-step="2">
+      <div class="v2-step-number">02</div>
+      <div class="v2-step-title">TIPO DE EVENTO</div>
+      <div class="v2-step-status">
+        <span class="v2-status-icon v2-status-icon--edit">&#9998;</span>
+        <span class="v2-status-icon v2-status-icon--check">&#10003;</span>
+        <span class="v2-status-icon v2-status-icon--lock">&#9608;</span>
+      </div>
+    </div>
+    <div class="v2-step-body">
+      <div class="v2-sub-label">MODALIDAD</div>
+      <div class="v2-tipo-grid">
+        <div class="v2-tipo-btn active" data-tipo="privado">
+          <div class="v2-tipo-name">PRIVADO</div>
+          <div class="v2-tipo-desc">CORPORATIVO · SOCIAL · BODA</div>
+        </div>
+        <div class="v2-tipo-btn" data-tipo="publico">
+          <div class="v2-tipo-name">PÚBLICO</div>
+          <div class="v2-tipo-desc">CONCIERTO · FESTIVAL · TEATRO</div>
+        </div>
+      </div>
+      <div class="v2-dates-breakdown" id="v2DatesBreakdown"></div>
+      <div class="v2-step-next">
+        <button class="v2-next-btn" id="btnNext2">CONTINUAR &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 3 — ESPACIOS -->
+  <section class="v2-step v2-step--locked" id="step3">
+    <div class="v2-step-header" data-step="3">
+      <div class="v2-step-number">03</div>
+      <div class="v2-step-title">SELECCIONA TUS ESPACIOS</div>
+      <div class="v2-step-status">
+        <span class="v2-status-icon v2-status-icon--edit">&#9998;</span>
+        <span class="v2-status-icon v2-status-icon--check">&#10003;</span>
+        <span class="v2-status-icon v2-status-icon--lock">&#9608;</span>
+      </div>
+    </div>
+    <div class="v2-step-body">
+      <div class="v2-spaces-grid" id="v2SpacesGrid"></div>
+      <div class="v2-step-next">
+        <button class="v2-next-btn" id="btnNext3" disabled>VER PRECOTIZACIÓN &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASO 4 — PRECOTIZACIÓN -->
+  <section class="v2-step v2-step--locked" id="step4">
+    <div class="v2-step-header" data-step="4">
+      <div class="v2-step-number">04</div>
+      <div class="v2-step-title">TU PRECOTIZACIÓN</div>
+      <div class="v2-step-status">
+        <span class="v2-status-icon v2-status-icon--edit">&#9998;</span>
+        <span class="v2-status-icon v2-status-icon--check">&#10003;</span>
+        <span class="v2-status-icon v2-status-icon--lock">&#9608;</span>
+      </div>
+    </div>
+    <div class="v2-step-body">
+
+      <!-- Resumen cliente -->
+      <div class="v2-resumen-block">
+        <div class="v2-resumen-title">DATOS DEL EVENTO</div>
+        <div class="v2-res-row"><span class="v2-res-label">CLIENTE</span><span class="v2-res-val" id="v2ResCliente">—</span></div>
+        <div class="v2-res-row" id="v2ResAgenciaRow" style="display:none;"><span class="v2-res-label">AGENCIA</span><span class="v2-res-val" id="v2ResAgencia">—</span></div>
+        <div class="v2-res-row"><span class="v2-res-label">CONTACTO</span><span class="v2-res-val" id="v2ResContacto">—</span></div>
+        <div class="v2-res-row"><span class="v2-res-label">TEL / CORREO</span><span class="v2-res-val" id="v2ResTelCorreo">—</span></div>
+        <div class="v2-res-row"><span class="v2-res-label">FECHAS</span><span class="v2-res-val" id="v2ResFechas">—</span></div>
+        <div class="v2-res-row" id="v2ResAsistentesRow" style="display:none;"><span class="v2-res-label">ASISTENTES</span><span class="v2-res-val" id="v2ResAsistentes">—</span></div>
+        <div class="v2-res-row"><span class="v2-res-label">TIPO</span><span class="v2-res-val" id="v2ResTipo">—</span></div>
+        <div class="v2-res-row"><span class="v2-res-label">DÍAS</span><span class="v2-res-val" id="v2ResDias">—</span></div>
+      </div>
+
+      <!-- Espacios seleccionados -->
+      <div class="v2-resumen-block">
+        <div class="v2-resumen-title">ESPACIOS SELECCIONADOS</div>
+        <div id="v2ResEspacios"></div>
+      </div>
+
+      <!-- Totales -->
+      <div class="v2-resumen-totals">
+        <div class="v2-tot-row"><span class="v2-tot-label">RENTA DE ESPACIOS</span><span class="v2-tot-val" id="v2TotRenta">$0</span></div>
+        <div class="v2-tot-row"><span class="v2-tot-label">DÍAS DE MONTAJE</span><span class="v2-tot-val" id="v2TotMontaje">—</span></div>
+        <div class="v2-tot-sep"></div>
+        <div class="v2-tot-row"><span class="v2-tot-label">SUBTOTAL S/IVA</span><span class="v2-tot-val" id="v2TotSub">$0</span></div>
+        <div class="v2-tot-row"><span class="v2-tot-label">IVA (16%)</span><span class="v2-tot-val" id="v2TotIva">$0</span></div>
+      </div>
+
+      <div class="v2-grand-total">
+        <div class="v2-gt-label">TOTAL ESTIMADO CON IVA</div>
+        <div class="v2-gt-amount" id="v2GrandTotal">—</div>
+        <div class="v2-gt-sub">DESGLOSE SIN IVA: <span id="v2GrandSub">—</span></div>
+      </div>
+
+      <div class="v2-cta-block">
+        <button class="v2-cta-btn" id="v2CtaBtn">ENVIAR COTIZACIÓN</button>
+        <div class="v2-folio" id="v2Folio"></div>
+        <div class="v2-cta-note">
+          Av. de los Compositores s/n · Bosque de Chapultepec 2ª Secc. · CDMX<br>
+          contacto@museomunet.com · museomunet.com<br>
+          Precios + IVA · Vigentes 06 abril 2026
+        </div>
+        <div class="v2-cotizado-por">COTIZADO POR BUNKER CREATIVIDAD EMPRESARIAL</div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="v2-footer">
+  <div class="v2-footer-inner">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV</div>
+</footer>
+
+<script src="js/cotizador-munet.js"></script>
+</body>
+</html>

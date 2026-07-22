@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUNET — Simulador de Costos</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bk:#050905;--dk:#070F09;--card:#09130B;--g:#00FF41;--go:#D4AF37;
+  --wh:#EDF8ED;--tx:rgba(200,236,200,0.6);--bd:rgba(0,255,65,0.12);
+  --D:'Bebas Neue',sans-serif;--M:'Space Mono',monospace;--R:'Rajdhani',sans-serif;
+  /* space colors */
+  --c1:#00FF41;--c2:rgba(0,200,255,0.9);--c3:#D4AF37;
+  --c4:rgba(255,150,0,0.95);--c5:rgba(0,255,100,0.9);
+  --c6:rgba(180,80,255,0.9);--c7:rgba(255,80,180,0.9);--c8:rgba(255,80,80,0.9);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bk);color:var(--tx);font-family:var(--R);min-height:100vh;
+  overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.02) 4px,rgba(0,0,0,0.02) 5px);}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;height:54px;
+  background:rgba(5,9,5,0.98);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:space-between;padding:0 48px;}
+.nav-logo{font-family:var(--D);font-size:26px;color:var(--g);letter-spacing:.1em;
+  text-shadow:0 0 14px rgba(0,255,65,.4);}
+.nav-tag{font-family:var(--M);font-size:7.5px;letter-spacing:.28em;color:rgba(0,255,65,.3);}
+
+/* ── LAYOUT ── */
+.shell{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:calc(100vh - 54px);}
+
+/* ════════════════════════
+   LEFT — CONFIGURADOR
+════════════════════════ */
+.left{padding:40px 44px;border-right:1px solid var(--bd);overflow-y:auto;}
+
+.section-label{font-family:var(--M);font-size:8px;letter-spacing:.38em;
+  color:rgba(0,255,65,.35);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.section-label::before{content:'';width:20px;height:1px;background:var(--g);}
+
+/* Tipo de evento */
+.tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:36px;}
+.tipo-btn{padding:16px 20px;background:var(--dk);border:1px solid var(--bd);
+  cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:4px;
+  font-family:var(--R);}
+.tipo-btn:hover{border-color:rgba(0,255,65,.3);background:var(--card);}
+.tipo-btn.active{border-color:var(--g);background:rgba(0,255,65,.07);}
+.tipo-btn-name{font-family:var(--D);font-size:20px;color:var(--wh);letter-spacing:.06em;}
+.tipo-btn-desc{font-family:var(--M);font-size:7px;letter-spacing:.15em;
+  color:rgba(200,236,200,.3);}
+.tipo-btn.active .tipo-btn-name{color:var(--g);}
+
+/* Day selector */
+.day-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:36px;}
+.day-btn{padding:14px 18px;background:var(--dk);border:1px solid var(--bd);
+  cursor:pointer;transition:all .2s;font-family:var(--R);}
+.day-btn:hover{border-color:rgba(0,255,65,.25);}
+.day-btn.active{border-color:var(--g);background:rgba(0,255,65,.06);}
+.day-btn-name{font-family:var(--D);font-size:18px;color:var(--wh);letter-spacing:.06em;}
+.day-btn-detail{font-family:var(--M);font-size:7px;letter-spacing:.12em;
+  color:rgba(200,236,200,.28);margin-top:2px;}
+.day-btn.active .day-btn-name{color:var(--g);}
+
+/* ── SPACE CARDS ── */
+.spaces-grid{display:flex;flex-direction:column;gap:2px;}
+
+.space-card{background:var(--dk);border:1px solid var(--bd);
+  position:relative;overflow:hidden;transition:all .25s;cursor:pointer;}
+.space-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  opacity:.5;transition:opacity .2s;}
+.space-card:hover{border-color:rgba(0,255,65,.22);}
+.space-card.selected{border-color:rgba(0,255,65,.35);}
+.space-card.selected::before{opacity:1;}
+.space-card.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+
+.sc-inner{display:grid;grid-template-columns:auto 1fr auto;
+  align-items:center;gap:0;padding:0;}
+
+/* checkbox col */
+.sc-check{padding:22px 20px;border-right:1px solid var(--bd);
+  display:flex;align-items:center;justify-content:center;}
+.checkbox{width:20px;height:20px;border:1px solid rgba(0,255,65,.25);
+  background:transparent;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;}
+.space-card.selected .checkbox{background:var(--g);border-color:var(--g);}
+.checkbox-tick{width:12px;height:9px;display:none;}
+.space-card.selected .checkbox-tick{display:block;}
+
+/* info col */
+.sc-info{padding:18px 22px;}
+.sc-name{font-family:var(--D);font-size:24px;color:var(--wh);letter-spacing:.05em;line-height:1;}
+.sc-meta{font-family:var(--M);font-size:8px;letter-spacing:.12em;margin-top:4px;
+  display:flex;gap:14px;flex-wrap:wrap;}
+.sc-m2{color:rgba(0,255,65,.5);}
+.sc-cap{color:rgba(212,175,55,.5);}
+.sc-note{color:rgba(255,200,0,.45);}
+
+/* price col */
+.sc-price{padding:18px 22px;border-left:1px solid var(--bd);text-align:right;
+  min-width:160px;}
+.sc-price-main{font-family:var(--D);font-size:28px;line-height:1;letter-spacing:.02em;}
+.sc-price-period{font-family:var(--M);font-size:7px;letter-spacing:.12em;
+  color:rgba(200,236,200,.28);margin-top:2px;}
+
+/* montaje toggle */
+.sc-montaje{padding:10px 20px 14px 62px;border-top:1px solid rgba(0,255,65,.05);
+  display:none;}
+.space-card.selected .sc-montaje{display:flex;align-items:center;justify-content:space-between;}
+.montaje-label{font-family:var(--M);font-size:8px;letter-spacing:.15em;
+  color:rgba(200,236,200,.4);}
+.montaje-days{display:flex;align-items:center;gap:12px;}
+.montaje-days label{font-family:var(--M);font-size:8px;letter-spacing:.1em;
+  color:rgba(200,236,200,.35);}
+.days-input{display:flex;align-items:center;gap:8px;}
+.day-minus,.day-plus{width:28px;height:28px;background:rgba(0,255,65,.08);
+  border:1px solid rgba(0,255,65,.2);color:var(--g);
+  font-family:var(--M);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-weight:700;}
+.day-minus:hover,.day-plus:hover{background:rgba(0,255,65,.15);}
+.day-count{font-family:var(--D);font-size:28px;color:var(--wh);
+  min-width:32px;text-align:center;line-height:1;}
+.montaje-subtotal{font-family:var(--D);font-size:20px;color:rgba(200,236,200,.4);}
+
+/* ════════════════════════
+   RIGHT — RESUMEN
+════════════════════════ */
+.right{background:var(--card);display:flex;flex-direction:column;
+  position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto;}
+
+/* Header del panel */
+.right-hd{padding:32px 36px 24px;border-bottom:1px solid var(--bd);}
+.right-hd-title{font-family:var(--D);font-size:34px;color:var(--wh);
+  letter-spacing:.08em;margin-bottom:4px;}
+.right-hd-sub{font-family:var(--M);font-size:7.5px;letter-spacing:.25em;
+  color:rgba(0,255,65,.3);}
+
+/* Tipo/día summary */
+.right-ctx{padding:16px 36px;border-bottom:1px solid var(--bd);
+  display:flex;gap:8px;flex-wrap:wrap;}
+.ctx-pill{font-family:var(--M);font-size:8px;letter-spacing:.15em;
+  padding:5px 12px;border:1px solid var(--bd);color:rgba(200,236,200,.4);}
+.ctx-pill.active{border-color:rgba(0,255,65,.3);color:rgba(0,255,65,.6);
+  background:rgba(0,255,65,.04);}
+
+/* Líneas de selección */
+.right-items{flex:1;padding:24px 36px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:14px;text-align:center;}
+.empty-icon{font-size:36px;opacity:.3;}
+.empty-text{font-family:var(--M);font-size:8px;letter-spacing:.25em;
+  color:rgba(200,236,200,.25);}
+
+.item-line{display:flex;justify-content:space-between;align-items:flex-start;
+  padding:14px 0;border-bottom:1px solid rgba(0,255,65,.05);}
+.item-line:last-child{border-bottom:none;}
+.item-left{}
+.item-name{font-family:var(--D);font-size:18px;letter-spacing:.05em;color:var(--wh);line-height:1;}
+.item-detail{font-family:var(--M);font-size:7.5px;letter-spacing:.12em;
+  color:rgba(200,236,200,.3);margin-top:3px;}
+.item-amount{font-family:var(--D);font-size:22px;color:var(--g);
+  letter-spacing:.02em;white-space:nowrap;}
+
+/* Subtotals */
+.right-totals{padding:20px 36px;border-top:1px solid var(--bd);background:var(--dk);}
+.total-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;}
+.total-row-label{font-family:var(--M);font-size:8.5px;letter-spacing:.18em;
+  color:rgba(200,236,200,.4);}
+.total-row-val{font-family:var(--D);font-size:24px;color:rgba(200,236,200,.55);
+  letter-spacing:.02em;}
+.total-sep{height:1px;background:rgba(0,255,65,.1);margin:6px 0;}
+
+/* Gran total */
+.grand-total{padding:24px 36px;background:rgba(0,255,65,.06);
+  border-top:2px solid rgba(0,255,65,.25);}
+.gt-label{font-family:var(--M);font-size:8px;letter-spacing:.35em;
+  color:rgba(0,255,65,.5);margin-bottom:6px;}
+.gt-amount{font-family:var(--D);font-size:clamp(42px,5vw,58px);color:var(--g);
+  line-height:1;letter-spacing:.02em;
+  text-shadow:0 0 20px rgba(0,255,65,.35);}
+.gt-iva{font-family:var(--M);font-size:8px;letter-spacing:.15em;
+  color:rgba(200,236,200,.3);margin-top:4px;}
+.gt-iva-amount{font-family:var(--D);font-size:22px;color:rgba(0,255,65,.5);
+  margin-top:8px;display:block;}
+
+/* CTA */
+.right-cta{padding:20px 36px;border-top:1px solid var(--bd);}
+.cta-btn{width:100%;padding:16px;background:var(--g);color:var(--bk);
+  font-family:var(--M);font-size:10px;letter-spacing:.25em;font-weight:700;
+  border:none;cursor:pointer;transition:all .2s;text-align:center;display:block;}
+.cta-btn:hover{background:#00CC33;box-shadow:0 0 24px rgba(0,255,65,.3);}
+.cta-btn:disabled{background:rgba(200,236,200,.1);color:rgba(200,236,200,.2);
+  cursor:not-allowed;box-shadow:none;}
+.cta-note{font-family:var(--M);font-size:7px;letter-spacing:.15em;
+  color:rgba(200,236,200,.2);text-align:center;margin-top:10px;line-height:1.7;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr;grid-template-rows:auto auto;}
+  .right{position:static;height:auto;}
+  .left,.right-cta,.right-totals,.grand-total,.right-items,.right-hd,.right-ctx{
+    padding-left:24px;padding-right:24px;}
+  .left{padding-top:28px;padding-bottom:28px;}
+  nav{padding:0 24px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">MUNET</div>
+  <div class="nav-tag">SIMULADOR DE COSTOS · RENTA DE ESPACIOS · 2026</div>
+</nav>
+
+<div class="shell">
+
+  <!-- ════ LEFT ════ -->
+  <div class="left">
+
+    <!-- TIPO DE EVENTO -->
+    <div class="section-label">PASO 1 · TIPO DE EVENTO</div>
+    <div class="tipo-grid">
+      <div class="tipo-btn active" onclick="setTipo('privado')">
+        <div class="tipo-btn-name">PRIVADO</div>
+        <div class="tipo-btn-desc">CORPORATIVO · SOCIAL · BODA</div>
+      </div>
+      <div class="tipo-btn" onclick="setTipo('publico')">
+        <div class="tipo-btn-name">PÚBLICO</div>
+        <div class="tipo-btn-desc">CONCIERTO · FESTIVAL · TEATRO</div>
+      </div>
+    </div>
+
+    <!-- DÍA -->
+    <div class="section-label">PASO 2 · DÍA DE EVENTO</div>
+    <div class="day-grid">
+      <div class="day-btn active" onclick="setDay('regular')">
+        <div class="day-btn-name">LUN – JUE</div>
+        <div class="day-btn-detail">TARIFA RESTO DE SEMANA</div>
+      </div>
+      <div class="day-btn" onclick="setDay('weekend')">
+        <div class="day-btn-name">VIE – SÁB</div>
+        <div class="day-btn-detail">TARIFA VIERNES Y SÁBADOS</div>
+      </div>
+    </div>
+
+    <!-- ESPACIOS -->
+    <div class="section-label">PASO 3 · SELECCIONA TUS ESPACIOS</div>
+    <div class="spaces-grid" id="spacesGrid">
+
+      <!-- cada espacio se construye con JS -->
+
+    </div>
+
+  </div><!-- end left -->
+
+  <!-- ════ RIGHT — COTIZACIÓN ════ -->
+  <div class="right">
+
+    <!-- Header -->
+    <div class="right-hd">
+      <div class="right-hd-title">TU COTIZACIÓN</div>
+      <div class="right-hd-sub">MUNET · RENTA DE ESPACIOS · ABRIL 2026</div>
+    </div>
+
+    <!-- Contexto activo -->
+    <div class="right-ctx">
+      <div class="ctx-pill active" id="ctx-tipo">EVENTO PRIVADO</div>
+      <div class="ctx-pill active" id="ctx-day">LUN – JUE</div>
+    </div>
+
+    <!-- Ítems seleccionados -->
+    <div class="right-items" id="rightItems">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">◈</div>
+        <div class="empty-text">SELECCIONA UN ESPACIO<br>PARA COMENZAR</div>
+      </div>
+    </div>
+
+    <!-- Subtotales -->
+    <div class="right-totals" id="rightTotals" style="display:none;">
+      <div class="total-row">
+        <div class="total-row-label">RENTA DE ESPACIOS</div>
+        <div class="total-row-val" id="sumRenta">$0</div>
+      </div>
+      <div class="total-row">
+        <div class="total-row-label">DÍAS DE MONTAJE</div>
+        <div class="total-row-val" id="sumMontaje">$0</div>
+      </div>
+      <div class="total-sep"></div>
+      <div class="total-row">
+        <div class="total-row-label">SUBTOTAL S/IVA</div>
+        <div class="total-row-val" id="sumSub">$0</div>
+      </div>
+      <div class="total-row">
+        <div class="total-row-label">IVA (16%)</div>
+        <div class="total-row-val" id="sumIva">$0</div>
+      </div>
+    </div>
+
+    <!-- Gran total -->
+    <div class="grand-total" id="grandTotalBlock">
+      <div class="gt-label">TOTAL ESTIMADO CON IVA</div>
+      <div class="gt-amount" id="grandTotal">—</div>
+      <div class="gt-iva">DESGLOSE SIN IVA:
+        <span class="gt-iva-amount" id="grandSub">—</span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="right-cta">
+      <button class="cta-btn" id="ctaBtn" disabled onclick="imprimirCotizacion()">
+        DESCARGAR COTIZACIÓN
+      </button>
+      <div class="cta-note">
+        Av. de los Compositores s/n · Bosque de Chapultepec 2ª Secc. · CDMX<br>
+        contacto@museomunet.com · museomunet.com<br>
+        Precios + IVA · Vigentes 06 abril 2026
+      </div>
+    </div>
+
+  </div><!-- end right -->
+</div><!-- end shell -->
+
+<script>
+// ════════════════════════════════
+// DATA — Tarifas oficiales 06/04/26
+// ════════════════════════════════
+const SPACES = [
+  {
+    id: 'explanada',
+    name: 'EXPLANADA',
+    color: '#00FF41',
+    m2: '10,000 M²',
+    cap: '',
+    note: '',
+    priv: { regular: 300000, weekend: 350000, montaje: 150000 },
+    pub:  { tipo: 'garantia', garantia: 400000, pct: 12 },
+    onlyPrivado: false,
+    onlySala: false,
+  },
+  {
+    id: 'foro',
+    name: 'FORO',
+    color: 'rgba(0,200,255,0.9)',
+    m2: '1,400 M²',
+    cap: '+400 M² OFICINAS',
+    note: '',
+    priv: { regular: 200000, weekend: 250000, montaje: 100000 },
+    pub:  { tipo: 'garantia', garantia: 350000, pct: 12 },
+    onlyPrivado: false,
+    onlySala: false,
+  },
+  {
+    id: 'lobby',
+    name: 'LOBBY',
+    color: '#D4AF37',
+    m2: '1,200 M²',
+    cap: 'DOBLE ALTURA',
+    note: '',
+    priv: { regular: 230000, weekend: 280000, montaje: 150000 },
+    pub:  null,
+    onlyPrivado: true,
+    onlySala: false,
+  },
+  {
+    id: 'auditorio',
+    name: 'AUDITORIO',
+    color: 'rgba(255,150,0,0.95)',
+    m2: '246 PERSONAS',
+    cap: 'BUTACAS FIJAS',
+    note: '',
+    priv: { regular: 60000, weekend: 60000, montaje: 0 },  // 0 = sin costo
+    pub:  { tipo: 'garantia', garantia: 60000, pct: 12 },
+    onlyPrivado: false,
+    onlySala: false,
+    montajeLabel: 'SIN COSTO',
+  },
+  {
+    id: 'jardin',
+    name: 'JARDÍN SOCIAL',
+    color: 'rgba(0,255,100,0.9)',
+    m2: '2,576 M²',
+    cap: '400 PERSONAS',
+    note: '',
+    priv: { regular: 70000, weekend: 70000, montaje: 0 },
+    pub:  null,
+    onlyPrivado: true,
+    onlySala: false,
+    montajeLabel: 'COTIZAR',
+  },
+  {
+    id: 'salas',
+    name: 'SALAS CAPACIT.',
+    color: 'rgba(180,80,255,0.9)',
+    m2: '60–78 M² POR SALA',
+    cap: '4 SALAS INDEP.',
+    note: '⚠ SOLO LUN–JUE · PRECIO POR SALA',
+    priv: { regular: 20000, weekend: null, montaje: 0 },
+    pub:  null,
+    onlyPrivado: true,
+    onlySala: true,
+  },
+  {
+    id: 'velaria',
+    name: 'VELARIA',
+    color: 'rgba(255,80,180,0.9)',
+    m2: '350 M²',
+    cap: '300 PERSONAS',
+    note: '',
+    priv: { regular: 80000, weekend: 80000, montaje: 0 },
+    pub:  null,
+    onlyPrivado: true,
+    onlySala: false,
+    montajeLabel: 'COTIZAR',
+  },
+  {
+    id: 'expo',
+    name: 'SALA EXPO TEMP.',
+    color: 'rgba(255,80,80,0.9)',
+    m2: '612 M²',
+    cap: '200 PERSONAS',
+    note: '',
+    priv: { regular: 150000, weekend: 150000, montaje: 75000 },
+    pub:  null,
+    onlyPrivado: true,
+    onlySala: false,
+  },
+];
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let tipo = 'privado';
+let day  = 'regular';
+let selected = {}; // { spaceId: { montajeDays: 0 } }
+
+// ════════════════════════════════
+// BUILD SPACE CARDS
+// ════════════════════════════════
+function buildCards() {
+  const grid = document.getElementById('spacesGrid');
+  grid.innerHTML = '';
+
+  SPACES.forEach(sp => {
+    const isSel = !!selected[sp.id];
+    const isDisabled = (tipo === 'publico' && sp.onlyPrivado) ||
+                       (day === 'weekend' && sp.onlySala);
+
+    const montDays = selected[sp.id]?.montajeDays || 0;
+    const precio = getPrecio(sp);
+    const montUnitario = sp.priv?.montaje || 0;
+
+    // format precio display
+    let precioDisplay = '—';
+    let periodoDisplay = '';
+
+    if (tipo === 'privado') {
+      if (sp.onlySala && day === 'weekend') {
+        precioDisplay = 'NO DISP.';
+        periodoDisplay = 'SOLO LUN–JUE';
+      } else if (precio !== null) {
+        precioDisplay = formatMXN(precio);
+        periodoDisplay = sp.id === 'auditorio' ? 'TODO EL DÍA'
+                        : sp.id === 'salas' ? 'POR SALA / DÍA'
+                        : day === 'regular' ? 'LUN–JUE'
+                        : 'VIE–SÁB';
+      }
+    } else {
+      // público
+      if (sp.pub) {
+        precioDisplay = formatMXN(sp.pub.garantia);
+        periodoDisplay = 'GARANTÍA MÍN. O 12%';
+      } else {
+        precioDisplay = 'SOLO PRIVADO';
+        periodoDisplay = '';
+      }
+    }
+
+    const montajeText = sp.montajeLabel
+      ? sp.montajeLabel
+      : (montUnitario === 0 ? 'SIN COSTO' : formatMXN(montUnitario) + ' / DÍA');
+
+    const card = document.createElement('div');
+    card.className = `space-card${isSel ? ' selected' : ''}${isDisabled ? ' disabled' : ''}`;
+    card.id = `card-${sp.id}`;
+    card.onclick = () => !isDisabled && toggleSpace(sp.id);
+
+    card.innerHTML = `
+      <div style="position:absolute;top:0;left:0;bottom:0;width:3px;background:${sp.color};"></div>
+      <div class="sc-inner">
+        <div class="sc-check">
+          <div class="checkbox">
+            <svg class="checkbox-tick" viewBox="0 0 12 9" fill="none">
+              <path d="M1 4L4.5 7.5L11 1" stroke="#050905" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="sc-info">
+          <div class="sc-name" style="color:${sp.color};">${sp.name}</div>
+          <div class="sc-meta">
+            <span class="sc-m2">${sp.m2}</span>
+            ${sp.cap ? `<span class="sc-cap">${sp.cap}</span>` : ''}
+            ${sp.note ? `<span class="sc-note">${sp.note}</span>` : ''}
+          </div>
+        </div>
+        <div class="sc-price">
+          <div class="sc-price-main" style="color:${sp.color};">${precioDisplay}</div>
+          <div class="sc-price-period">${periodoDisplay}</div>
+        </div>
+      </div>
+      ${isSel ? `
+      <div class="sc-montaje" id="mont-${sp.id}">
+        <div class="montaje-label">DÍAS MONTAJE · ${montajeText}</div>
+        <div class="montaje-days">
+          <div class="days-input">
+            <button class="day-minus" onclick="event.stopPropagation();changeMontaje('${sp.id}',-1)">−</button>
+            <div class="day-count" id="montCount-${sp.id}">${montDays}</div>
+            <button class="day-plus" onclick="event.stopPropagation();changeMontaje('${sp.id}',1)">+</button>
+          </div>
+          <div class="montaje-subtotal" id="montSub-${sp.id}" style="color:${sp.color};">
+            ${montUnitario > 0 && montDays > 0 ? formatMXN(montUnitario * montDays) : '—'}
+          </div>
+        </div>
+      </div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function getPrecio(sp) {
+  if (tipo === 'privado') {
+    if (!sp.priv) return null;
+    if (sp.onlySala && day === 'weekend') return null;
+    return day === 'regular' ? sp.priv.regular : (sp.priv.weekend ?? sp.priv.regular);
+  } else {
+    return sp.pub ? sp.pub.garantia : null;
+  }
+}
+
+function getMontajeUnit(sp) {
+  return sp.priv?.montaje || 0;
+}
+
+function formatMXN(n) {
+  if (n === null || n === undefined) return '—';
+  return '$' + n.toLocaleString('es-MX');
+}
+
+// ════════════════════════════════
+// ACTIONS
+// ════════════════════════════════
+function setTipo(t) {
+  tipo = t;
+  // deselect spaces not compatible
+  Object.keys(selected).forEach(id => {
+    const sp = SPACES.find(s => s.id === id);
+    if (t === 'publico' && sp.onlyPrivado) delete selected[id];
+  });
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('ctx-tipo').textContent = t === 'privado' ? 'EVENTO PRIVADO' : 'EVENTO PÚBLICO';
+  refresh();
+}
+
+function setDay(d) {
+  day = d;
+  // deselect sala if weekend
+  if (d === 'weekend') {
+    delete selected['salas'];
+  }
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('ctx-day').textContent = d === 'regular' ? 'LUN – JUE' : 'VIE – SÁB';
+  refresh();
+}
+
+function toggleSpace(id) {
+  if (selected[id]) {
+    delete selected[id];
+  } else {
+    selected[id] = { montajeDays: 0 };
+  }
+  refresh();
+}
+
+function changeMontaje(id, delta) {
+  if (!selected[id]) return;
+  const cur = selected[id].montajeDays || 0;
+  selected[id].montajeDays = Math.max(0, cur + delta);
+  refresh();
+}
+
+// ════════════════════════════════
+// RENDER SUMMARY
+// ════════════════════════════════
+function refresh() {
+  buildCards();
+  renderSummary();
+}
+
+function renderSummary() {
+  const ids = Object.keys(selected);
+  const emptyEl = document.getElementById('emptyState');
+  const totalsEl = document.getElementById('rightTotals');
+  const grandEl  = document.getElementById('grandTotalBlock');
+  const itemsEl  = document.getElementById('rightItems');
+  const ctaBtn   = document.getElementById('ctaBtn');
+
+  if (ids.length === 0) {
+    emptyEl.style.display = 'flex';
+    totalsEl.style.display = 'none';
+    document.getElementById('grandTotal').textContent = '—';
+    document.getElementById('grandSub').textContent = '—';
+    ctaBtn.disabled = true;
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  totalsEl.style.display = 'block';
+  ctaBtn.disabled = false;
+
+  // build item lines
+  let html = '';
+  let totalRenta = 0;
+  let totalMontaje = 0;
+
+  ids.forEach(id => {
+    const sp = SPACES.find(s => s.id === id);
+    const precio = getPrecio(sp);
+    const montUnit = getMontajeUnit(sp);
+    const montDays = selected[id].montajeDays || 0;
+    const montTotal = montUnit * montDays;
+
+    if (precio !== null) totalRenta += precio;
+    totalMontaje += montTotal;
+
+    const detail = [];
+    if (sp.m2) detail.push(sp.m2);
+    if (tipo === 'privado' && day === 'regular') detail.push('LUN–JUE');
+    if (tipo === 'privado' && day === 'weekend') detail.push('VIE–SÁB');
+
+    html += `
+      <div class="item-line">
+        <div class="item-left">
+          <div class="item-name" style="color:${sp.color};">${sp.name}</div>
+          <div class="item-detail">${detail.join(' · ')} ${tipo === 'privado' ? '· PRIVADO' : '· PÚBLICO'}</div>
+          ${montDays > 0 ? `<div class="item-detail" style="color:rgba(200,236,200,.4);">+ ${montDays} DÍA${montDays>1?'S':''} MONTAJE · ${formatMXN(montTotal)}</div>` : ''}
+        </div>
+        <div class="item-amount" style="color:${sp.color};">${precio !== null ? formatMXN(precio) : '—'}</div>
+      </div>
+    `;
+  });
+
+  itemsEl.innerHTML = '<div id="emptyState" style="display:none;"></div>' + html;
+
+  const subtotal = totalRenta + totalMontaje;
+  const iva = Math.round(subtotal * 0.16);
+  const total = subtotal + iva;
+
+  document.getElementById('sumRenta').textContent = formatMXN(totalRenta);
+  document.getElementById('sumMontaje').textContent = totalMontaje > 0 ? formatMXN(totalMontaje) : '—';
+  document.getElementById('sumSub').textContent = formatMXN(subtotal);
+  document.getElementById('sumIva').textContent = formatMXN(iva);
+  document.getElementById('grandTotal').textContent = formatMXN(total);
+  document.getElementById('grandSub').textContent = formatMXN(subtotal);
+}
+
+// ════════════════════════════════
+// IMPRIMIR / DESCARGAR
+// ════════════════════════════════
+function imprimirCotizacion() {
+  window.print();
+}
+
+// ════════════════════════════════
+// PRINT STYLES
+// ════════════════════════════════
+const printStyle = document.createElement('style');
+printStyle.textContent = `
+  @media print {
+    body::after { display:none; }
+    nav { position:static; }
+    .shell { grid-template-columns:1fr; }
+    .left { display:none; }
+    .right { position:static; height:auto; }
+    .cta-btn { display:none; }
+  }
+`;
+document.head.appendChild(printStyle);
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+buildCards();
+renderSummary();
+</script>
+</body>
+</html>
