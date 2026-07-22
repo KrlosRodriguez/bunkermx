@@ -1,0 +1,33 @@
+# =========================
+# Carpetas temporales
+# =========================
+.tmp.driveupload/
+capturas/
+
+# Firebase
+.firebase/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/settings.json
+.idea/
+
+# Variables de entorno
+.env
+.env.local
+.env.*
+
+# Dependencias (si algún día migras a Node)
+node_modules/
+
+# Archivos comprimidos
+*.zip
+*.rar
