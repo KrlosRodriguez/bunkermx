@@ -68,7 +68,7 @@
 
   /* ── ESTADO ── */
   var tipo = 'privado';
-  var selected = {};  // { spaceId: { montajeDays: 0 } }
+  var selected = {};  // { spaceId: { montajeDays: 0, eventDays: ['YYYY-MM-DD', ...] } }
   var cotizacionEnviada = false;
   var currentFolio = null;
   var currentStep = 1;
@@ -100,6 +100,53 @@
     if (!val) return '';
     var p = val.split('-');
     return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  /* ── NOMBRES DE DÍA ── */
+  var DAY_NAMES = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+  var MONTH_NAMES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
+  // Devuelve array de 'YYYY-MM-DD' en el rango de fechas del evento
+  function getEventDates() {
+    var inicio = document.getElementById('v2FechaInicio').value;
+    var fin    = document.getElementById('v2FechaFin').value;
+    if (!inicio) return [];
+    if (!fin || fin < inicio) fin = inicio;
+
+    var dates = [];
+    var d = new Date(inicio + 'T12:00:00');
+    var end = new Date(fin + 'T12:00:00');
+    while (d <= end) {
+      var yyyy = d.getFullYear();
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var dd = String(d.getDate()).padStart(2, '0');
+      dates.push(yyyy + '-' + mm + '-' + dd);
+      d.setDate(d.getDate() + 1);
+    }
+    return dates;
+  }
+
+  // Devuelve si una fecha es weekend (vie-sáb)
+  function isWeekendDate(dateStr) {
+    var d = new Date(dateStr + 'T12:00:00');
+    var dow = d.getDay();
+    return dow === 5 || dow === 6;
+  }
+
+  // Calcula desglose para un subconjunto de fechas
+  function calcDaysBreakdownForDates(dates) {
+    var regular = 0, weekend = 0;
+    dates.forEach(function (dateStr) {
+      if (isWeekendDate(dateStr)) weekend++;
+      else regular++;
+    });
+    return { regular: regular, weekend: weekend, total: regular + weekend };
+  }
+
+  // Formato legible de una fecha: "LUN 28 JUL"
+  function formatDayLabel(dateStr) {
+    var d = new Date(dateStr + 'T12:00:00');
+    return DAY_NAMES[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()];
   }
 
   /* ── CÁLCULO DE DÍAS ── */
@@ -134,30 +181,41 @@
     daysBreakdown = { regular: regular, weekend: weekend, total: regular + weekend };
   }
 
-  // Calcula el costo de renta de un espacio basado en el desglose de días
+  // Calcula el costo de renta de un espacio basado en sus días seleccionados
   function calcSpaceRenta(sp) {
+    // Obtener desglose de días del venue (per-venue o global)
+    var bd = getSpaceDaysBreakdown(sp);
+
     if (tipo === 'publico') {
-      // Público: garantía * total de días
       if (!sp.pub) return null;
-      return sp.pub.garantia * daysBreakdown.total;
+      return sp.pub.garantia * bd.total;
     }
 
-    // Privado: cada día a su tarifa
     if (!sp.priv) return null;
-
-    // Salas solo disponibles lun-jue, si hay días weekend no se puede
-    if (sp.onlySala && daysBreakdown.weekend > 0) return null;
+    if (sp.onlySala && bd.weekend > 0) return null;
 
     var regularPrice = sp.priv.regular || 0;
     var weekendPrice = sp.priv.weekend ?? regularPrice;
 
-    return (daysBreakdown.regular * regularPrice) + (daysBreakdown.weekend * weekendPrice);
+    return (bd.regular * regularPrice) + (bd.weekend * weekendPrice);
+  }
+
+  // Obtiene el desglose de días para un espacio específico
+  function getSpaceDaysBreakdown(sp) {
+    if (selected[sp.id] && selected[sp.id].eventDays) {
+      return calcDaysBreakdownForDates(selected[sp.id].eventDays);
+    }
+    return daysBreakdown;
   }
 
   // Verifica si un espacio está disponible con las fechas actuales
   function isSpaceAvailable(sp) {
     if (tipo === 'publico' && sp.onlyPrivado) return false;
-    if (sp.onlySala && daysBreakdown.weekend > 0) return false;
+    // Salas: verificar si hay días weekend en los días seleccionados del venue
+    if (sp.onlySala) {
+      var bd = getSpaceDaysBreakdown(sp);
+      if (bd.weekend > 0) return false;
+    }
     return true;
   }
 
@@ -221,7 +279,7 @@
     }, 100);
 
     if (stepNum === 2) renderDatesBreakdown();
-    if (stepNum === 3) buildCards();
+    if (stepNum === 3) { syncEventDays(); buildCards(); }
     if (stepNum === 4) renderResumen();
   }
 
@@ -311,29 +369,71 @@
         });
       })(sp.id, isDisabled);
 
+      // Build selector de días por venue
+      var daysPickerHTML = '';
+      if (isSel) {
+        var allDates = getEventDates();
+        var spaceDays = selected[sp.id].eventDays || [];
+
+        daysPickerHTML += '<div class="v2-sc-montaje v2-days-picker-wrap">' +
+          '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">D\u00CDAS DEL EVENTO PARA ESTE ESPACIO</div>' +
+          '<div class="v2-days-picker">';
+
+        allDates.forEach(function (dateStr) {
+          var isChecked = spaceDays.indexOf(dateStr) >= 0;
+          var isWknd = isWeekendDate(dateStr);
+          var label = formatDayLabel(dateStr);
+          var tarifaLabel = isWknd ? 'FIN DE SEMANA' : 'ENTRE SEMANA';
+          var tarifaPrice = '';
+          if (tipo === 'privado' && sp.priv) {
+            tarifaPrice = isWknd
+              ? formatMXN(sp.priv.weekend ?? sp.priv.regular)
+              : formatMXN(sp.priv.regular);
+          } else if (tipo === 'publico' && sp.pub) {
+            tarifaPrice = formatMXN(sp.pub.garantia);
+          }
+
+          daysPickerHTML += '<label class="v2-day-check' + (isChecked ? ' checked' : '') + (isWknd ? ' v2-day-check--wknd' : '') + '" data-space="' + sp.id + '" data-date="' + dateStr + '">' +
+            '<div class="v2-day-check-box">' +
+              '<svg class="v2-day-check-tick" viewBox="0 0 12 9" fill="none"><path d="M1 4L4.5 7.5L11 1" stroke="' + (isWknd ? '#0D0D0D' : '#0D0D0D') + '" stroke-width="2" stroke-linecap="round"/></svg>' +
+            '</div>' +
+            '<div class="v2-day-check-info">' +
+              '<span class="v2-day-check-name">' + label + '</span>' +
+              '<span class="v2-day-check-tarifa">' + tarifaLabel + (tarifaPrice ? ' \u00B7 ' + tarifaPrice : '') + '</span>' +
+            '</div>' +
+          '</label>';
+        });
+
+        daysPickerHTML += '</div></div>';
+      }
+
       // Build desglose para card seleccionada
       var desgloseHTML = '';
-      if (isSel && tipo === 'privado' && sp.priv) {
-        var regPrice = sp.priv.regular || 0;
-        var wkdPrice = sp.priv.weekend ?? regPrice;
+      if (isSel) {
+        var spBd = getSpaceDaysBreakdown(sp);
 
-        if (daysBreakdown.regular > 0) {
+        if (tipo === 'privado' && sp.priv) {
+          var regPrice = sp.priv.regular || 0;
+          var wkdPrice = sp.priv.weekend ?? regPrice;
+
+          if (spBd.regular > 0) {
+            desgloseHTML += '<div class="v2-sc-montaje">' +
+              '<div class="v2-montaje-label">' + spBd.regular + ' D\u00CDA' + (spBd.regular > 1 ? 'S' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(regPrice) + ' / D\u00CDA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(spBd.regular * regPrice) + '</div></div>' +
+            '</div>';
+          }
+          if (spBd.weekend > 0) {
+            desgloseHTML += '<div class="v2-sc-montaje">' +
+              '<div class="v2-montaje-label">' + spBd.weekend + ' D\u00CDA' + (spBd.weekend > 1 ? 'S' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdPrice) + ' / D\u00CDA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(spBd.weekend * wkdPrice) + '</div></div>' +
+            '</div>';
+          }
+        } else if (tipo === 'publico' && sp.pub) {
           desgloseHTML += '<div class="v2-sc-montaje">' +
-            '<div class="v2-montaje-label">' + daysBreakdown.regular + ' D\u00CDA' + (daysBreakdown.regular > 1 ? 'S' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(regPrice) + ' / D\u00CDA</div>' +
-            '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(daysBreakdown.regular * regPrice) + '</div></div>' +
+            '<div class="v2-montaje-label">' + spBd.total + ' D\u00CDA' + (spBd.total > 1 ? 'S' : '') + ' \u00B7 GARANT\u00CDA ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA</div>' +
+            '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia * spBd.total) + '</div></div>' +
           '</div>';
         }
-        if (daysBreakdown.weekend > 0) {
-          desgloseHTML += '<div class="v2-sc-montaje">' +
-            '<div class="v2-montaje-label">' + daysBreakdown.weekend + ' D\u00CDA' + (daysBreakdown.weekend > 1 ? 'S' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdPrice) + ' / D\u00CDA</div>' +
-            '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(daysBreakdown.weekend * wkdPrice) + '</div></div>' +
-          '</div>';
-        }
-      } else if (isSel && tipo === 'publico' && sp.pub) {
-        desgloseHTML += '<div class="v2-sc-montaje">' +
-          '<div class="v2-montaje-label">' + daysBreakdown.total + ' D\u00CDA' + (daysBreakdown.total > 1 ? 'S' : '') + ' \u00B7 GARANT\u00CDA ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA</div>' +
-          '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia * daysBreakdown.total) + '</div></div>' +
-        '</div>';
       }
 
       // Montaje (solo si está seleccionado)
@@ -387,7 +487,7 @@
             '<div class="v2-sc-price-period">' + periodoDisplay + '</div>' +
           '</div>' +
         '</div>' +
-        desgloseHTML + montajeHTML + totalLineHTML;
+        daysPickerHTML + desgloseHTML + montajeHTML + totalLineHTML;
 
       grid.appendChild(card);
     });
@@ -397,6 +497,16 @@
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         changeMontaje(btn.getAttribute('data-space'), parseInt(btn.getAttribute('data-delta'), 10));
+      });
+    });
+
+    // Day checkboxes
+    grid.querySelectorAll('.v2-day-check').forEach(function (label) {
+      label.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = label.getAttribute('data-space');
+        var dateStr = label.getAttribute('data-date');
+        toggleSpaceDay(spaceId, dateStr);
       });
     });
   }
@@ -415,10 +525,30 @@
   }
 
   function toggleSpace(id) {
-    if (selected[id]) { delete selected[id]; } else { selected[id] = { montajeDays: 0 }; }
+    if (selected[id]) {
+      delete selected[id];
+    } else {
+      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice() };
+    }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
     validateStep3();
+  }
+
+  function toggleSpaceDay(spaceId, dateStr) {
+    if (!selected[spaceId]) return;
+    var days = selected[spaceId].eventDays;
+    var idx = days.indexOf(dateStr);
+    if (idx >= 0) {
+      // No permitir quitar todos los días
+      if (days.length <= 1) return;
+      days.splice(idx, 1);
+    } else {
+      days.push(dateStr);
+      days.sort();
+    }
+    if (cotizacionEnviada) resetEnvio();
+    buildCards();
   }
 
   function changeMontaje(id, delta) {
@@ -426,6 +556,18 @@
     selected[id].montajeDays = Math.max(0, (selected[id].montajeDays || 0) + delta);
     if (cotizacionEnviada) resetEnvio();
     buildCards();
+  }
+
+  // Sincroniza eventDays de venues seleccionados cuando el rango de fechas cambia
+  function syncEventDays() {
+    var allDates = getEventDates();
+    Object.keys(selected).forEach(function (id) {
+      var current = selected[id].eventDays || [];
+      // Filtrar días que ya no están en el rango
+      var valid = current.filter(function (d) { return allDates.indexOf(d) >= 0; });
+      // Si no queda ninguno, usar todos
+      selected[id].eventDays = valid.length > 0 ? valid : allDates.slice();
+    });
   }
 
   function resetEnvio() {
@@ -494,27 +636,40 @@
       var montUnit = getMontajeUnit(sp);
       var montDays = selected[id].montajeDays || 0;
       var montTotal = montUnit * montDays;
+      var spBd = getSpaceDaysBreakdown(sp);
 
       totalRenta += rentaEspacio;
       totalMontaje += montTotal;
 
+      // Días seleccionados para este venue
+      var diasVenue = spBd.total + ' d\u00EDa' + (spBd.total > 1 ? 's' : '');
+      if (spBd.regular > 0 && spBd.weekend > 0) {
+        diasVenue += ' (' + spBd.regular + ' LUN\u2013JUE + ' + spBd.weekend + ' VIE\u2013S\u00C1B)';
+      } else if (spBd.weekend > 0) {
+        diasVenue += ' (VIE\u2013S\u00C1B)';
+      } else {
+        diasVenue += ' (LUN\u2013JUE)';
+      }
+
       // Desglose detallado
       var detailLines = '';
+      detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' + diasVenue + '</div>';
+
       if (tipo === 'privado' && sp.priv) {
-        if (daysBreakdown.regular > 0) {
+        if (spBd.regular > 0) {
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-            daysBreakdown.regular + ' d\u00EDa' + (daysBreakdown.regular > 1 ? 's' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(sp.priv.regular) + '/d\u00EDa \u00B7 ' + formatMXN(daysBreakdown.regular * sp.priv.regular) +
+            spBd.regular + ' d\u00EDa' + (spBd.regular > 1 ? 's' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(sp.priv.regular) + '/d\u00EDa \u00B7 ' + formatMXN(spBd.regular * sp.priv.regular) +
           '</div>';
         }
-        if (daysBreakdown.weekend > 0) {
+        if (spBd.weekend > 0) {
           var wkdP = sp.priv.weekend ?? sp.priv.regular;
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-            daysBreakdown.weekend + ' d\u00EDa' + (daysBreakdown.weekend > 1 ? 's' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdP) + '/d\u00EDa \u00B7 ' + formatMXN(daysBreakdown.weekend * wkdP) +
+            spBd.weekend + ' d\u00EDa' + (spBd.weekend > 1 ? 's' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdP) + '/d\u00EDa \u00B7 ' + formatMXN(spBd.weekend * wkdP) +
           '</div>';
         }
       } else if (tipo === 'publico' && sp.pub) {
         detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-          daysBreakdown.total + ' d\u00EDa' + (daysBreakdown.total > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(sp.pub.garantia) + '/d\u00EDa' +
+          spBd.total + ' d\u00EDa' + (spBd.total > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(sp.pub.garantia) + '/d\u00EDa' +
         '</div>';
       }
       if (montDays > 0) {
@@ -559,14 +714,17 @@
       var montUnit = getMontajeUnit(sp);
       var montDays = selected[id].montajeDays || 0;
       var montTotal = montUnit * montDays;
+      var spBd = getSpaceDaysBreakdown(sp);
 
       totalRenta += rentaEspacio;
       totalMontaje += montTotal;
 
       espaciosArr.push({
         id: sp.id, name: sp.name, color: sp.color,
-        diasRegular: daysBreakdown.regular,
-        diasWeekend: daysBreakdown.weekend,
+        diasRegular: spBd.regular,
+        diasWeekend: spBd.weekend,
+        diasTotal: spBd.total,
+        eventDays: selected[id].eventDays || [],
         precioRegular: sp.priv ? sp.priv.regular : null,
         precioWeekend: sp.priv ? (sp.priv.weekend ?? sp.priv.regular) : null,
         garantia: sp.pub ? sp.pub.garantia : null,
@@ -723,6 +881,20 @@
       doc.text(formatMXN(esp.eventoTotal + esp.montajeTotal), W - margin, y + 1, { align: 'right' });
       y += 5;
 
+      // Días de este venue
+      var espDiasTotal = esp.diasRegular + esp.diasWeekend;
+      var espDiasLabel = espDiasTotal + ' d\u00EDa' + (espDiasTotal > 1 ? 's' : '');
+      if (esp.diasRegular > 0 && esp.diasWeekend > 0) {
+        espDiasLabel += ' (' + esp.diasRegular + ' LUN-JUE + ' + esp.diasWeekend + ' VIE-S\u00C1B)';
+      } else if (esp.diasWeekend > 0) {
+        espDiasLabel += ' (VIE-S\u00C1B)';
+      } else {
+        espDiasLabel += ' (LUN-JUE)';
+      }
+      doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text(espDiasLabel, margin + 5, y);
+      y += 4;
+
       // Desglose por tipo de día
       if (esp.precioRegular !== null && esp.diasRegular > 0) {
         doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
@@ -736,7 +908,7 @@
       }
       if (esp.garantia !== null) {
         doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-        doc.text(esp.diasRegular + esp.diasWeekend + ' d\u00EDa' + ((esp.diasRegular + esp.diasWeekend) > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(esp.garantia) + '/d\u00EDa', margin + 5, y);
+        doc.text(espDiasTotal + ' d\u00EDa' + (espDiasTotal > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(esp.garantia) + '/d\u00EDa', margin + 5, y);
         y += 4;
       }
       if (esp.montajeDias > 0) {
