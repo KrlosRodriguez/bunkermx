@@ -809,21 +809,66 @@
 
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    var W = 210, margin = 20, contentW = W - margin * 2, y = 0;
+    var W = 210, H = 297, margin = 20, contentW = W - margin * 2, y = 0;
     var data = collectFormData();
     data.folio = currentFolio;
 
-    doc.setFillColor(5, 9, 5); doc.rect(0, 0, W, 297, 'F');
-    doc.setFillColor(7, 15, 9); doc.rect(0, 0, W, 22, 'F');
-    doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.5); doc.line(0, 22, W, 22);
+    var HEADER_H = 22;    // altura de la cabecera
+    var FOOTER_H = 28;    // altura reservada para pie de página
+    var CONTENT_TOP = 30; // y donde empieza el contenido después de cabecera
+    var MAX_Y = H - FOOTER_H; // límite antes de pie de página
 
-    doc.setTextColor(0, 255, 65); doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18); doc.text('MUNET', margin, 14);
-    doc.setFontSize(8); doc.text('FOLIO: ' + data.folio, W - margin, 10, { align: 'right' });
-    doc.setFontSize(6); doc.setTextColor(0, 200, 50);
-    doc.text('SIMULADOR DE COSTOS \u00B7 RENTA DE ESPACIOS \u00B7 2026', W - margin, 16, { align: 'right' });
+    // ── Funciones reutilizables para cabecera y pie ──
+    function drawHeader() {
+      doc.setFillColor(5, 9, 5); doc.rect(0, 0, W, H, 'F');
+      doc.setFillColor(7, 15, 9); doc.rect(0, 0, W, HEADER_H, 'F');
+      doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.5); doc.line(0, HEADER_H, W, HEADER_H);
 
-    y = 30;
+      doc.setTextColor(0, 255, 65); doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18); doc.text('MUNET', margin, 14);
+      doc.setFontSize(8); doc.text('FOLIO: ' + data.folio, W - margin, 10, { align: 'right' });
+      doc.setFontSize(6); doc.setTextColor(0, 200, 50);
+      doc.text('SIMULADOR DE COSTOS \u00B7 RENTA DE ESPACIOS \u00B7 2026', W - margin, 16, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+    }
+
+    function drawFooter() {
+      var fy = H - FOOTER_H + 4;
+      // Línea separadora
+      doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.2);
+      doc.line(margin, fy, W - margin, fy);
+      fy += 5;
+
+      // Texto de contacto
+      doc.setFontSize(6); doc.setTextColor(100, 118, 100);
+      doc.text('Av. de los Compositores s/n \u00B7 Bosque de Chapultepec 2\u00AA Secc. \u00B7 CDMX', margin, fy);
+      fy += 3.5;
+      doc.text('contacto@museomunet.com \u00B7 museomunet.com \u00B7 Precios + IVA \u00B7 Vigentes 2026', margin, fy);
+
+      // Logo BUNKER (alineado a la derecha)
+      if (typeof BUNKER_LOGO_B64 !== 'undefined') {
+        var logoW = 30, logoH = 11; // proporción 150:54
+        doc.addImage(BUNKER_LOGO_B64, 'PNG', W - margin - logoW, H - FOOTER_H + 6, logoW, logoH);
+      }
+
+      // Número de página
+      var pageNum = doc.internal.getNumberOfPages();
+      doc.setFontSize(7); doc.setTextColor(0, 200, 50);
+      doc.text('P\u00C1G ' + doc.internal.getCurrentPageInfo().pageNumber + '/' + pageNum, W / 2, H - 6, { align: 'center' });
+    }
+
+    function checkPage(needed) {
+      if (y + needed > MAX_Y) {
+        doc.addPage();
+        drawHeader();
+        y = CONTENT_TOP;
+      }
+    }
+
+    // ── Página 1 ──
+    drawHeader();
+    y = CONTENT_TOP;
+
     doc.setFontSize(22); doc.setTextColor(237, 248, 237); doc.text('TU COTIZACI\u00D3N', margin, y); y += 6;
     doc.setFontSize(7); doc.setTextColor(0, 255, 65); doc.text('MUNET \u00B7 RENTA DE ESPACIOS \u00B7 2026', margin, y); y += 10;
 
@@ -872,7 +917,7 @@
     doc.text('\u2014 ESPACIOS SELECCIONADOS', margin, y); y += 6;
 
     data.espaciosArr.forEach(function (esp) {
-      if (y > 240) { doc.addPage(); doc.setFillColor(5, 9, 5); doc.rect(0, 0, W, 297, 'F'); y = 20; }
+      checkPage(25); // cada espacio necesita ~25mm mínimo
       var rgb = hexToRGB(esp.color);
 
       doc.setDrawColor(rgb[0], rgb[1], rgb[2]); doc.setLineWidth(0.8); doc.line(margin, y, margin + 2, y);
@@ -919,6 +964,8 @@
       y += 4;
     });
 
+    // Totales
+    checkPage(45);
     y += 3;
     doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.3); doc.line(margin, y, W - margin, y); y += 8;
 
@@ -934,13 +981,14 @@
     doc.setFillColor(0, 255, 65); doc.rect(margin, y - 2, contentW, 14, 'F');
     doc.setFontSize(7); doc.setTextColor(5, 9, 5); doc.text('TOTAL ESTIMADO CON IVA', margin + 5, y + 3);
     doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.text(formatMXN(data.total), W - margin - 5, y + 9, { align: 'right' });
-    y += 20;
+    doc.setFont('helvetica', 'normal');
 
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(0, 255, 65);
-    doc.text('BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV', margin, y); y += 5;
-    doc.setFontSize(6); doc.setTextColor(100, 118, 100);
-    doc.text('Av. de los Compositores s/n \u00B7 Bosque de Chapultepec 2\u00AA Secc. \u00B7 CDMX', margin, y); y += 4;
-    doc.text('contacto@museomunet.com \u00B7 museomunet.com \u00B7 Precios + IVA \u00B7 Vigentes 2026', margin, y);
+    // ── Dibujar pie de página en TODAS las páginas ──
+    var totalPages = doc.internal.getNumberOfPages();
+    for (var p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      drawFooter();
+    }
 
     doc.save('Cotizacion-MUNET-' + currentFolio + '.pdf');
   }
