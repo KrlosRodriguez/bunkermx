@@ -317,6 +317,8 @@
 .munet-cta-btns{
   display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
 }
+.hud-btn--cta-yellow{color:#FFD600;border-color:rgba(255,214,0,.4)}
+.hud-btn--cta-yellow:hover{background:rgba(255,214,0,.15);border-color:#FFD600;box-shadow:0 0 12px rgba(255,214,0,.35);color:#FFE040}
 
 /* ── Responsive ── */
 @media(max-width:1024px){
