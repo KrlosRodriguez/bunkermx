@@ -4,7 +4,7 @@
    ============================================================ */
 
 .hub-page .sys-nav::after{
-  background:linear-gradient(90deg,transparent,var(--terra-dim),rgba(10,132,255,.25),var(--terra-dim),transparent);
+  background:linear-gradient(90deg,transparent,var(--terra-dim),rgba(156,74,68,.25),var(--terra-dim),transparent);
 }
 .hub-page .page-header-title span{color:var(--terra)}
 .hub-page .sys-label::before{color:var(--terra-dim)}
@@ -45,7 +45,7 @@
   clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
   transition:border-color var(--dur-fast);
 }
-.hub-platform:hover{border-color:rgba(10,132,255,.4)}
+.hub-platform:hover{border-color:rgba(156,74,68,.4)}
 .hub-platform::before{
   content:'';
   display:block;
@@ -118,7 +118,7 @@
   transition:border-color var(--dur-fast);
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
 }
-.hub-location:hover{border-color:rgba(10,132,255,.4)}
+.hub-location:hover{border-color:rgba(156,74,68,.4)}
 .hub-loc-name{
   font-family:'Barlow Condensed',sans-serif;
   font-size:var(--fs-md);

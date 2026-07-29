@@ -20,15 +20,15 @@
   --text-dim:    rgba(226,217,197,.4);
 
   /* Accents */
-  --gold:        #00E050;
-  --gold-light:  #33FF70;
-  --gold-dim:    rgba(0,224,80,.18);
-  --terra:       #0A84FF;
-  --terra-light: #3DA0FF;
-  --terra-dim:   rgba(10,132,255,.18);
-  --munet:       #FFD600;
-  --munet-light: #FFE040;
-  --munet-dim:   rgba(255,214,0,.15);
+  --gold:        #C6A350;
+  --gold-light:  #D4B76A;
+  --gold-dim:    rgba(198,163,80,.18);
+  --terra:       #9C4A44;
+  --terra-light: #B85C55;
+  --terra-dim:   rgba(156,74,68,.18);
+  --munet:       #2E8B6E;
+  --munet-light: #5FCBA8;
+  --munet-dim:   rgba(46,139,110,.15);
 
   /* Neutrals */
   --arena:       #B8BDB3;
@@ -522,7 +522,7 @@ nav{
 .munet-exp.open{max-height:400px}
 .munet-exp-in{
   display:flex;gap:20px;padding:20px 24px;
-  background:var(--munet-dim);border:1px solid rgba(46,139,110,.2);
+  background:var(--munet-dim);border:1px solid rgba(0,224,80,.2);
   border-top:none;
 }
 .meh-icon{font-size:32px;flex-shrink:0}
@@ -534,6 +534,13 @@ nav{
 .meh-sub{font-size:var(--fs-sm);color:var(--text-mid);line-height:1.6}
 
 /* ── MUNET SECTION ── */
+/* Override: sección MUNET mantiene colores neon green independientes de --gold */
+#munet{
+  --munet:       #00E050;
+  --munet-light: #33FF70;
+  --munet-dim:   rgba(0,224,80,.18);
+}
+
 .munet-hero-grid{
   display:grid;grid-template-columns:1fr 1fr;
   gap:clamp(32px,4vw,64px);margin-bottom:var(--space-block);
@@ -548,7 +555,7 @@ nav{
   border-left:2px solid var(--munet);padding-left:16px;
 }
 .munet-box{
-  background:var(--munet-dim);border:1px solid rgba(46,139,110,.2);
+  background:var(--munet-dim);border:1px solid rgba(0,224,80,.2);
   padding:clamp(20px,3vw,32px);
 }
 .mb-lbl{
@@ -561,7 +568,7 @@ nav{
 .tipo{
   font-family:'Space Mono',monospace;font-size:8px;
   letter-spacing:2px;text-transform:uppercase;
-  padding:4px 8px;border:1px solid rgba(46,139,110,.3);
+  padding:4px 8px;border:1px solid rgba(0,224,80,.3);
   color:var(--munet-light);
 }
 
@@ -598,7 +605,7 @@ nav{
 /* MUNET CTA */
 .munet-cta{
   text-align:center;padding:clamp(32px,4vw,48px);
-  border:1px solid rgba(46,139,110,.2);background:var(--munet-dim);
+  border:1px solid rgba(0,224,80,.2);background:var(--munet-dim);
 }
 .munet-cta-title{
   font-family:'Barlow Condensed',sans-serif;font-size:clamp(20px,3vw,32px);

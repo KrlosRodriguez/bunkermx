@@ -1,7 +1,9 @@
 (function(){
   var KEY = 'bnk_cot_auth';
-  var P = 'sV2ctmnt';
-  var USERS = ['BK-01','BK-02','BK-03','BK-04','BK-05','BK-06','BK-07','BK-08','BK-09','BK-10'];
+  var CREDS = [
+    {users:['BK-01','BK-02','BK-03','BK-04','BK-05','BK-06','BK-07','BK-08','BK-09','BK-10'], pass:'7164716EscPre'},
+    {users:['BNK-MUNET-MMXVII'], pass:'7164716EscPre'}
+  ];
 
   if(sessionStorage.getItem(KEY) === 'granted') return;
 
@@ -64,7 +66,8 @@
       e.preventDefault();
       var u = document.getElementById('lg-user').value.trim().toUpperCase();
       var p = document.getElementById('lg-pass').value;
-      if(USERS.indexOf(u) !== -1 && p === P){
+      var valid = CREDS.some(function(c){ return c.users.indexOf(u) !== -1 && p === c.pass; });
+      if(valid){
         sessionStorage.setItem(KEY, 'granted');
         ov.remove();
         st.remove();

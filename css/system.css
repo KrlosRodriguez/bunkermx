@@ -24,22 +24,22 @@
   --text-ghost:  rgba(226,217,197,.15);
 
   /* Accents */
-  --gold:        #00E050;
-  --gold-light:  #33FF70;
-  --gold-dim:    rgba(0,224,80,.18);
-  --gold-ultra:  rgba(0,224,80,.08);
-  --terra:       #0A84FF;
-  --terra-light: #3DA0FF;
-  --terra-dim:   rgba(10,132,255,.18);
-  --munet:       #FFD600;
-  --munet-light: #FFE040;
-  --munet-dim:   rgba(255,214,0,.15);
+  --gold:        #C6A350;
+  --gold-light:  #D4B76A;
+  --gold-dim:    rgba(198,163,80,.18);
+  --gold-ultra:  rgba(198,163,80,.08);
+  --terra:       #9C4A44;
+  --terra-light: #B85C55;
+  --terra-dim:   rgba(156,74,68,.18);
+  --munet:       #2E8B6E;
+  --munet-light: #5FCBA8;
+  --munet-dim:   rgba(46,139,110,.15);
 
   /* Glow */
-  --glow-gold:   0 0 12px rgba(0,224,80,.35), 0 0 4px rgba(0,224,80,.2);
-  --glow-terra:  0 0 12px rgba(10,132,255,.35), 0 0 4px rgba(10,132,255,.2);
-  --glow-munet:  0 0 12px rgba(255,214,0,.35), 0 0 4px rgba(255,214,0,.2);
-  --glow-text:   0 0 8px rgba(0,224,80,.5);
+  --glow-gold:   0 0 12px rgba(198,163,80,.35), 0 0 4px rgba(198,163,80,.2);
+  --glow-terra:  0 0 12px rgba(156,74,68,.35), 0 0 4px rgba(156,74,68,.2);
+  --glow-munet:  0 0 12px rgba(46,139,110,.35), 0 0 4px rgba(46,139,110,.2);
+  --glow-text:   0 0 8px rgba(198,163,80,.5);
 
   /* Neutrals */
   --arena:       #B8BDB3;
@@ -48,12 +48,12 @@
   /* Utility */
   --border:      rgba(226,217,197,.08);
   --border-mid:  rgba(226,217,197,.15);
-  --border-gold: rgba(0,224,80,.25);
-  --border-terra: rgba(10,132,255,.25);
-  --border-munet: rgba(255,214,0,.25);
-  --border-active: rgba(0,224,80,.5);
+  --border-gold: rgba(198,163,80,.25);
+  --border-terra: rgba(156,74,68,.25);
+  --border-munet: rgba(46,139,110,.25);
+  --border-active: rgba(198,163,80,.5);
   --scanline:    rgba(226,217,197,.025);
-  --grid-line:   rgba(0,224,80,.04);
+  --grid-line:   rgba(198,163,80,.04);
 
   /* Clip corners */
   --clip-sm: 8px;
@@ -163,7 +163,7 @@ body::after{
 .cur-r{
   position:fixed;
   width:40px;height:40px;
-  border:1px solid rgba(0,224,80,.2);
+  border:1px solid rgba(198,163,80,.2);
   border-radius:50%;
   pointer-events:none;
   z-index:10000;
@@ -178,7 +178,7 @@ body.cur-hover .cur{
 }
 body.cur-hover .cur-r{
   width:56px;height:56px;
-  border-color:rgba(0,224,80,.4);
+  border-color:rgba(198,163,80,.4);
 }
 
 /* ══════════════════════════════════════
@@ -393,7 +393,7 @@ body.cur-hover .cur-r{
   pointer-events:none;
   background:repeating-linear-gradient(
     0deg,transparent,transparent 2px,
-    rgba(0,224,80,.015) 2px,rgba(0,224,80,.015) 4px
+    rgba(198,163,80,.015) 2px,rgba(198,163,80,.015) 4px
   );
 }
 
@@ -453,7 +453,7 @@ body.cur-hover .cur-r{
   border:1px solid var(--border-gold);
   clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,4px 100%,0 calc(100% - 4px));
 }
-.hud-badge--terra{color:var(--terra);border-color:rgba(10,132,255,.3)}
+.hud-badge--terra{color:var(--terra);border-color:rgba(156,74,68,.3)}
 .hud-badge--munet{color:var(--munet);border-color:rgba(46,139,110,.3)}
 .hud-badge--dim{color:var(--text-dim);border-color:var(--border)}
 
@@ -577,9 +577,9 @@ body.cur-hover .cur-r{
   border-color:var(--gold);
 }
 .hud-btn--primary:hover{
-  background:rgba(0,224,80,.3);
+  background:rgba(198,163,80,.3);
 }
-.hud-btn--terra{color:var(--terra);border-color:rgba(10,132,255,.3)}
+.hud-btn--terra{color:var(--terra);border-color:rgba(156,74,68,.3)}
 .hud-btn--terra:hover{background:var(--terra-dim);border-color:var(--terra);box-shadow:var(--glow-terra)}
 .hud-btn--munet{color:var(--munet);border-color:rgba(46,139,110,.3)}
 .hud-btn--munet:hover{background:var(--munet-dim);border-color:var(--munet);box-shadow:var(--glow-munet)}
@@ -857,7 +857,7 @@ body.cur-hover .cur-r{
 /* Glow pulse */
 @keyframes glow-pulse{
   0%,100%{box-shadow:var(--glow-gold)}
-  50%{box-shadow:0 0 20px rgba(0,224,80,.5),0 0 6px rgba(0,224,80,.3)}
+  50%{box-shadow:0 0 20px rgba(198,163,80,.5),0 0 6px rgba(198,163,80,.3)}
 }
 
 /* Scan sweep */
@@ -869,7 +869,7 @@ body.cur-hover .cur-r{
   position:fixed;
   left:0;right:0;
   height:60px;
-  background:linear-gradient(180deg,transparent,rgba(0,224,80,.03),transparent);
+  background:linear-gradient(180deg,transparent,rgba(198,163,80,.03),transparent);
   pointer-events:none;
   z-index:9998;
   animation:scan-sweep 8s linear infinite;

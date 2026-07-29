@@ -62,7 +62,7 @@
   margin-bottom:16px;
 }
 .svc-panel:hover{border-color:var(--border-gold)}
-.svc-panel--feat{border-color:var(--border-gold);background:rgba(0,224,80,.03)}
+.svc-panel--feat{border-color:var(--border-gold);background:rgba(198,163,80,.03)}
 
 .svc-panel-header{
   display:grid;
@@ -184,8 +184,8 @@
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,224,80,.015) 2px,
-    rgba(0,224,80,.015) 4px
+    rgba(198,163,80,.015) 2px,
+    rgba(198,163,80,.015) 4px
   );
   pointer-events:none;
 }
@@ -274,8 +274,8 @@
 .munet-inline{
   margin-top:16px;
   padding:20px;
-  background:rgba(46,139,110,.05);
-  border:1px solid rgba(46,139,110,.2);
+  background:rgba(0,224,80,.05);
+  border:1px solid rgba(0,224,80,.2);
   border-left:3px solid var(--munet);
 }
 .munet-inline--compact{

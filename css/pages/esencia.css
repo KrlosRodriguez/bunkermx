@@ -25,7 +25,7 @@
   pointer-events:none;
   background:repeating-linear-gradient(
     0deg,transparent,transparent 2px,
-    rgba(0,224,80,.012) 2px,rgba(0,224,80,.012) 4px
+    rgba(198,163,80,.012) 2px,rgba(198,163,80,.012) 4px
   );
   z-index:2;
 }
@@ -139,7 +139,7 @@
 .mf-hud-title-accent{
   color:var(--gold);
   font-size:clamp(34px,5.5vw,68px);
-  text-shadow:0 0 30px rgba(0,224,80,.25),0 0 60px rgba(0,224,80,.1);
+  text-shadow:0 0 30px rgba(198,163,80,.25),0 0 60px rgba(198,163,80,.1);
 }
 /* Typing cursor scaled for large titles */
 .mf-hud-title-line.typing-cursor{
@@ -169,7 +169,7 @@
   background:var(--gold);
   transform:rotate(45deg);
   flex-shrink:0;
-  box-shadow:0 0 8px rgba(0,224,80,.4);
+  box-shadow:0 0 8px rgba(198,163,80,.4);
 }
 
 .mf-hud-sub{
@@ -210,7 +210,7 @@
 /* Hover glow */
 .mf-hud:hover{
   border-color:var(--border-gold);
-  box-shadow:0 0 30px rgba(0,224,80,.06),inset 0 0 60px rgba(0,224,80,.02);
+  box-shadow:0 0 30px rgba(198,163,80,.06),inset 0 0 60px rgba(198,163,80,.02);
 }
 
 /* Legacy classes (keep for compatibility) */
@@ -244,7 +244,7 @@
   pointer-events:none;
   background:repeating-linear-gradient(
     0deg,transparent,transparent 2px,
-    rgba(0,224,80,.012) 2px,rgba(0,224,80,.012) 4px
+    rgba(198,163,80,.012) 2px,rgba(198,163,80,.012) 4px
   );
 }
 .mf-term-bar{
@@ -366,7 +366,7 @@
   transition:color .3s;
 }
 .mf-atrib:hover .mf-atrib-bg-num,
-.mf-atrib.open .mf-atrib-bg-num{color:rgba(0,224,80,.06)}
+.mf-atrib.open .mf-atrib-bg-num{color:rgba(198,163,80,.06)}
 .mf-atrib-content{position:relative;z-index:1}
 .mf-atrib-head{
   display:flex;align-items:center;justify-content:space-between;
@@ -424,14 +424,14 @@
 }
 .bnk-decl-card:hover,
 .bnk-decl-card.open{border-color:var(--border-gold);box-shadow:var(--glow-gold);transform:translateY(-2px)}
-.bnk-decl-card--accent{border-color:var(--gold-dim);background:linear-gradient(160deg,var(--bg-elevated) 40%,rgba(0,224,80,.06))}
+.bnk-decl-card--accent{border-color:var(--gold-dim);background:linear-gradient(160deg,var(--bg-elevated) 40%,rgba(198,163,80,.06))}
 .bnk-decl-num{
   font-family:'Barlow Condensed',sans-serif;font-size:36px;
   font-weight:800;color:rgba(226,217,197,.1);line-height:1;
   transition:color .3s;
 }
 .bnk-decl-card:hover .bnk-decl-num,
-.bnk-decl-card.open .bnk-decl-num{color:rgba(0,224,80,.12)}
+.bnk-decl-card.open .bnk-decl-num{color:rgba(198,163,80,.12)}
 .bnk-decl-head{
   display:flex;align-items:center;justify-content:space-between;
 }

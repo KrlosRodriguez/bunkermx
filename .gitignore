@@ -31,3 +31,14 @@ node_modules/
 # Archivos comprimidos
 *.zip
 *.rar
+
+.claude/
+.firebase/
+
+capturas/
+branding/
+
+node_modules/
+
+.env
+.env.*

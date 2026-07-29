@@ -98,7 +98,7 @@
   pointer-events:none;
   background:repeating-linear-gradient(
     0deg,transparent,transparent 2px,
-    rgba(0,224,80,.01) 2px,rgba(0,224,80,.01) 4px
+    rgba(198,163,80,.01) 2px,rgba(198,163,80,.01) 4px
   );
   z-index:1;
 }
@@ -109,7 +109,7 @@
   position:absolute;
   top:0;left:-100%;
   width:100%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(0,224,80,.04),transparent);
+  background:linear-gradient(90deg,transparent,rgba(198,163,80,.04),transparent);
   pointer-events:none;
   z-index:2;
   transition:left .6s var(--ease-out);
@@ -136,12 +136,12 @@
 }
 .proj-card:hover .proj-card-accent{
   opacity:1;
-  box-shadow:0 0 8px rgba(0,224,80,.4);
+  box-shadow:0 0 8px rgba(198,163,80,.4);
 }
 
 /* Hover glow matches accent color per category */
 .proj-card[data-c="giras"]:hover{border-color:var(--border-terra);box-shadow:var(--glow-terra)}
-.proj-card[data-c="giras"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(10,132,255,.4)}
+.proj-card[data-c="giras"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(156,74,68,.4)}
 .proj-card[data-c="management"]:hover{border-color:var(--border-munet);box-shadow:var(--glow-munet)}
 .proj-card[data-c="management"]:hover .proj-card-accent{box-shadow:0 0 8px rgba(255,214,0,.4)}
 .proj-card[data-c="cine"]:hover{border-color:rgba(139,110,201,.25);box-shadow:0 0 12px rgba(139,110,201,.35),0 0 4px rgba(139,110,201,.2)}
@@ -193,9 +193,9 @@
 }
 
 /* Badge colors */
-.proj-card[data-c="giras"] .proj-card-badge{color:var(--terra);border-color:rgba(10,132,255,.3)}
+.proj-card[data-c="giras"] .proj-card-badge{color:var(--terra);border-color:rgba(156,74,68,.3)}
 .proj-card[data-c="cine"] .proj-card-badge{color:#8B6EC9;border-color:rgba(139,110,201,.3)}
-.proj-card[data-c="management"] .proj-card-badge{color:var(--munet);border-color:rgba(46,139,110,.3)}
+.proj-card[data-c="management"] .proj-card-badge{color:var(--munet);border-color:rgba(0,224,80,.3)}
 .proj-card[data-c="venues"] .proj-card-badge{color:var(--arena);border-color:rgba(184,189,179,.25)}
 .proj-card[data-c="discografia"] .proj-card-badge{color:#C97A4C;border-color:rgba(201,122,76,.3)}
 
@@ -307,7 +307,7 @@
   display:flex;
   gap:12px;
   align-items:flex-start;
-  background:rgba(0,224,80,.02);
+  background:rgba(198,163,80,.02);
 }
 .proj-card-expand-icon{
   width:36px;height:36px;
@@ -435,7 +435,7 @@
   gap:16px;
   border:1px solid var(--border);
   border-top:none;
-  background:rgba(0,224,80,.01);
+  background:rgba(198,163,80,.01);
   padding:0 16px;
 }
 .yr-cards.open{

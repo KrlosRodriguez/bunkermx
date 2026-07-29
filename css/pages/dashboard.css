@@ -237,6 +237,13 @@
 .mod-panel--terra:hover{
   border-color:var(--border-terra);
 }
+/* Override: MUNET panel mantiene colores neon green */
+.mod-panel--munet{
+  --munet:       #00E050;
+  --munet-light: #33FF70;
+  --munet-dim:   rgba(0,224,80,.18);
+  --border-munet:rgba(0,224,80,.25);
+}
 .mod-panel--munet:hover{
   border-color:var(--border-munet);
 }
@@ -246,7 +253,7 @@
   pointer-events:none;
   background:repeating-linear-gradient(
     0deg,transparent,transparent 2px,
-    rgba(0,224,80,.01) 2px,rgba(0,224,80,.01) 4px
+    rgba(198,163,80,.01) 2px,rgba(198,163,80,.01) 4px
   );
 }
 .mod-panel-header{
@@ -532,7 +539,7 @@
 .bnk-decl-card:hover{border-color:var(--border-gold)}
 .bnk-decl-card--accent{
   border-color:var(--border-gold);
-  background:rgba(0,224,80,.04);
+  background:rgba(198,163,80,.04);
 }
 .bnk-decl-num{
   font-family:'Space Mono',monospace;
@@ -801,7 +808,7 @@
 }
 .metric-bar-seg.on{
   background:var(--gold);
-  box-shadow:0 0 4px rgba(0,224,80,.3);
+  box-shadow:0 0 4px rgba(198,163,80,.3);
 }
 
 /* ── CONTACTO ── */

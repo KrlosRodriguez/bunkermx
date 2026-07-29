@@ -30,13 +30,13 @@
 }
 .id-card:hover{
   border-color:var(--gold-dim);
-  box-shadow:0 0 20px rgba(0,224,80,.08);
+  box-shadow:0 0 20px rgba(198,163,80,.08);
 }
 .id-card::after{
   content:'';
   position:absolute;inset:0;
   pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,224,80,.01) 2px,rgba(0,224,80,.01) 4px);
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(198,163,80,.01) 2px,rgba(198,163,80,.01) 4px);
 }
 
 /* Header bar */
@@ -92,13 +92,13 @@
   transition:border-color .3s,box-shadow .3s;
 }
 .id-card:hover .id-photo-frame{
-  box-shadow:0 0 16px rgba(0,224,80,.15);
+  box-shadow:0 0 16px rgba(198,163,80,.15);
 }
 .id-photo-frame::before{
   content:'';
   position:absolute;
   inset:3px;
-  border:1px solid rgba(0,224,80,.1);
+  border:1px solid rgba(198,163,80,.1);
   pointer-events:none;
 }
 .id-photo-frame img{
@@ -184,7 +184,7 @@
   overflow:hidden;
   padding:0 20px;
   border-top:1px solid transparent;
-  background:rgba(0,224,80,.02);
+  background:rgba(198,163,80,.02);
   transition:max-height .5s ease-out,padding .4s,border-color .3s;
   position:relative;
   z-index:1;
@@ -304,7 +304,7 @@
     border-color:var(--gold-dim);
   }
   .id-header{
-    background:rgba(0,224,80,.06);
+    background:rgba(198,163,80,.06);
     border-bottom-color:var(--border-mid,rgba(255,255,255,.12));
   }
   .id-footer{

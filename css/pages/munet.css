@@ -1,10 +1,19 @@
 /* ============================================================
    SUBSISTEMA: MUNET
-   Accent override: --munet (green)
+   Accent override: colores neon green heredados del esquema
+   inicio v2 (#00E050 / #33FF70 / #FFD600)
+   Hardcodeados para independizar de --gold global.
    ============================================================ */
 
+/* Override de variables para la página MUNET */
+.munet-page{
+  --munet:       #00E050;
+  --munet-light: #33FF70;
+  --munet-dim:   rgba(0,224,80,.18);
+}
+
 .munet-page .sys-nav::after{
-  background:linear-gradient(90deg,transparent,var(--munet-dim),rgba(46,139,110,.25),var(--munet-dim),transparent);
+  background:linear-gradient(90deg,transparent,var(--munet-dim),rgba(0,224,80,.25),var(--munet-dim),transparent);
 }
 .munet-page .page-header-title span{color:var(--munet)}
 .munet-page .sys-label::before{color:var(--munet-dim)}
@@ -37,8 +46,8 @@
 }
 .munet-alliance-box{
   padding:24px;
-  background:rgba(46,139,110,.04);
-  border:1px solid rgba(46,139,110,.2);
+  background:rgba(0,224,80,.04);
+  border:1px solid rgba(0,224,80,.2);
   clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
 }
 .munet-alliance-label{
@@ -68,7 +77,7 @@
   letter-spacing:1px;
   text-transform:uppercase;
   padding:3px 8px;
-  border:1px solid rgba(46,139,110,.25);
+  border:1px solid rgba(0,224,80,.25);
 }
 
 /* ── Alliance Service Card ── */
@@ -78,8 +87,8 @@
   row-gap:0;
 }
 .munet-svc-panel{
-  background:rgba(46,139,110,.08);
-  border:1px solid rgba(46,139,110,.35);
+  background:rgba(0,224,80,.08);
+  border:1px solid rgba(0,224,80,.35);
   clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
   transition:border-color .3s;
   overflow:hidden;
@@ -100,12 +109,12 @@
 }
 .munet-svc-header::after{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(46,139,110,.06),transparent);
+  background:linear-gradient(180deg,rgba(0,224,80,.06),transparent);
 }
 .munet-svc-num{
   font-family:'Space Mono',monospace;
   font-size:var(--fs-xs);
-  color:#5EEABC;
+  color:#33FF70;
   letter-spacing:2px;
   position:relative;z-index:1;
 }
@@ -122,7 +131,7 @@
   font-family:'Space Mono',monospace;
   font-size:8px;
   letter-spacing:2px;
-  color:#5EEABC;
+  color:#33FF70;
   border:1px solid rgba(94,234,188,.35);
   padding:3px 10px;
   text-transform:uppercase;
@@ -165,33 +174,33 @@
   margin-bottom:16px;
 }
 .munet-svc-terminal{
-  border:1px solid rgba(46,139,110,.35);
+  border:1px solid rgba(0,224,80,.35);
   background:var(--bg-panel);
   margin:0 0 16px;
 }
 .munet-svc-term-bar{
   display:flex;justify-content:space-between;align-items:center;
   padding:10px 16px;
-  border-bottom:1px solid rgba(46,139,110,.3);
+  border-bottom:1px solid rgba(0,224,80,.3);
   background:var(--bg-panel);
 }
 .munet-svc-term-title{
   font-family:'Space Mono',monospace;
   font-size:9px;letter-spacing:2px;
-  color:#5EEABC;text-transform:uppercase;
+  color:#33FF70;text-transform:uppercase;
 }
 .munet-svc-term-dots{display:flex;gap:4px}
 .munet-svc-term-dots span{
   width:6px;height:6px;border-radius:50%;
   border:1px solid rgba(94,234,188,.4);
 }
-.munet-svc-term-dots span:first-child{background:#5EEABC}
+.munet-svc-term-dots span:first-child{background:#33FF70}
 .munet-svc-term-body{
   padding:20px 24px;
 }
 .munet-svc-term-body .svc-term-line{
   font-family:'Space Mono',monospace;
-  font-size:var(--fs-xs);color:#5EEABC;
+  font-size:var(--fs-xs);color:#33FF70;
   margin-bottom:12px;opacity:0;
   transition:opacity .3s;
 }
@@ -220,7 +229,7 @@
 .munet-svc-term-body .svc-exp-list li::before{
   content:'>> ';position:absolute;left:0;
   font-family:'Space Mono',monospace;font-size:9px;
-  color:#5EEABC;
+  color:#33FF70;
 }
 .munet-svc-exp-panel.open .svc-exp-list li{
   opacity:1;transform:none;
@@ -266,11 +275,11 @@
   clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
   transition:border-color var(--dur-fast);
 }
-.esp-card:hover{border-color:rgba(46,139,110,.4)}
+.esp-card:hover{border-color:rgba(0,224,80,.4)}
 .esp-card--big{
   grid-column:1/-1;
-  border-color:rgba(46,139,110,.25);
-  background:rgba(46,139,110,.04);
+  border-color:rgba(0,224,80,.25);
+  background:rgba(0,224,80,.04);
 }
 .esp-card-name{
   font-family:'Space Mono',monospace;
