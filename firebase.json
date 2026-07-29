@@ -17,12 +17,9 @@
       {
         "source": "/cotizador-munet",
         "destination": "/cotizador-munet/index.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ],
+    "cleanUrls": true,
     "headers": [
       {
         "source": "**/*.webp",
