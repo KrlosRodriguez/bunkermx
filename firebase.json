@@ -14,10 +14,13 @@
       ".tmp.driveupload/**"
     ],
     "rewrites": [
-      {
-        "source": "/cotizador-munet",
-        "destination": "/cotizador-munet/index.html"
-      }
+      { "source": "/esencia", "destination": "/esencia.html" },
+      { "source": "/servicios", "destination": "/servicios.html" },
+      { "source": "/talento", "destination": "/talento.html" },
+      { "source": "/proyectos", "destination": "/proyectos.html" },
+      { "source": "/munet", "destination": "/munet.html" },
+      { "source": "/hub", "destination": "/hub.html" },
+      { "source": "/cotizador-munet", "destination": "/cotizador-munet/index.html" }
     ],
     "cleanUrls": true,
     "headers": [
