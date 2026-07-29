@@ -198,7 +198,7 @@ body::after{
   padding:0 28px;
 }
 .v2-step--active .v2-step-body{
-  max-height:6000px;
+  max-height:none;
   overflow:visible;
   padding:0 28px 28px;
 }
