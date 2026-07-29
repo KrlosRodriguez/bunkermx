@@ -537,7 +537,7 @@ nav{
 /* Override: sección MUNET mantiene colores neon green independientes de --gold */
 #munet{
   --munet:       #00E050;
-  --munet-light: #33FF70;
+  --munet-light: #FFE040;
   --munet-dim:   rgba(0,224,80,.18);
 }
 

@@ -1,14 +1,14 @@
 /* ============================================================
    SUBSISTEMA: MUNET
    Accent override: colores neon green heredados del esquema
-   inicio v2 (#00E050 / #33FF70 / #FFD600)
+   inicio v2 (#00E050 / #FFD600 / #FFD600)
    Hardcodeados para independizar de --gold global.
    ============================================================ */
 
 /* Override de variables para la página MUNET */
 .munet-page{
   --munet:       #00E050;
-  --munet-light: #33FF70;
+  --munet-light: #FFE040;
   --munet-dim:   rgba(0,224,80,.18);
 }
 
@@ -53,7 +53,7 @@
 .munet-alliance-label{
   font-family:'Space Mono',monospace;
   font-size:var(--fs-xs);
-  color:var(--munet);
+  color:#FFD600;
   letter-spacing:2px;
   text-transform:uppercase;
   margin-bottom:12px;
@@ -73,7 +73,7 @@
 .munet-tipo{
   font-family:'Space Mono',monospace;
   font-size:9px;
-  color:var(--munet);
+  color:#FFD600;
   letter-spacing:1px;
   text-transform:uppercase;
   padding:3px 8px;
@@ -114,7 +114,7 @@
 .munet-svc-num{
   font-family:'Space Mono',monospace;
   font-size:var(--fs-xs);
-  color:#33FF70;
+  color:#FFD600;
   letter-spacing:2px;
   position:relative;z-index:1;
 }
@@ -131,8 +131,8 @@
   font-family:'Space Mono',monospace;
   font-size:8px;
   letter-spacing:2px;
-  color:#33FF70;
-  border:1px solid rgba(94,234,188,.35);
+  color:#FFD600;
+  border:1px solid rgba(255,214,0,.35);
   padding:3px 10px;
   text-transform:uppercase;
   position:relative;z-index:1;
@@ -151,7 +151,7 @@
   font-family:'Space Mono',monospace;
   font-size:var(--fs-xs);
   letter-spacing:2px;text-transform:uppercase;
-  color:var(--munet);
+  color:#FFD600;
   background:none;border:none;cursor:pointer;
   padding:8px 0;
   transition:gap .2s;
@@ -187,20 +187,20 @@
 .munet-svc-term-title{
   font-family:'Space Mono',monospace;
   font-size:9px;letter-spacing:2px;
-  color:#33FF70;text-transform:uppercase;
+  color:#FFD600;text-transform:uppercase;
 }
 .munet-svc-term-dots{display:flex;gap:4px}
 .munet-svc-term-dots span{
   width:6px;height:6px;border-radius:50%;
-  border:1px solid rgba(94,234,188,.4);
+  border:1px solid rgba(255,214,0,.4);
 }
-.munet-svc-term-dots span:first-child{background:#33FF70}
+.munet-svc-term-dots span:first-child{background:#FFD600}
 .munet-svc-term-body{
   padding:20px 24px;
 }
 .munet-svc-term-body .svc-term-line{
   font-family:'Space Mono',monospace;
-  font-size:var(--fs-xs);color:#33FF70;
+  font-size:var(--fs-xs);color:#FFD600;
   margin-bottom:12px;opacity:0;
   transition:opacity .3s;
 }
@@ -229,7 +229,7 @@
 .munet-svc-term-body .svc-exp-list li::before{
   content:'>> ';position:absolute;left:0;
   font-family:'Space Mono',monospace;font-size:9px;
-  color:#33FF70;
+  color:#FFD600;
 }
 .munet-svc-exp-panel.open .svc-exp-list li{
   opacity:1;transform:none;
@@ -284,7 +284,7 @@
 .esp-card-name{
   font-family:'Space Mono',monospace;
   font-size:var(--fs-sm);
-  color:var(--munet);
+  color:#FFD600;
   letter-spacing:2px;
   text-transform:uppercase;
   margin-bottom:6px;

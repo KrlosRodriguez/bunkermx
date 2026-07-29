@@ -240,7 +240,7 @@
 /* Override: MUNET panel mantiene colores neon green */
 .mod-panel--munet{
   --munet:       #00E050;
-  --munet-light: #33FF70;
+  --munet-light: #FFE040;
   --munet-dim:   rgba(0,224,80,.18);
   --border-munet:rgba(0,224,80,.25);
 }
