@@ -68,7 +68,7 @@
 
   /* ── ESTADO ── */
   var tipo = 'privado';
-  var selected = {};  // { spaceId: { montajeDays: 0, eventDays: ['YYYY-MM-DD', ...] } }
+  var selected = {};  // { spaceId: { montajeDays: 0, eventDays: [...], pubMode: 'garantia'|'pct' } }
   var cotizacionEnviada = false;
   var currentFolio = null;
   var currentStep = 1;
@@ -188,6 +188,8 @@
 
     if (tipo === 'publico') {
       if (!sp.pub) return null;
+      var pubMode = (selected[sp.id] && selected[sp.id].pubMode) || 'garantia';
+      if (pubMode === 'pct') return 0; // % boletaje no suma al total
       return sp.pub.garantia * bd.total;
     }
 
@@ -465,10 +467,33 @@
             '</div>';
           }
         } else if (tipo === 'publico' && sp.pub) {
-          desgloseHTML += '<div class="v2-sc-montaje">' +
-            '<div class="v2-montaje-label">' + spBd.total + ' D\u00CDA' + (spBd.total > 1 ? 'S' : '') + ' \u00B7 GARANT\u00CDA ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA</div>' +
-            '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia * spBd.total) + '</div></div>' +
+          var curPubMode = (selected[sp.id] && selected[sp.id].pubMode) || 'garantia';
+
+          // Selector de modo público
+          desgloseHTML += '<div class="v2-sc-montaje v2-pub-mode-wrap">' +
+            '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">MODALIDAD DE COBRO</div>' +
+            '<div class="v2-pub-mode-btns">' +
+              '<button class="v2-pub-mode-btn' + (curPubMode === 'garantia' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="garantia">' +
+                'GARANT\u00CDA M\u00CDN. \u00B7 ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA' +
+              '</button>' +
+              '<button class="v2-pub-mode-btn' + (curPubMode === 'pct' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="pct">' +
+                sp.pub.pct + '% DEL BOLETAJE' +
+              '</button>' +
+            '</div>' +
           '</div>';
+
+          // Desglose según modo
+          if (curPubMode === 'garantia') {
+            desgloseHTML += '<div class="v2-sc-montaje">' +
+              '<div class="v2-montaje-label">' + spBd.total + ' D\u00CDA' + (spBd.total > 1 ? 'S' : '') + ' \u00B7 GARANT\u00CDA ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia * spBd.total) + '</div></div>' +
+            '</div>';
+          } else {
+            desgloseHTML += '<div class="v2-sc-montaje">' +
+              '<div class="v2-montaje-label">' + sp.pub.pct + '% DEL BOLETAJE \u00B7 SE CALCULA SOBRE VENTA FINAL</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">POR DEFINIR</div></div>' +
+            '</div>';
+          }
         }
       }
 
@@ -556,6 +581,20 @@
       });
     });
 
+    // Public mode buttons (garantía / % boletaje)
+    grid.querySelectorAll('.v2-pub-mode-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = btn.getAttribute('data-space');
+        var mode = btn.getAttribute('data-pubmode');
+        if (selected[spaceId]) {
+          selected[spaceId].pubMode = mode;
+          if (cotizacionEnviada) resetEnvio();
+          buildCards();
+        }
+      });
+    });
+
     // Toggle collapsed days
     grid.querySelectorAll('.v2-days-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -586,7 +625,7 @@
     if (selected[id]) {
       delete selected[id];
     } else {
-      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice() };
+      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice(), pubMode: 'garantia' };
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
@@ -757,9 +796,16 @@
           '</div>';
         }
       } else if (tipo === 'publico' && sp.pub) {
-        detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-          spBd.total + ' d\u00EDa' + (spBd.total > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(sp.pub.garantia) + '/d\u00EDa' +
-        '</div>';
+        var resPubMode = (selected[id] && selected[id].pubMode) || 'garantia';
+        if (resPubMode === 'garantia') {
+          detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
+            spBd.total + ' d\u00EDa' + (spBd.total > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(sp.pub.garantia) + '/d\u00EDa \u00B7 ' + formatMXN(sp.pub.garantia * spBd.total) +
+          '</div>';
+        } else {
+          detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
+            sp.pub.pct + '% del boletaje \u00B7 se calcula sobre venta final' +
+          '</div>';
+        }
       }
       if (montDays > 0) {
         detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">+ ' + montDays + ' d\u00EDa' + (montDays > 1 ? 's' : '') + ' montaje \u00B7 ' + formatMXN(montTotal) + '</div>';
@@ -772,7 +818,11 @@
             '<div class="v2-res-esp-detail">' + sp.m2 + ' \u00B7 ' + (tipo === 'privado' ? 'PRIVADO' : 'P\u00DABLICO') + '</div>' +
             detailLines +
           '</div>' +
-          '<div class="v2-res-esp-amount" style="color:' + sp.color + ';">' + formatMXN(rentaEspacio + montTotal) + '</div>' +
+          '<div class="v2-res-esp-amount" style="color:' + sp.color + ';">' +
+            (tipo === 'publico' && sp.pub && (selected[id] && selected[id].pubMode) === 'pct'
+              ? sp.pub.pct + '%'
+              : formatMXN(rentaEspacio + montTotal)) +
+          '</div>' +
         '</div>';
     });
 
@@ -817,6 +867,8 @@
         precioRegular: sp.priv ? sp.priv.regular : null,
         precioWeekend: sp.priv ? (sp.priv.weekend ?? sp.priv.regular) : null,
         garantia: sp.pub ? sp.pub.garantia : null,
+        pubPct: sp.pub ? sp.pub.pct : null,
+        pubMode: (selected[id] && selected[id].pubMode) || 'garantia',
         eventoTotal: rentaEspacio,
         montajeDias: montDays,
         montajeTotal: montTotal,
@@ -1053,7 +1105,11 @@
       }
       if (esp.garantia !== null) {
         doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-        doc.text(espDiasTotal + ' d\u00EDa' + (espDiasTotal > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(esp.garantia) + '/d\u00EDa', margin + 5, y);
+        if (esp.pubMode === 'pct') {
+          doc.text(esp.pubPct + '% del boletaje \u00B7 se calcula sobre venta final', margin + 5, y);
+        } else {
+          doc.text(espDiasTotal + ' d\u00EDa' + (espDiasTotal > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(esp.garantia) + '/d\u00EDa \u00B7 ' + formatMXN(esp.garantia * espDiasTotal), margin + 5, y);
+        }
         y += 4;
       }
       if (esp.montajeDias > 0) {
