@@ -59,7 +59,7 @@
       pub:  null, onlyPrivado: true, onlySala: false, montajeLabel: 'COTIZAR',
     },
     {
-      id: 'expo', name: 'SALA EXPO TEMP.', color: '#FF4455',
+      id: 'expo', name: 'BLACK BOX', color: '#FF4455',
       m2: '612 M\u00B2', cap: '200 PERSONAS', note: '',
       priv: { regular: 150000, weekend: 150000, montaje: 75000 },
       pub:  null, onlyPrivado: true, onlySala: false,
