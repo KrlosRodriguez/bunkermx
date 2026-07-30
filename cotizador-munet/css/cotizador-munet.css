@@ -395,6 +395,48 @@ body::after{
 }
 .v2-day-check--wknd .v2-day-check-tarifa{color:rgba(212,175,55,.45)}
 
+/* Quick action buttons */
+.v2-days-quick{
+  display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;
+}
+.v2-days-qbtn{
+  padding:4px 12px;
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;
+  color:rgba(0,255,65,.6);
+  background:rgba(0,255,65,.04);
+  border:1px solid rgba(0,255,65,.15);
+  cursor:pointer;transition:all .15s;
+  text-transform:uppercase;
+}
+.v2-days-qbtn:hover{
+  color:var(--v2-g);border-color:rgba(0,255,65,.4);
+  background:rgba(0,255,65,.1);
+}
+
+/* Summary + toggle for collapsed mode */
+.v2-days-summary{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;margin-bottom:4px;
+}
+.v2-days-summary-text{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;
+  color:var(--v2-wh);
+}
+.v2-days-toggle{
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;
+  color:var(--v2-g);
+  background:none;border:1px solid rgba(0,255,65,.25);
+  padding:4px 12px;cursor:pointer;transition:all .15s;
+}
+.v2-days-toggle:hover{
+  border-color:var(--v2-g);background:rgba(0,255,65,.08);
+}
+
+/* Collapsed state */
+.v2-days-picker--collapsed{
+  max-height:0;overflow:hidden;margin:0;padding:0;
+}
+
 /* ── PASO 4 — RESUMEN ── */
 .v2-resumen-block{
   background:var(--v2-card);border:1px solid var(--v2-bd);

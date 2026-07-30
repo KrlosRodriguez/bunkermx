@@ -374,10 +374,47 @@
       if (isSel) {
         var allDates = getEventDates();
         var spaceDays = selected[sp.id].eventDays || [];
+        var isCollapsible = allDates.length > 10;
+        var isExpanded = !!(selected[sp.id] && selected[sp.id].daysExpanded);
+
+        // Detectar si hay mezcla entre semana y fin de semana
+        var hasRegularDates = false, hasWeekendDates = false;
+        allDates.forEach(function (d) {
+          if (isWeekendDate(d)) hasWeekendDates = true;
+          else hasRegularDates = true;
+        });
+        var hasMix = hasRegularDates && hasWeekendDates;
+
+        // Resumen de días seleccionados
+        var summaryText = spaceDays.length + ' de ' + allDates.length + ' d\u00EDas seleccionados';
 
         daysPickerHTML += '<div class="v2-sc-montaje v2-days-picker-wrap">' +
-          '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">D\u00CDAS DEL EVENTO PARA ESTE ESPACIO</div>' +
-          '<div class="v2-days-picker">';
+          '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">D\u00CDAS DEL EVENTO PARA ESTE ESPACIO</div>';
+
+        // Botones rápidos (siempre si hay mezcla, o si es colapsable)
+        if (hasMix || isCollapsible) {
+          daysPickerHTML += '<div class="v2-days-quick">';
+          daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="all">TODOS</button>';
+          daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="none">NINGUNO</button>';
+          if (hasMix) {
+            daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="weekday">ENTRE SEMANA</button>';
+            daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="weekend">FIN DE SEMANA</button>';
+          }
+          daysPickerHTML += '</div>';
+        }
+
+        // Si es colapsable, mostrar resumen + botón toggle
+        if (isCollapsible) {
+          daysPickerHTML += '<div class="v2-days-summary">' +
+            '<span class="v2-days-summary-text">' + summaryText + '</span>' +
+            '<button class="v2-days-toggle" data-space="' + sp.id + '">' +
+              (isExpanded ? '\u25B2 OCULTAR D\u00CDAS' : '\u25BC PERSONALIZAR D\u00CDAS') +
+            '</button>' +
+          '</div>';
+        }
+
+        // Checkboxes (visibles siempre si <=10, colapsados si >10)
+        daysPickerHTML += '<div class="v2-days-picker' + (isCollapsible && !isExpanded ? ' v2-days-picker--collapsed' : '') + '">';
 
         allDates.forEach(function (dateStr) {
           var isChecked = spaceDays.indexOf(dateStr) >= 0;
@@ -395,7 +432,7 @@
 
           daysPickerHTML += '<label class="v2-day-check' + (isChecked ? ' checked' : '') + (isWknd ? ' v2-day-check--wknd' : '') + '" data-space="' + sp.id + '" data-date="' + dateStr + '">' +
             '<div class="v2-day-check-box">' +
-              '<svg class="v2-day-check-tick" viewBox="0 0 12 9" fill="none"><path d="M1 4L4.5 7.5L11 1" stroke="' + (isWknd ? '#0D0D0D' : '#0D0D0D') + '" stroke-width="2" stroke-linecap="round"/></svg>' +
+              '<svg class="v2-day-check-tick" viewBox="0 0 12 9" fill="none"><path d="M1 4L4.5 7.5L11 1" stroke="#0D0D0D" stroke-width="2" stroke-linecap="round"/></svg>' +
             '</div>' +
             '<div class="v2-day-check-info">' +
               '<span class="v2-day-check-name">' + label + '</span>' +
@@ -509,6 +546,28 @@
         toggleSpaceDay(spaceId, dateStr);
       });
     });
+
+    // Quick action buttons (TODOS / NINGUNO / ENTRE SEMANA / FIN DE SEMANA)
+    grid.querySelectorAll('.v2-days-qbtn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = btn.getAttribute('data-space');
+        var action = btn.getAttribute('data-action');
+        quickSelectDays(spaceId, action);
+      });
+    });
+
+    // Toggle collapsed days
+    grid.querySelectorAll('.v2-days-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = btn.getAttribute('data-space');
+        if (selected[spaceId]) {
+          selected[spaceId].daysExpanded = !selected[spaceId].daysExpanded;
+          buildCards();
+        }
+      });
+    });
   }
 
   /* ── CONTROLES ── */
@@ -547,6 +606,36 @@
       days.push(dateStr);
       days.sort();
     }
+    if (cotizacionEnviada) resetEnvio();
+    buildCards();
+  }
+
+  function quickSelectDays(spaceId, action) {
+    if (!selected[spaceId]) return;
+    var allDates = getEventDates();
+    var newDays;
+
+    switch (action) {
+      case 'all':
+        newDays = allDates.slice();
+        break;
+      case 'none':
+        // Seleccionar solo el primer día (no se puede dejar vacío)
+        newDays = [allDates[0]];
+        break;
+      case 'weekday':
+        newDays = allDates.filter(function (d) { return !isWeekendDate(d); });
+        if (newDays.length === 0) newDays = [allDates[0]];
+        break;
+      case 'weekend':
+        newDays = allDates.filter(function (d) { return isWeekendDate(d); });
+        if (newDays.length === 0) newDays = [allDates[0]];
+        break;
+      default:
+        return;
+    }
+
+    selected[spaceId].eventDays = newDays;
     if (cotizacionEnviada) resetEnvio();
     buildCards();
   }
