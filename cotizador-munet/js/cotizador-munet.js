@@ -190,7 +190,7 @@
       if (!sp.pub) return null;
       var pubMode = (selected[sp.id] && selected[sp.id].pubMode) || 'garantia';
       if (pubMode === 'pct') return 0; // % boletaje no suma al total
-      return sp.pub.garantia * bd.total;
+      return sp.pub.garantia;
     }
 
     if (!sp.priv) return null;
@@ -351,7 +351,7 @@
       } else {
         if (sp.pub) {
           precioDisplay = formatMXN(sp.pub.garantia);
-          periodoDisplay = 'GARANT\u00CDA M\u00CDN. / D\u00CDA';
+          periodoDisplay = 'GARANT\u00CDA M\u00CDN.';
         } else {
           precioDisplay = 'SOLO PRIVADO';
         }
@@ -428,7 +428,7 @@
               ? formatMXN(sp.priv.weekend ?? sp.priv.regular)
               : formatMXN(sp.priv.regular);
           } else if (tipo === 'publico' && sp.pub) {
-            tarifaPrice = formatMXN(sp.pub.garantia);
+            tarifaPrice = '';
           }
 
           daysPickerHTML += '<label class="v2-day-check' + (isChecked ? ' checked' : '') + (isWknd ? ' v2-day-check--wknd' : '') + '" data-space="' + sp.id + '" data-date="' + dateStr + '">' +
@@ -474,7 +474,7 @@
             '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">MODALIDAD DE COBRO</div>' +
             '<div class="v2-pub-mode-btns">' +
               '<button class="v2-pub-mode-btn' + (curPubMode === 'garantia' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="garantia">' +
-                'GARANT\u00CDA M\u00CDN. \u00B7 ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA' +
+                'GARANT\u00CDA M\u00CDN. \u00B7 ' + formatMXN(sp.pub.garantia) +
               '</button>' +
               '<button class="v2-pub-mode-btn' + (curPubMode === 'pct' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="pct">' +
                 sp.pub.pct + '% DEL BOLETAJE' +
@@ -485,8 +485,8 @@
           // Desglose según modo
           if (curPubMode === 'garantia') {
             desgloseHTML += '<div class="v2-sc-montaje">' +
-              '<div class="v2-montaje-label">' + spBd.total + ' D\u00CDA' + (spBd.total > 1 ? 'S' : '') + ' \u00B7 GARANT\u00CDA ' + formatMXN(sp.pub.garantia) + ' / D\u00CDA</div>' +
-              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia * spBd.total) + '</div></div>' +
+              '<div class="v2-montaje-label">GARANT\u00CDA M\u00CDNIMA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia) + '</div></div>' +
             '</div>';
           } else {
             desgloseHTML += '<div class="v2-sc-montaje">' +
@@ -799,7 +799,7 @@
         var resPubMode = (selected[id] && selected[id].pubMode) || 'garantia';
         if (resPubMode === 'garantia') {
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-            spBd.total + ' d\u00EDa' + (spBd.total > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(sp.pub.garantia) + '/d\u00EDa \u00B7 ' + formatMXN(sp.pub.garantia * spBd.total) +
+            'garant\u00EDa m\u00EDnima \u00B7 ' + formatMXN(sp.pub.garantia) +
           '</div>';
         } else {
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
@@ -1075,7 +1075,10 @@
       doc.setDrawColor(rgb[0], rgb[1], rgb[2]); doc.setLineWidth(0.8); doc.line(margin, y, margin + 2, y);
       doc.setFontSize(13); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
       doc.text(esp.name, margin + 5, y + 1);
-      doc.text(formatMXN(esp.eventoTotal + esp.montajeTotal), W - margin, y + 1, { align: 'right' });
+      var espAmountText = (data.tipoEvento === 'publico' && esp.pubMode === 'pct')
+        ? esp.pubPct + '%'
+        : formatMXN(esp.eventoTotal + esp.montajeTotal);
+      doc.text(espAmountText, W - margin, y + 1, { align: 'right' });
       y += 5;
 
       // Días de este venue
@@ -1093,22 +1096,23 @@
       y += 4;
 
       // Desglose por tipo de día
-      if (esp.precioRegular !== null && esp.diasRegular > 0) {
-        doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-        doc.text(esp.diasRegular + ' d\u00EDa' + (esp.diasRegular > 1 ? 's' : '') + ' LUN-JUE \u00B7 ' + formatMXN(esp.precioRegular) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasRegular * esp.precioRegular), margin + 5, y);
-        y += 4;
-      }
-      if (esp.precioWeekend !== null && esp.diasWeekend > 0) {
-        doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-        doc.text(esp.diasWeekend + ' d\u00EDa' + (esp.diasWeekend > 1 ? 's' : '') + ' VIE-S\u00C1B \u00B7 ' + formatMXN(esp.precioWeekend) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasWeekend * esp.precioWeekend), margin + 5, y);
-        y += 4;
-      }
-      if (esp.garantia !== null) {
+      if (data.tipoEvento === 'privado') {
+        if (esp.precioRegular !== null && esp.diasRegular > 0) {
+          doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+          doc.text(esp.diasRegular + ' d\u00EDa' + (esp.diasRegular > 1 ? 's' : '') + ' LUN-JUE \u00B7 ' + formatMXN(esp.precioRegular) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasRegular * esp.precioRegular), margin + 5, y);
+          y += 4;
+        }
+        if (esp.precioWeekend !== null && esp.diasWeekend > 0) {
+          doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+          doc.text(esp.diasWeekend + ' d\u00EDa' + (esp.diasWeekend > 1 ? 's' : '') + ' VIE-S\u00C1B \u00B7 ' + formatMXN(esp.precioWeekend) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasWeekend * esp.precioWeekend), margin + 5, y);
+          y += 4;
+        }
+      } else if (data.tipoEvento === 'publico' && esp.garantia !== null) {
         doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
         if (esp.pubMode === 'pct') {
           doc.text(esp.pubPct + '% del boletaje \u00B7 se calcula sobre venta final', margin + 5, y);
         } else {
-          doc.text(espDiasTotal + ' d\u00EDa' + (espDiasTotal > 1 ? 's' : '') + ' \u00B7 garant\u00EDa ' + formatMXN(esp.garantia) + '/d\u00EDa \u00B7 ' + formatMXN(esp.garantia * espDiasTotal), margin + 5, y);
+          doc.text('garant\u00EDa m\u00EDnima \u00B7 ' + formatMXN(esp.garantia), margin + 5, y);
         }
         y += 4;
       }
