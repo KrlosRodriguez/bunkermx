@@ -16,14 +16,14 @@
       id: 'explanada', name: 'EXPLANADA', color: '#00FF41',
       m2: '10,000 M\u00B2', cap: '', note: '',
       priv: { regular: 300000, weekend: 350000, montaje: 150000 },
-      pub:  { tipo: 'garantia', garantia: 400000, pct: 12 },
+      pub:  true,
       onlyPrivado: false, onlySala: false,
     },
     {
       id: 'foro', name: 'FORO', color: '#00D4FF',
       m2: '1,400 M\u00B2', cap: '+400 M\u00B2 OFICINAS', note: '',
       priv: { regular: 200000, weekend: 250000, montaje: 100000 },
-      pub:  { tipo: 'garantia', garantia: 350000, pct: 12 },
+      pub:  true,
       onlyPrivado: false, onlySala: false,
     },
     {
@@ -36,7 +36,7 @@
       id: 'auditorio', name: 'AUDITORIO', color: '#FF8C00',
       m2: '246 PERSONAS', cap: 'BUTACAS FIJAS', note: '',
       priv: { regular: 60000, weekend: 60000, montaje: 0 },
-      pub:  { tipo: 'garantia', garantia: 60000, pct: 12 },
+      pub:  true,
       onlyPrivado: false, onlySala: false, montajeLabel: 'SIN COSTO',
     },
     {
@@ -68,7 +68,7 @@
 
   /* ── ESTADO ── */
   var tipo = 'privado';
-  var selected = {};  // { spaceId: { montajeDays: 0, eventDays: [...], pubMode: 'garantia'|'pct' } }
+  var selected = {};  // { spaceId: { montajeDays: 0, eventDays: [...] } }
   var cotizacionEnviada = false;
   var currentFolio = null;
   var currentStep = 1;
@@ -186,13 +186,7 @@
     // Obtener desglose de días del venue (per-venue o global)
     var bd = getSpaceDaysBreakdown(sp);
 
-    if (tipo === 'publico') {
-      if (!sp.pub) return null;
-      var pubMode = (selected[sp.id] && selected[sp.id].pubMode) || 'garantia';
-      if (pubMode === 'pct') return 0; // % boletaje no suma al total
-      return sp.pub.garantia;
-    }
-
+    if (tipo === 'publico' && !sp.pub) return null;
     if (!sp.priv) return null;
     if (sp.onlySala && bd.weekend > 0) return null;
 
@@ -349,9 +343,18 @@
           }
         }
       } else {
-        if (sp.pub) {
-          precioDisplay = formatMXN(sp.pub.garantia);
-          periodoDisplay = 'GARANT\u00CDA M\u00CDN.';
+        if (sp.pub && sp.priv) {
+          // Público usa mismas tarifas que privado
+          if (daysBreakdown.regular > 0 && daysBreakdown.weekend > 0 && sp.priv.regular !== (sp.priv.weekend ?? sp.priv.regular)) {
+            precioDisplay = formatMXN(sp.priv.regular) + ' / ' + formatMXN(sp.priv.weekend ?? sp.priv.regular);
+            periodoDisplay = 'LUN\u2013JUE / VIE\u2013S\u00C1B';
+          } else if (daysBreakdown.weekend > 0 && daysBreakdown.regular === 0) {
+            precioDisplay = formatMXN(sp.priv.weekend ?? sp.priv.regular);
+            periodoDisplay = 'VIE\u2013S\u00C1B / D\u00CDA';
+          } else {
+            precioDisplay = formatMXN(sp.priv.regular);
+            periodoDisplay = 'LUN\u2013JUE / D\u00CDA';
+          }
         } else {
           precioDisplay = 'SOLO PRIVADO';
         }
@@ -423,12 +426,10 @@
           var label = formatDayLabel(dateStr);
           var tarifaLabel = isWknd ? 'FIN DE SEMANA' : 'ENTRE SEMANA';
           var tarifaPrice = '';
-          if (tipo === 'privado' && sp.priv) {
+          if (sp.priv) {
             tarifaPrice = isWknd
               ? formatMXN(sp.priv.weekend ?? sp.priv.regular)
               : formatMXN(sp.priv.regular);
-          } else if (tipo === 'publico' && sp.pub) {
-            tarifaPrice = '';
           }
 
           daysPickerHTML += '<label class="v2-day-check' + (isChecked ? ' checked' : '') + (isWknd ? ' v2-day-check--wknd' : '') + '" data-space="' + sp.id + '" data-date="' + dateStr + '">' +
@@ -466,32 +467,20 @@
               '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(spBd.weekend * wkdPrice) + '</div></div>' +
             '</div>';
           }
-        } else if (tipo === 'publico' && sp.pub) {
-          var curPubMode = (selected[sp.id] && selected[sp.id].pubMode) || 'garantia';
+        } else if (tipo === 'publico' && sp.pub && sp.priv) {
+          var regPrice = sp.priv.regular || 0;
+          var wkdPrice = sp.priv.weekend ?? regPrice;
 
-          // Selector de modo público
-          desgloseHTML += '<div class="v2-sc-montaje v2-pub-mode-wrap">' +
-            '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">MODALIDAD DE COBRO</div>' +
-            '<div class="v2-pub-mode-btns">' +
-              '<button class="v2-pub-mode-btn' + (curPubMode === 'garantia' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="garantia">' +
-                'GARANT\u00CDA M\u00CDN. \u00B7 ' + formatMXN(sp.pub.garantia) +
-              '</button>' +
-              '<button class="v2-pub-mode-btn' + (curPubMode === 'pct' ? ' active' : '') + '" data-space="' + sp.id + '" data-pubmode="pct">' +
-                sp.pub.pct + '% DEL BOLETAJE' +
-              '</button>' +
-            '</div>' +
-          '</div>';
-
-          // Desglose según modo
-          if (curPubMode === 'garantia') {
+          if (spBd.regular > 0) {
             desgloseHTML += '<div class="v2-sc-montaje">' +
-              '<div class="v2-montaje-label">GARANT\u00CDA M\u00CDNIMA</div>' +
-              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(sp.pub.garantia) + '</div></div>' +
+              '<div class="v2-montaje-label">' + spBd.regular + ' D\u00CDA' + (spBd.regular > 1 ? 'S' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(regPrice) + ' / D\u00CDA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(spBd.regular * regPrice) + '</div></div>' +
             '</div>';
-          } else {
+          }
+          if (spBd.weekend > 0) {
             desgloseHTML += '<div class="v2-sc-montaje">' +
-              '<div class="v2-montaje-label">' + sp.pub.pct + '% DEL BOLETAJE \u00B7 SE CALCULA SOBRE VENTA FINAL</div>' +
-              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">POR DEFINIR</div></div>' +
+              '<div class="v2-montaje-label">' + spBd.weekend + ' D\u00CDA' + (spBd.weekend > 1 ? 'S' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdPrice) + ' / D\u00CDA</div>' +
+              '<div class="v2-montaje-days"><div class="v2-montaje-subtotal" style="color:' + sp.color + ';">' + formatMXN(spBd.weekend * wkdPrice) + '</div></div>' +
             '</div>';
           }
         }
@@ -581,20 +570,6 @@
       });
     });
 
-    // Public mode buttons (garantía / % boletaje)
-    grid.querySelectorAll('.v2-pub-mode-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var spaceId = btn.getAttribute('data-space');
-        var mode = btn.getAttribute('data-pubmode');
-        if (selected[spaceId]) {
-          selected[spaceId].pubMode = mode;
-          if (cotizacionEnviada) resetEnvio();
-          buildCards();
-        }
-      });
-    });
-
     // Toggle collapsed days
     grid.querySelectorAll('.v2-days-toggle').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
@@ -625,7 +600,7 @@
     if (selected[id]) {
       delete selected[id];
     } else {
-      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice(), pubMode: 'garantia' };
+      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice() };
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
@@ -752,6 +727,28 @@
     }
     document.getElementById('v2ResDias').textContent = diasStr;
 
+    // Horario
+    var horaInicio = document.getElementById('v2HoraInicio').value;
+    var horaFin    = document.getElementById('v2HoraFin').value;
+    var horarioRow = document.getElementById('v2ResHorarioRow');
+    if (horaInicio || horaFin) {
+      var horarioStr = (horaInicio || '—') + ' — ' + (horaFin || '—');
+      horarioRow.style.display = 'flex';
+      document.getElementById('v2ResHorario').textContent = horarioStr;
+    } else {
+      horarioRow.style.display = 'none';
+    }
+
+    // Descripción
+    var descripcion = document.getElementById('v2Descripcion').value.trim();
+    var descRow = document.getElementById('v2ResDescripcionRow');
+    if (descripcion) {
+      descRow.style.display = 'flex';
+      document.getElementById('v2ResDescripcion').textContent = descripcion;
+    } else {
+      descRow.style.display = 'none';
+    }
+
     // Espacios
     var ids = Object.keys(selected);
     var html = '';
@@ -795,15 +792,16 @@
             spBd.weekend + ' d\u00EDa' + (spBd.weekend > 1 ? 's' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdP) + '/d\u00EDa \u00B7 ' + formatMXN(spBd.weekend * wkdP) +
           '</div>';
         }
-      } else if (tipo === 'publico' && sp.pub) {
-        var resPubMode = (selected[id] && selected[id].pubMode) || 'garantia';
-        if (resPubMode === 'garantia') {
+      } else if (tipo === 'publico' && sp.pub && sp.priv) {
+        if (spBd.regular > 0) {
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-            'garant\u00EDa m\u00EDnima \u00B7 ' + formatMXN(sp.pub.garantia) +
+            spBd.regular + ' d\u00EDa' + (spBd.regular > 1 ? 's' : '') + ' LUN\u2013JUE \u00B7 ' + formatMXN(sp.priv.regular) + '/d\u00EDa \u00B7 ' + formatMXN(spBd.regular * sp.priv.regular) +
           '</div>';
-        } else {
+        }
+        if (spBd.weekend > 0) {
+          var wkdP = sp.priv.weekend ?? sp.priv.regular;
           detailLines += '<div class="v2-res-esp-detail" style="color:' + sp.color + ';">' +
-            sp.pub.pct + '% del boletaje \u00B7 se calcula sobre venta final' +
+            spBd.weekend + ' d\u00EDa' + (spBd.weekend > 1 ? 's' : '') + ' VIE\u2013S\u00C1B \u00B7 ' + formatMXN(wkdP) + '/d\u00EDa \u00B7 ' + formatMXN(spBd.weekend * wkdP) +
           '</div>';
         }
       }
@@ -819,9 +817,7 @@
             detailLines +
           '</div>' +
           '<div class="v2-res-esp-amount" style="color:' + sp.color + ';">' +
-            (tipo === 'publico' && sp.pub && (selected[id] && selected[id].pubMode) === 'pct'
-              ? sp.pub.pct + '%'
-              : formatMXN(rentaEspacio + montTotal)) +
+            formatMXN(rentaEspacio + montTotal) +
           '</div>' +
         '</div>';
     });
@@ -866,9 +862,6 @@
         eventDays: selected[id].eventDays || [],
         precioRegular: sp.priv ? sp.priv.regular : null,
         precioWeekend: sp.priv ? (sp.priv.weekend ?? sp.priv.regular) : null,
-        garantia: sp.pub ? sp.pub.garantia : null,
-        pubPct: sp.pub ? sp.pub.pct : null,
-        pubMode: (selected[id] && selected[id].pubMode) || 'garantia',
         eventoTotal: rentaEspacio,
         montajeDias: montDays,
         montajeTotal: montTotal,
@@ -889,6 +882,9 @@
       fechaInicio:  document.getElementById('v2FechaInicio').value,
       fechaFin:     document.getElementById('v2FechaFin').value,
       asistentes:   document.getElementById('v2Asistentes').value.trim(),
+      descripcion:  document.getElementById('v2Descripcion').value.trim(),
+      horaInicio:   document.getElementById('v2HoraInicio').value,
+      horaFin:      document.getElementById('v2HoraFin').value,
       tipoEvento:   tipo,
       diasRegular:  daysBreakdown.regular,
       diasWeekend:  daysBreakdown.weekend,
@@ -1018,6 +1014,8 @@
     var boxRows = 5; // cliente, contacto, tel/correo, fechas, días (fijos)
     if (data.agencia) boxRows++;
     if (data.evento) boxRows++;
+    if (data.horaInicio || data.horaFin) boxRows++;
+    if (data.descripcion) boxRows++;
     var boxH = 8 + (boxRows * 6); // padding top + filas
 
     doc.setFillColor(7, 15, 9); doc.rect(margin, y, contentW, boxH, 'F');
@@ -1061,6 +1059,20 @@
     var tipoText = data.tipoEvento === 'privado' ? 'EVENTO PRIVADO' : 'EVENTO P\u00DABLICO';
     doc.setFontSize(7); doc.setTextColor(0, 200, 50);
     doc.text(tipoText, W - margin, cy, { align: 'right' });
+    cy += 6;
+
+    if (data.horaInicio || data.horaFin) {
+      var horarioText = (data.horaInicio || '\u2014') + ' \u2014 ' + (data.horaFin || '\u2014');
+      doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('HORARIO', labelX, cy);
+      doc.setFontSize(9); doc.setTextColor(237, 248, 237); doc.text(horarioText, valX, cy); cy += 6;
+    }
+
+    if (data.descripcion) {
+      doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('DESCRIPCI\u00D3N', labelX, cy);
+      doc.setFontSize(8); doc.setTextColor(237, 248, 237);
+      var descLines = doc.splitTextToSize(data.descripcion, contentW - 45);
+      doc.text(descLines[0], valX, cy); cy += 6;
+    }
 
     y += boxH + 8;
 
@@ -1075,9 +1087,7 @@
       doc.setDrawColor(rgb[0], rgb[1], rgb[2]); doc.setLineWidth(0.8); doc.line(margin, y, margin + 2, y);
       doc.setFontSize(13); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
       doc.text(esp.name, margin + 5, y + 1);
-      var espAmountText = (data.tipoEvento === 'publico' && esp.pubMode === 'pct')
-        ? esp.pubPct + '%'
-        : formatMXN(esp.eventoTotal + esp.montajeTotal);
+      var espAmountText = formatMXN(esp.eventoTotal + esp.montajeTotal);
       doc.text(espAmountText, W - margin, y + 1, { align: 'right' });
       y += 5;
 
@@ -1107,14 +1117,17 @@
           doc.text(esp.diasWeekend + ' d\u00EDa' + (esp.diasWeekend > 1 ? 's' : '') + ' VIE-S\u00C1B \u00B7 ' + formatMXN(esp.precioWeekend) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasWeekend * esp.precioWeekend), margin + 5, y);
           y += 4;
         }
-      } else if (data.tipoEvento === 'publico' && esp.garantia !== null) {
-        doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-        if (esp.pubMode === 'pct') {
-          doc.text(esp.pubPct + '% del boletaje \u00B7 se calcula sobre venta final', margin + 5, y);
-        } else {
-          doc.text('garant\u00EDa m\u00EDnima \u00B7 ' + formatMXN(esp.garantia), margin + 5, y);
+      } else if (data.tipoEvento === 'publico' && esp.precioRegular !== null) {
+        if (esp.diasRegular > 0) {
+          doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+          doc.text(esp.diasRegular + ' d\u00EDa' + (esp.diasRegular > 1 ? 's' : '') + ' LUN-JUE \u00B7 ' + formatMXN(esp.precioRegular) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasRegular * esp.precioRegular), margin + 5, y);
+          y += 4;
         }
-        y += 4;
+        if (esp.precioWeekend !== null && esp.diasWeekend > 0) {
+          doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+          doc.text(esp.diasWeekend + ' d\u00EDa' + (esp.diasWeekend > 1 ? 's' : '') + ' VIE-S\u00C1B \u00B7 ' + formatMXN(esp.precioWeekend) + '/d\u00EDa \u00B7 ' + formatMXN(esp.diasWeekend * esp.precioWeekend), margin + 5, y);
+          y += 4;
+        }
       }
       if (esp.montajeDias > 0) {
         doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);

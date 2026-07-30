@@ -119,6 +119,23 @@
           <div class="v2-tipo-desc">CONCIERTO · FESTIVAL · TEATRO</div>
         </div>
       </div>
+      <div class="v2-field" style="margin-top:20px;">
+        <label class="v2-field-label" for="v2Descripcion">DESCRIPCIÓN DEL EVENTO</label>
+        <textarea class="v2-field-input v2-field-textarea" id="v2Descripcion" placeholder="Describe brevemente tu evento: tipo de producción, temática, necesidades especiales…" rows="3"></textarea>
+      </div>
+
+      <div class="v2-sub-label" style="margin-top:20px;">HORARIO DEL EVENTO</div>
+      <div class="v2-field-row">
+        <div class="v2-field">
+          <label class="v2-field-label" for="v2HoraInicio">HORA INICIO</label>
+          <input type="time" class="v2-field-input" id="v2HoraInicio">
+        </div>
+        <div class="v2-field">
+          <label class="v2-field-label" for="v2HoraFin">HORA FIN</label>
+          <input type="time" class="v2-field-input" id="v2HoraFin">
+        </div>
+      </div>
+
       <div class="v2-dates-breakdown" id="v2DatesBreakdown"></div>
       <div class="v2-step-next">
         <button class="v2-next-btn" id="btnNext2">CONTINUAR &rarr;</button>
@@ -170,6 +187,8 @@
         <div class="v2-res-row" id="v2ResAsistentesRow" style="display:none;"><span class="v2-res-label">ASISTENTES</span><span class="v2-res-val" id="v2ResAsistentes">—</span></div>
         <div class="v2-res-row"><span class="v2-res-label">TIPO</span><span class="v2-res-val" id="v2ResTipo">—</span></div>
         <div class="v2-res-row"><span class="v2-res-label">DÍAS</span><span class="v2-res-val" id="v2ResDias">—</span></div>
+        <div class="v2-res-row" id="v2ResHorarioRow" style="display:none;"><span class="v2-res-label">HORARIO</span><span class="v2-res-val" id="v2ResHorario">—</span></div>
+        <div class="v2-res-row" id="v2ResDescripcionRow" style="display:none;"><span class="v2-res-label">DESCRIPCIÓN</span><span class="v2-res-val" id="v2ResDescripcion">—</span></div>
       </div>
 
       <!-- Espacios seleccionados -->

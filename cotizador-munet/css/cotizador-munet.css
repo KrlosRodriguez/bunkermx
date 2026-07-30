@@ -237,6 +237,13 @@ body::after{
 .v2-field-input[type="date"]::-webkit-calendar-picker-indicator{
   filter:invert(.6) sepia(.8) saturate(5) hue-rotate(85deg);cursor:pointer;
 }
+.v2-field-input[type="time"]{font-family:'Space Mono',monospace;font-size:13px;color:var(--v2-g)}
+.v2-field-input[type="time"]::-webkit-calendar-picker-indicator{
+  filter:invert(.6) sepia(.8) saturate(5) hue-rotate(85deg);cursor:pointer;
+}
+.v2-field-textarea{
+  resize:vertical;min-height:60px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:16px;
+}
 
 /* ── NEXT BUTTON ── */
 .v2-step-next{
@@ -349,31 +356,6 @@ body::after{
 .v2-ev-minus:hover,.v2-ev-plus:hover,.v2-mt-minus:hover,.v2-mt-plus:hover{background:rgba(0,255,65,.15)}
 .v2-day-count{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:28px;color:var(--v2-wh);min-width:32px;text-align:center;line-height:1}
 .v2-montaje-subtotal{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:20px;color:rgba(200,236,200,.4)}
-
-/* ── PUBLIC MODE SELECTOR ── */
-.v2-pub-mode-wrap{
-  flex-direction:column;align-items:stretch;
-}
-.v2-space-card.selected .v2-pub-mode-wrap{display:flex}
-.v2-pub-mode-btns{
-  display:flex;gap:4px;
-}
-.v2-pub-mode-btn{
-  flex:1;padding:10px 14px;
-  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.12em;
-  color:rgba(200,236,200,.5);
-  background:var(--v2-card);
-  border:1px solid var(--v2-bd);
-  cursor:pointer;transition:all .2s;
-  text-align:center;
-}
-.v2-pub-mode-btn:hover{
-  border-color:rgba(0,255,65,.3);color:var(--v2-wh);
-}
-.v2-pub-mode-btn.active{
-  border-color:var(--v2-g);color:var(--v2-g);
-  background:rgba(0,255,65,.08);
-}
 
 /* ── DAY PICKER (per-venue) ── */
 .v2-days-picker-wrap{
