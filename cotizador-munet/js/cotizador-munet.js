@@ -74,6 +74,11 @@
   var currentStep = 1;
   var daysBreakdown = { regular: 0, weekend: 0, total: 0 }; // calculado de fechas
 
+  /* ── ESTADO CALENDARIO ── */
+  var calViewMonth = new Date().getMonth();
+  var calViewYear  = new Date().getFullYear();
+  var calSelectState = 0; // 0=nada, 1=inicio seleccionado, esperando fin
+
   /* ── UTILIDADES ── */
   function formatMXN(n) {
     if (n === null || n === undefined) return '\u2014';
@@ -253,6 +258,137 @@
     '</div>';
 
     el.innerHTML = html;
+  }
+
+  /* ── CALENDARIO POPUP (Paso 1) ── */
+  function renderCalPopup() {
+    var grid = document.getElementById('v2CalGrid');
+    if (!grid) return;
+
+    var monthLabel = document.getElementById('v2CalMonth');
+    monthLabel.textContent = MONTH_NAMES[calViewMonth] + ' ' + calViewYear;
+
+    var firstDay = new Date(calViewYear, calViewMonth, 1);
+    var startDow = (firstDay.getDay() + 6) % 7; // lun=0, mar=1, ..., dom=6
+    var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    var selStart = document.getElementById('v2FechaInicio').value;
+    var selEnd   = document.getElementById('v2FechaFin').value;
+
+    var html = '';
+
+    for (var e = 0; e < startDow; e++) {
+      html += '<div class="v2-cal-cell v2-cal-cell--empty"></div>';
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateObj = new Date(calViewYear, calViewMonth, d);
+      var yyyy = dateObj.getFullYear();
+      var mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      var dd = String(d).padStart(2, '0');
+      var dateStr = yyyy + '-' + mm + '-' + dd;
+
+      var dow = (dateObj.getDay() + 6) % 7;
+      var isWknd = dow === 4 || dow === 5; // vie=4, sáb=5 en lun-based
+      var isPast = dateObj < today;
+
+      var cls = 'v2-cal-cell';
+      if (isWknd) cls += ' v2-cal-cell--wknd';
+      if (isPast) cls += ' v2-cal-cell--past';
+      if (dateStr === selStart) cls += ' v2-cal-cell--start';
+      if (dateStr === selEnd) cls += ' v2-cal-cell--end';
+      if (selStart && selEnd && dateStr > selStart && dateStr < selEnd) cls += ' v2-cal-cell--range';
+      if (dateStr === today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')) cls += ' v2-cal-cell--today';
+
+      html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    grid.querySelectorAll('.v2-cal-cell:not(.v2-cal-cell--empty):not(.v2-cal-cell--past)').forEach(function (cell) {
+      cell.addEventListener('click', function () {
+        handleCalClick(cell.getAttribute('data-date'));
+      });
+    });
+  }
+
+  function handleCalClick(dateStr) {
+    var startInput = document.getElementById('v2FechaInicio');
+    var endInput   = document.getElementById('v2FechaFin');
+
+    if (calSelectState === 0) {
+      startInput.value = dateStr;
+      endInput.value = '';
+      calSelectState = 1;
+      renderCalPopup();
+      updateCalDisplay();
+      validateStep1();
+    } else {
+      var start = startInput.value;
+      if (dateStr < start) {
+        endInput.value = start;
+        startInput.value = dateStr;
+      } else if (dateStr === start) {
+        endInput.value = dateStr;
+      } else {
+        endInput.value = dateStr;
+      }
+      calSelectState = 0;
+      renderCalPopup();
+      updateCalDisplay();
+      closeCalPopup();
+      validateStep1();
+    }
+  }
+
+  function updateCalDisplay() {
+    var display = document.getElementById('v2CalDisplay');
+    var start = document.getElementById('v2FechaInicio').value;
+    var end   = document.getElementById('v2FechaFin').value;
+
+    if (!start) {
+      display.textContent = 'SELECCIONAR FECHAS';
+      display.className = 'v2-cal-trigger-placeholder';
+      display.removeAttribute('style');
+      return;
+    }
+
+    var startLabel = formatDayLabel(start);
+    display.className = '';
+    display.style.color = 'var(--v2-g)';
+    display.style.fontFamily = "'Space Mono',monospace";
+    display.style.fontSize = '12px';
+    display.style.letterSpacing = '.1em';
+
+    if (end && end !== start) {
+      display.textContent = startLabel + '  \u2014  ' + formatDayLabel(end);
+    } else if (end && end === start) {
+      display.textContent = startLabel + '  (1 D\u00CDA)';
+    } else {
+      display.textContent = startLabel + '  \u2014  SELECCIONA FIN';
+    }
+  }
+
+  function openCalPopup() {
+    document.getElementById('v2CalPopup').classList.add('v2-cal-popup--open');
+    document.getElementById('v2CalTrigger').classList.add('v2-cal-trigger--active');
+
+    var start = document.getElementById('v2FechaInicio').value;
+    if (start) {
+      var d = new Date(start + 'T12:00:00');
+      calViewMonth = d.getMonth();
+      calViewYear = d.getFullYear();
+    }
+
+    renderCalPopup();
+  }
+
+  function closeCalPopup() {
+    document.getElementById('v2CalPopup').classList.remove('v2-cal-popup--open');
+    document.getElementById('v2CalTrigger').classList.remove('v2-cal-trigger--active');
   }
 
   /* ── WIZARD — Gestión de pasos ── */
@@ -1187,21 +1323,47 @@
   /* ── INIT ── */
   document.addEventListener('DOMContentLoaded', function () {
     // Step 1 validation
-    ['v2Cliente', 'v2Agencia', 'v2Evento', 'v2Contacto', 'v2Telefono', 'v2Correo', 'v2FechaInicio', 'v2FechaFin', 'v2Asistentes'].forEach(function (id) {
+    ['v2Cliente', 'v2Agencia', 'v2Evento', 'v2Contacto', 'v2Telefono', 'v2Correo', 'v2Asistentes'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.addEventListener('input', validateStep1); el.addEventListener('change', validateStep1); }
-    });
-
-    // Fecha fin >= fecha inicio
-    document.getElementById('v2FechaFin').addEventListener('change', function () {
-      var inicio = document.getElementById('v2FechaInicio').value;
-      if (inicio && this.value && this.value < inicio) this.value = inicio;
     });
 
     // Next buttons
     document.getElementById('btnNext1').addEventListener('click', function () { if (isStep1Valid()) goToStep(2); });
     document.getElementById('btnNext2').addEventListener('click', function () { goToStep(3); });
     document.getElementById('btnNext3').addEventListener('click', function () { if (hasSpacesSelected()) goToStep(4); });
+
+    // Calendario popup
+    document.getElementById('v2CalTrigger').addEventListener('click', function (e) {
+      e.stopPropagation();
+      var popup = document.getElementById('v2CalPopup');
+      if (popup.classList.contains('v2-cal-popup--open')) {
+        closeCalPopup();
+      } else {
+        openCalPopup();
+      }
+    });
+
+    document.getElementById('v2CalPrev').addEventListener('click', function (e) {
+      e.stopPropagation();
+      calViewMonth--;
+      if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+      renderCalPopup();
+    });
+
+    document.getElementById('v2CalNext').addEventListener('click', function (e) {
+      e.stopPropagation();
+      calViewMonth++;
+      if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+      renderCalPopup();
+    });
+
+    document.addEventListener('click', function (e) {
+      var calField = document.getElementById('v2CalField');
+      if (calField && !calField.contains(e.target)) {
+        closeCalPopup();
+      }
+    });
 
     // Tipo
     document.querySelectorAll('.v2-tipo-btn').forEach(function (btn) {

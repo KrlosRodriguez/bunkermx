@@ -72,14 +72,32 @@
             <input type="email" class="v2-field-input" id="v2Correo" placeholder="correo@ejemplo.com">
           </div>
         </div>
-        <div class="v2-field-row">
-          <div class="v2-field">
-            <label class="v2-field-label" for="v2FechaInicio">FECHA INICIO</label>
-            <input type="date" class="v2-field-input" id="v2FechaInicio">
-          </div>
-          <div class="v2-field">
-            <label class="v2-field-label" for="v2FechaFin">FECHA FIN</label>
-            <input type="date" class="v2-field-input" id="v2FechaFin">
+        <div class="v2-field">
+          <label class="v2-field-label">FECHAS DEL EVENTO</label>
+          <div class="v2-cal-field" id="v2CalField">
+            <button type="button" class="v2-cal-trigger" id="v2CalTrigger">
+              <span class="v2-cal-trigger-placeholder" id="v2CalDisplay">SELECCIONAR FECHAS</span>
+              <span class="v2-cal-trigger-arrow">&#9660;</span>
+            </button>
+            <div class="v2-cal-popup" id="v2CalPopup">
+              <div class="v2-cal-header">
+                <button type="button" class="v2-cal-nav" id="v2CalPrev">&#8249;</button>
+                <span class="v2-cal-month" id="v2CalMonth"></span>
+                <button type="button" class="v2-cal-nav" id="v2CalNext">&#8250;</button>
+              </div>
+              <div class="v2-cal-weekdays">
+                <span class="v2-cal-weekday">LUN</span>
+                <span class="v2-cal-weekday">MAR</span>
+                <span class="v2-cal-weekday">MI&Eacute;</span>
+                <span class="v2-cal-weekday">JUE</span>
+                <span class="v2-cal-weekday">VIE</span>
+                <span class="v2-cal-weekday">S&Aacute;B</span>
+                <span class="v2-cal-weekday">DOM</span>
+              </div>
+              <div class="v2-cal-grid" id="v2CalGrid"></div>
+            </div>
+            <input type="hidden" id="v2FechaInicio">
+            <input type="hidden" id="v2FechaFin">
           </div>
         </div>
         <div class="v2-field-row">
