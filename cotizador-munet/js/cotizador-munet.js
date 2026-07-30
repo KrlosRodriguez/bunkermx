@@ -669,6 +669,7 @@
   function renderResumen() {
     var cliente     = document.getElementById('v2Cliente').value.trim();
     var agencia     = document.getElementById('v2Agencia').value.trim();
+    var evento      = document.getElementById('v2Evento').value.trim();
     var contacto    = document.getElementById('v2Contacto').value.trim();
     var telefono    = document.getElementById('v2Telefono').value.trim();
     var correo      = document.getElementById('v2Correo').value.trim();
@@ -681,6 +682,10 @@
     var agRow = document.getElementById('v2ResAgenciaRow');
     if (agencia) { agRow.style.display = 'flex'; document.getElementById('v2ResAgencia').textContent = agencia; }
     else { agRow.style.display = 'none'; }
+
+    var evRow = document.getElementById('v2ResEventoRow');
+    if (evento) { evRow.style.display = 'flex'; document.getElementById('v2ResEvento').textContent = evento; }
+    else { evRow.style.display = 'none'; }
 
     document.getElementById('v2ResContacto').textContent = contacto || '\u2014';
 
@@ -825,6 +830,7 @@
     return {
       cliente:      document.getElementById('v2Cliente').value.trim(),
       agencia:      document.getElementById('v2Agencia').value.trim(),
+      evento:       document.getElementById('v2Evento').value.trim(),
       contacto:     document.getElementById('v2Contacto').value.trim(),
       telefono:     document.getElementById('v2Telefono').value.trim(),
       correo:       document.getElementById('v2Correo').value.trim(),
@@ -956,9 +962,14 @@
     doc.setFontSize(22); doc.setTextColor(237, 248, 237); doc.text('TU COTIZACI\u00D3N', margin, y); y += 6;
     doc.setFontSize(7); doc.setTextColor(0, 255, 65); doc.text('MUNET \u00B7 RENTA DE ESPACIOS \u00B7 2026', margin, y); y += 10;
 
-    // Client box
-    doc.setFillColor(7, 15, 9); doc.rect(margin, y, contentW, 44, 'F');
-    doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.2); doc.rect(margin, y, contentW, 44, 'S');
+    // Client box — calcular altura dinámica
+    var boxRows = 5; // cliente, contacto, tel/correo, fechas, días (fijos)
+    if (data.agencia) boxRows++;
+    if (data.evento) boxRows++;
+    var boxH = 8 + (boxRows * 6); // padding top + filas
+
+    doc.setFillColor(7, 15, 9); doc.rect(margin, y, contentW, boxH, 'F');
+    doc.setDrawColor(0, 255, 65); doc.setLineWidth(0.2); doc.rect(margin, y, contentW, boxH, 'S');
 
     var cy = y + 7, labelX = margin + 5, valX = margin + 40;
 
@@ -968,6 +979,11 @@
     if (data.agencia) {
       doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('AGENCIA', labelX, cy);
       doc.setFontSize(9); doc.setTextColor(237, 248, 237); doc.text(data.agencia, valX, cy); cy += 6;
+    }
+
+    if (data.evento) {
+      doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('EVENTO', labelX, cy);
+      doc.setFontSize(9); doc.setTextColor(237, 248, 237); doc.text(data.evento, valX, cy); cy += 6;
     }
 
     doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('CONTACTO', labelX, cy);
@@ -994,7 +1010,7 @@
     doc.setFontSize(7); doc.setTextColor(0, 200, 50);
     doc.text(tipoText, W - margin, cy, { align: 'right' });
 
-    y += 52;
+    y += boxH + 8;
 
     // Espacios
     doc.setFontSize(7); doc.setTextColor(0, 255, 65);
@@ -1098,7 +1114,7 @@
   /* ── INIT ── */
   document.addEventListener('DOMContentLoaded', function () {
     // Step 1 validation
-    ['v2Cliente', 'v2Agencia', 'v2Contacto', 'v2Telefono', 'v2Correo', 'v2FechaInicio', 'v2FechaFin', 'v2Asistentes'].forEach(function (id) {
+    ['v2Cliente', 'v2Agencia', 'v2Evento', 'v2Contacto', 'v2Telefono', 'v2Correo', 'v2FechaInicio', 'v2FechaFin', 'v2Asistentes'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) { el.addEventListener('input', validateStep1); el.addEventListener('change', validateStep1); }
     });
