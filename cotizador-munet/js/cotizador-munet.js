@@ -395,7 +395,6 @@
         if (hasMix || isCollapsible) {
           daysPickerHTML += '<div class="v2-days-quick">';
           daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="all">TODOS</button>';
-          daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="none">NINGUNO</button>';
           if (hasMix) {
             daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="weekday">ENTRE SEMANA</button>';
             daysPickerHTML += '<button class="v2-days-qbtn" data-space="' + sp.id + '" data-action="weekend">FIN DE SEMANA</button>';
@@ -618,10 +617,6 @@
     switch (action) {
       case 'all':
         newDays = allDates.slice();
-        break;
-      case 'none':
-        // Seleccionar solo el primer día (no se puede dejar vacío)
-        newDays = [allDates[0]];
         break;
       case 'weekday':
         newDays = allDates.filter(function (d) { return !isWeekendDate(d); });
