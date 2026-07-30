@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUNET — Panel de Ventas</title>
+<link rel="icon" type="image/webp" href="../img/logo-bunker.webp">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="js/login-gate.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bk:   #050905;
+  --dk:   #070F09;
+  --card: #09130B;
+  --g:    #00FF41;
+  --gd:   #00CC33;
+  --wh:   #EDF8ED;
+  --tx:   rgba(200,236,200,0.6);
+  --bd:   rgba(0,255,65,0.12);
+  --red:  #FF4455;
+  --ylw:  #F0C040;
+  --blu:  #00D4FF;
+}
+
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(0,255,65,.18) var(--bk)}
+body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+.sys-grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,255,65,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.04) 1px,transparent 1px);
+  background-size:60px 60px}
+
+/* ── NAV ── */
+.dash-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;
+  padding:0 30px;height:54px;background:rgba(5,9,5,.95);border-bottom:1px solid var(--bd);backdrop-filter:blur(10px)}
+.dash-nav-left{display:flex;align-items:center;gap:16px}
+.dash-nav-logo{height:32px}
+.dash-nav-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:3px;color:var(--g)}
+.dash-nav-right{display:flex;align-items:center;gap:12px}
+.dash-btn{padding:8px 20px;background:transparent;border:1px solid var(--bd);color:var(--g);
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .3s}
+.dash-btn:hover{background:rgba(0,255,65,.08);border-color:rgba(0,255,65,.3)}
+.dash-btn--accent{border-color:var(--g);background:rgba(0,255,65,.06)}
+.dash-btn--accent:hover{background:rgba(0,255,65,.15)}
+
+/* ── INDICATORS ── */
+.dash-indicators{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:24px 30px 0}
+.dash-card{background:var(--card);border:1px solid var(--bd);padding:20px 24px;position:relative;overflow:hidden}
+.dash-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--g)}
+.dash-card-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--tx);margin-bottom:8px}
+.dash-card-value{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:700;color:var(--g);line-height:1}
+.dash-card-sub{font-size:11px;color:var(--tx);margin-top:4px}
+.dash-card--warn::before{background:var(--ylw)}
+.dash-card--warn .dash-card-value{color:var(--ylw)}
+
+/* ── FILTERS ── */
+.dash-filters{display:flex;align-items:center;gap:12px;padding:20px 30px;flex-wrap:wrap}
+.dash-search{flex:1;min-width:200px;padding:10px 14px;background:var(--card);border:1px solid var(--bd);
+  color:var(--wh);font-family:'Barlow',sans-serif;font-size:14px;outline:none;transition:border-color .3s}
+.dash-search:focus{border-color:rgba(0,255,65,.4)}
+.dash-search::placeholder{color:var(--tx)}
+.dash-select{padding:10px 14px;background:var(--card);border:1px solid var(--bd);color:var(--wh);
+  font-family:'Barlow',sans-serif;font-size:14px;outline:none;cursor:pointer}
+.dash-select option{background:var(--bk);color:var(--wh)}
+.dash-date{padding:10px 14px;background:var(--card);border:1px solid var(--bd);color:var(--wh);
+  font-family:'Barlow',sans-serif;font-size:14px;outline:none}
+
+/* ── TABLE ── */
+.dash-table-wrap{padding:0 30px 30px;overflow-x:auto}
+table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
+.dash-table thead{position:sticky;top:54px;z-index:10}
+.dash-table th{background:var(--dk);border-bottom:2px solid var(--g);padding:12px 14px;text-align:left;
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;color:var(--g);white-space:nowrap}
+.dash-table td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--wh);white-space:nowrap}
+.dash-table tbody tr{transition:background .2s}
+.dash-table tbody tr:hover{background:rgba(0,255,65,.04)}
+.dash-table .col-folio{font-family:'Space Mono',monospace;font-size:12px;color:var(--g);cursor:pointer}
+.dash-table .col-folio:hover{text-decoration:underline}
+.dash-table .col-total{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--g)}
+.dash-table .col-espacios{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+
+/* Estado badges */
+.estado-badge{display:inline-block;padding:3px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+  letter-spacing:1px;border:1px solid;cursor:pointer;transition:all .2s}
+.estado-Nueva{color:var(--blu);border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.08)}
+.estado-Contactada{color:var(--ylw);border-color:rgba(240,192,64,.4);background:rgba(240,192,64,.08)}
+.estado-Cerrada{color:var(--g);border-color:rgba(0,255,65,.4);background:rgba(0,255,65,.08)}
+.estado-Cancelada{color:var(--red);border-color:rgba(255,68,85,.4);background:rgba(255,68,85,.08)}
+
+/* Estado dropdown */
+.estado-dropdown{position:relative;display:inline-block}
+.estado-options{display:none;position:absolute;top:100%;left:0;z-index:50;background:var(--dk);border:1px solid var(--bd);
+  min-width:140px;margin-top:4px}
+.estado-options.visible{display:block}
+.estado-option{padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;
+  cursor:pointer;transition:background .2s;color:var(--wh)}
+.estado-option:hover{background:rgba(0,255,65,.08)}
+
+/* PDF link */
+.pdf-link{color:var(--g);text-decoration:none;font-family:'Space Mono',monospace;font-size:11px}
+.pdf-link:hover{text-decoration:underline}
+
+/* ── LOADING / EMPTY ── */
+.dash-loading{text-align:center;padding:60px 30px;color:var(--tx);font-family:'Space Mono',monospace;font-size:13px;letter-spacing:2px}
+.dash-empty{text-align:center;padding:80px 30px;color:var(--tx)}
+.dash-empty-icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.dash-empty-text{font-family:'Barlow Condensed',sans-serif;font-size:18px;letter-spacing:2px}
+
+/* ── FOOTER ── */
+.dash-footer{text-align:center;padding:20px 30px;border-top:1px solid var(--bd);
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(200,236,200,.3)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .dash-indicators{grid-template-columns:repeat(2,1fr)}
+  .dash-nav{padding:0 16px}
+  .dash-filters{padding:16px}
+  .dash-table-wrap{padding:0 16px 16px}
+}
+@media(max-width:600px){
+  .dash-indicators{grid-template-columns:1fr}
+  .dash-nav-title{font-size:14px;letter-spacing:1px}
+  .dash-card-value{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<div class="sys-grid-bg"></div>
+
+<!-- NAV -->
+<nav class="dash-nav">
+  <div class="dash-nav-left">
+    <img src="../img/logo-munet.webp" alt="MUNET" class="dash-nav-logo">
+    <span class="dash-nav-title">PANEL DE VENTAS</span>
+  </div>
+  <div class="dash-nav-right">
+    <span id="dashLastUpdate" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);letter-spacing:1px"></span>
+    <button class="dash-btn dash-btn--accent" id="dashRefresh">ACTUALIZAR</button>
+    <a href="index.html" class="dash-btn">COTIZADOR</a>
+  </div>
+</nav>
+
+<!-- INDICATORS -->
+<div class="dash-indicators">
+  <div class="dash-card">
+    <div class="dash-card-label">COTIZACIONES DEL MES</div>
+    <div class="dash-card-value" id="indTotal">—</div>
+    <div class="dash-card-sub" id="indTotalSub"></div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-label">MONTO TOTAL COTIZADO</div>
+    <div class="dash-card-value" id="indMonto">—</div>
+    <div class="dash-card-sub" id="indMontoSub"></div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-label">TICKET PROMEDIO</div>
+    <div class="dash-card-value" id="indPromedio">—</div>
+    <div class="dash-card-sub" id="indPromedioSub"></div>
+  </div>
+  <div class="dash-card dash-card--warn">
+    <div class="dash-card-label">PENDIENTES DE CONTACTAR</div>
+    <div class="dash-card-value" id="indPendientes">—</div>
+    <div class="dash-card-sub" id="indPendientesSub"></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="dash-filters">
+  <input type="text" class="dash-search" id="dashSearch" placeholder="Buscar por cliente, folio, evento...">
+  <select class="dash-select" id="dashEstado">
+    <option value="">TODOS LOS ESTADOS</option>
+    <option value="Nueva">NUEVA</option>
+    <option value="Contactada">CONTACTADA</option>
+    <option value="Cerrada">CERRADA</option>
+    <option value="Cancelada">CANCELADA</option>
+  </select>
+  <input type="date" class="dash-date" id="dashDesde" title="Desde">
+  <input type="date" class="dash-date" id="dashHasta" title="Hasta">
+</div>
+
+<!-- TABLE -->
+<div class="dash-table-wrap">
+  <div class="dash-loading" id="dashLoading">CARGANDO DATOS...</div>
+  <table class="dash-table" id="dashTable" style="display:none">
+    <thead>
+      <tr>
+        <th>FOLIO</th>
+        <th>FECHA</th>
+        <th>CLIENTE</th>
+        <th>EVENTO</th>
+        <th>TIPO</th>
+        <th>ESPACIOS</th>
+        <th>TOTAL</th>
+        <th>ESTADO</th>
+        <th>PDF</th>
+      </tr>
+    </thead>
+    <tbody id="dashBody"></tbody>
+  </table>
+  <div class="dash-empty" id="dashEmpty" style="display:none">
+    <div class="dash-empty-icon">&#9744;</div>
+    <div class="dash-empty-text">NO HAY COTIZACIONES</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="dash-footer">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── CONFIGURACIÓN ──
+  // Pegar la misma URL del Apps Script desplegado
+  var APPS_SCRIPT_URL = '';
+
+  // ── ESTADO ──
+  var allData = [];
+
+  // ── UTILIDADES ──
+  function formatMXN(n) {
+    if (!n && n !== 0) return '$0';
+    return '$' + Number(n).toLocaleString('es-MX');
+  }
+
+  function escapeHTML(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ── CARGAR DATOS ──
+  function loadData() {
+    var loading = document.getElementById('dashLoading');
+    var table = document.getElementById('dashTable');
+    var empty = document.getElementById('dashEmpty');
+
+    loading.style.display = 'block';
+    table.style.display = 'none';
+    empty.style.display = 'none';
+
+    if (!APPS_SCRIPT_URL) {
+      // Demo: sin URL, mostrar datos vacíos
+      loading.style.display = 'none';
+      empty.style.display = 'block';
+      updateIndicators([]);
+      return;
+    }
+
+    fetch(APPS_SCRIPT_URL + '?action=list')
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        loading.style.display = 'none';
+        if (result.status === 'ok') {
+          allData = result.data || [];
+          renderTable();
+          updateIndicators(allData);
+          document.getElementById('dashLastUpdate').textContent = 'ACT: ' + new Date().toLocaleTimeString('es-MX');
+        } else {
+          empty.style.display = 'block';
+        }
+      })
+      .catch(function () {
+        loading.style.display = 'none';
+        empty.style.display = 'block';
+        empty.querySelector('.dash-empty-text').textContent = 'ERROR AL CARGAR DATOS';
+      });
+  }
+
+  // ── INDICADORES ──
+  function updateIndicators(data) {
+    var now = new Date();
+    var mesActual = now.getMonth();
+    var anioActual = now.getFullYear();
+
+    var delMes = data.filter(function (d) {
+      var parts = (d.fecha || '').split('/');
+      if (parts.length >= 3) {
+        var mes = parseInt(parts[1], 10) - 1;
+        var anio = parseInt(parts[2], 10);
+        if (anio < 100) anio += 2000;
+        return mes === mesActual && anio === anioActual;
+      }
+      return false;
+    });
+
+    var totalMes = delMes.length;
+    var montoTotal = 0;
+    delMes.forEach(function (d) { montoTotal += Number(d.total) || 0; });
+    var promedio = totalMes > 0 ? Math.round(montoTotal / totalMes) : 0;
+    var pendientes = data.filter(function (d) { return d.estado === 'Nueva'; }).length;
+
+    document.getElementById('indTotal').textContent = totalMes;
+    document.getElementById('indTotalSub').textContent = data.length + ' total hist\u00F3rico';
+    document.getElementById('indMonto').textContent = formatMXN(montoTotal);
+    document.getElementById('indMontoSub').textContent = 'del mes en curso';
+    document.getElementById('indPromedio').textContent = formatMXN(promedio);
+    document.getElementById('indPromedioSub').textContent = 'por cotizaci\u00F3n';
+    document.getElementById('indPendientes').textContent = pendientes;
+    document.getElementById('indPendientesSub').textContent = 'estado: Nueva';
+  }
+
+  // ── FILTRAR ──
+  function getFilteredData() {
+    var search = document.getElementById('dashSearch').value.trim().toLowerCase();
+    var estado = document.getElementById('dashEstado').value;
+    var desde = document.getElementById('dashDesde').value;
+    var hasta = document.getElementById('dashHasta').value;
+
+    return allData.filter(function (d) {
+      // Filtro texto
+      if (search) {
+        var haystack = [d.folio, d.cliente, d.evento, d.agencia, d.contacto, d.espacios].join(' ').toLowerCase();
+        if (haystack.indexOf(search) === -1) return false;
+      }
+      // Filtro estado
+      if (estado && d.estado !== estado) return false;
+      // Filtro fechas (usar fechaInicio del evento)
+      if (desde || hasta) {
+        var fi = d.fechaInicio || '';
+        if (fi) {
+          if (desde && fi < desde) return false;
+          if (hasta && fi > hasta) return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  // ── RENDER TABLE ──
+  function renderTable() {
+    var filtered = getFilteredData();
+    var table = document.getElementById('dashTable');
+    var empty = document.getElementById('dashEmpty');
+    var tbody = document.getElementById('dashBody');
+
+    if (filtered.length === 0) {
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      empty.querySelector('.dash-empty-text').textContent = 'NO HAY COTIZACIONES';
+      return;
+    }
+
+    table.style.display = 'table';
+    empty.style.display = 'none';
+
+    // Ordenar por fecha descendente
+    filtered.sort(function (a, b) {
+      return (b.fecha || '').localeCompare(a.fecha || '');
+    });
+
+    var html = '';
+    filtered.forEach(function (d) {
+      var estadoClass = 'estado-' + (d.estado || 'Nueva').replace(/\s/g, '');
+      html += '<tr>'
+        + '<td class="col-folio"' + (d.linkPdf ? ' onclick="window.open(\'' + escapeHTML(d.linkPdf) + '\',\'_blank\')"' : '') + '>' + escapeHTML(d.folio) + '</td>'
+        + '<td>' + escapeHTML(d.fecha) + '</td>'
+        + '<td>' + escapeHTML(d.cliente) + '</td>'
+        + '<td>' + escapeHTML(d.evento || '—') + '</td>'
+        + '<td>' + escapeHTML(d.tipo) + '</td>'
+        + '<td class="col-espacios" title="' + escapeHTML(d.espacios) + '">' + escapeHTML(d.espacios) + '</td>'
+        + '<td class="col-total">' + formatMXN(d.total) + '</td>'
+        + '<td>'
+        +   '<div class="estado-dropdown">'
+        +     '<span class="estado-badge ' + estadoClass + '" data-folio="' + escapeHTML(d.folio) + '">' + escapeHTML(d.estado || 'Nueva') + '</span>'
+        +     '<div class="estado-options">'
+        +       '<div class="estado-option" data-val="Nueva">NUEVA</div>'
+        +       '<div class="estado-option" data-val="Contactada">CONTACTADA</div>'
+        +       '<div class="estado-option" data-val="Cerrada">CERRADA</div>'
+        +       '<div class="estado-option" data-val="Cancelada">CANCELADA</div>'
+        +     '</div>'
+        +   '</div>'
+        + '</td>'
+        + '<td>' + (d.linkPdf ? '<a href="' + escapeHTML(d.linkPdf) + '" target="_blank" class="pdf-link">VER PDF</a>' : '—') + '</td>'
+        + '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  // ── ACTUALIZAR ESTADO ──
+  function updateEstado(folio, nuevoEstado) {
+    if (!APPS_SCRIPT_URL) return;
+
+    fetch(APPS_SCRIPT_URL + '?action=updateStatus&folio=' + encodeURIComponent(folio) + '&estado=' + encodeURIComponent(nuevoEstado))
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (result.status === 'ok') {
+          // Actualizar localmente
+          allData.forEach(function (d) {
+            if (d.folio === folio) d.estado = nuevoEstado;
+          });
+          renderTable();
+          updateIndicators(allData);
+        }
+      })
+      .catch(function () {});
+  }
+
+  // ── EVENT LISTENERS ──
+  document.addEventListener('DOMContentLoaded', function () {
+    loadData();
+
+    document.getElementById('dashRefresh').addEventListener('click', loadData);
+    document.getElementById('dashSearch').addEventListener('input', renderTable);
+    document.getElementById('dashEstado').addEventListener('change', renderTable);
+    document.getElementById('dashDesde').addEventListener('change', renderTable);
+    document.getElementById('dashHasta').addEventListener('change', renderTable);
+
+    // Estado dropdown toggle
+    document.addEventListener('click', function (e) {
+      // Cerrar todos los dropdowns abiertos
+      var allOpen = document.querySelectorAll('.estado-options.visible');
+      allOpen.forEach(function (el) { el.classList.remove('visible'); });
+
+      // Toggle dropdown si se clickeó un badge
+      var badge = e.target.closest('.estado-badge');
+      if (badge) {
+        var opts = badge.nextElementSibling;
+        if (opts) opts.classList.toggle('visible');
+        return;
+      }
+
+      // Seleccionar opción
+      var option = e.target.closest('.estado-option');
+      if (option) {
+        var dropdown = option.closest('.estado-dropdown');
+        var folio = dropdown.querySelector('.estado-badge').getAttribute('data-folio');
+        var nuevoEstado = option.getAttribute('data-val');
+        updateEstado(folio, nuevoEstado);
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>

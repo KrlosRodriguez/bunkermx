@@ -996,6 +996,14 @@
     btn.classList.add('v2-cta-btn--sending');
     var folioEl = document.getElementById('v2Folio');
 
+    // Generar PDF y extraer base64 para enviar al servidor
+    var pdfBase64 = '';
+    try {
+      var pdfDoc = generarPDFDoc(payload);
+      pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+    } catch (pdfErr) {}
+    if (pdfBase64) serverPayload.pdfBase64 = pdfBase64;
+
     if (!APPS_SCRIPT_URL) {
       setTimeout(function () { onEnvioExitoso(btn, folioEl, folio); }, 1500);
       return;
@@ -1005,7 +1013,11 @@
       method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(serverPayload),
     })
-    .then(function () { onEnvioExitoso(btn, folioEl, folio); })
+    .then(function (res) { return res.json(); })
+    .then(function (result) {
+      if (result.status === 'error') throw new Error(result.message);
+      onEnvioExitoso(btn, folioEl, folio);
+    })
     .catch(function (err) {
       btn.textContent = 'ERROR \u2014 REINTENTAR';
       btn.disabled = false;
@@ -1024,14 +1036,10 @@
   }
 
   /* ── PDF ── */
-  function descargarPDF() {
-    if (!window.jspdf) { alert('Error: la librer\u00EDa de PDF no se carg\u00F3.'); return; }
-
+  function generarPDFDoc(data) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
     var W = 210, H = 297, margin = 20, contentW = W - margin * 2, y = 0;
-    var data = collectFormData();
-    data.folio = currentFolio;
 
     var HEADER_H = 22;    // altura de la cabecera
     var FOOTER_H = 28;    // altura reservada para pie de página
@@ -1245,6 +1253,14 @@
       drawFooter();
     }
 
+    return doc;
+  }
+
+  function descargarPDF() {
+    if (!window.jspdf) { alert('Error: la librer\u00EDa de PDF no se carg\u00F3.'); return; }
+    var data = collectFormData();
+    data.folio = currentFolio;
+    var doc = generarPDFDoc(data);
     doc.save('Cotizacion-MUNET-' + currentFolio + '.pdf');
   }
 
