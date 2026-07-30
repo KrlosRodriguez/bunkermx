@@ -357,92 +357,122 @@ body::after{
 .v2-day-count{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:28px;color:var(--v2-wh);min-width:32px;text-align:center;line-height:1}
 .v2-montaje-subtotal{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:20px;color:rgba(200,236,200,.4)}
 
-/* ── DAY PICKER (per-venue) ── */
-.v2-days-picker-wrap{
+/* ── CALENDAR POPUP (paso 1) ── */
+.v2-cal-field{position:relative}
+.v2-cal-trigger{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;padding:10px 14px;
+  background:rgba(5,9,5,.6);border:1px solid var(--v2-bd);
+  color:var(--v2-wh);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:16px;
+  letter-spacing:.04em;cursor:pointer;transition:all .2s;
+}
+.v2-cal-trigger:hover{border-color:rgba(0,255,65,.4)}
+.v2-cal-trigger--active{border-color:rgba(0,255,65,.4);background:rgba(0,255,65,.05)}
+.v2-cal-trigger-placeholder{
+  color:rgba(200,236,200,.25);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;
+}
+.v2-cal-trigger-arrow{
+  font-size:10px;color:var(--v2-g);transition:transform .2s;
+}
+.v2-cal-trigger--active .v2-cal-trigger-arrow{transform:rotate(180deg)}
+
+.v2-cal-popup{
+  display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:100;
+  background:rgba(5,9,5,.97);border:1px solid var(--v2-bd);
+  padding:16px;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
+}
+.v2-cal-popup--open{display:block}
+
+.v2-cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.v2-cal-nav{
+  background:none;border:1px solid var(--v2-bd);color:var(--v2-g);
+  width:28px;height:28px;font-size:14px;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.v2-cal-nav:hover{border-color:var(--v2-g);background:rgba(0,255,65,.08)}
+.v2-cal-month{
+  font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.15em;
+  color:var(--v2-g);text-transform:uppercase;
+}
+
+.v2-cal-weekdays{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;
+}
+.v2-cal-weekday{
+  text-align:center;padding:4px 0;
+  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;
+  color:rgba(200,236,200,.3);
+}
+.v2-cal-weekday:nth-child(5){color:rgba(212,175,55,.4)}
+.v2-cal-weekday:nth-child(6){color:rgba(212,175,55,.4)}
+
+.v2-cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;
+}
+.v2-cal-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:12px;
+  color:var(--v2-wh);cursor:pointer;transition:all .15s;
+  border:1px solid transparent;position:relative;
+}
+.v2-cal-cell:hover{border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+.v2-cal-cell--empty{cursor:default}
+.v2-cal-cell--empty:hover{border-color:transparent;background:none}
+.v2-cal-cell--wknd{color:var(--v2-go)}
+.v2-cal-cell--today{border-color:rgba(0,255,65,.2)}
+.v2-cal-cell--start,.v2-cal-cell--end{
+  background:var(--v2-g);color:var(--v2-bk);font-weight:700;
+}
+.v2-cal-cell--start.v2-cal-cell--wknd,.v2-cal-cell--end.v2-cal-cell--wknd{
+  background:var(--v2-go);color:var(--v2-bk);
+}
+.v2-cal-cell--range{background:rgba(0,255,65,.1)}
+.v2-cal-cell--range.v2-cal-cell--wknd{background:rgba(212,175,55,.1)}
+.v2-cal-cell--past{opacity:.25;pointer-events:none}
+
+/* ── MINI-CALENDAR (per-venue, paso 3) ── */
+.v2-minical-wrap{
   flex-direction:column;align-items:stretch;
 }
-.v2-space-card.selected .v2-days-picker-wrap{display:flex}
-.v2-days-picker{
-  display:flex;flex-wrap:wrap;gap:4px;
+.v2-space-card.selected .v2-minical-wrap{display:flex}
+.v2-minical-weekdays{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;
 }
-.v2-day-check{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 12px;
-  background:rgba(0,255,65,.03);
-  border:1px solid rgba(0,255,65,.12);
-  cursor:pointer;transition:all .15s;
-  flex:1 0 calc(50% - 2px);
-  min-width:200px;
+.v2-minical-weekday{
+  text-align:center;padding:2px 0;
+  font-family:'Space Mono',monospace;font-size:7px;letter-spacing:.12em;
+  color:rgba(200,236,200,.3);
 }
-.v2-day-check:hover{border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
-.v2-day-check.checked{border-color:rgba(0,255,65,.35);background:rgba(0,255,65,.08)}
-.v2-day-check--wknd{border-color:rgba(212,175,55,.15)}
-.v2-day-check--wknd:hover{border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.06)}
-.v2-day-check--wknd.checked{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.08)}
-
-.v2-day-check-box{
-  width:16px;height:16px;border:1px solid rgba(0,255,65,.3);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all .15s;
+.v2-minical-weekday:nth-child(5){color:rgba(212,175,55,.3)}
+.v2-minical-weekday:nth-child(6){color:rgba(212,175,55,.3)}
+.v2-minical-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;
 }
-.v2-day-check--wknd .v2-day-check-box{border-color:rgba(212,175,55,.3)}
-.v2-day-check.checked .v2-day-check-box{background:var(--v2-g);border-color:var(--v2-g)}
-.v2-day-check--wknd.checked .v2-day-check-box{background:var(--v2-go);border-color:var(--v2-go)}
-.v2-day-check-tick{width:10px;height:7px;display:none}
-.v2-day-check.checked .v2-day-check-tick{display:block}
-
-.v2-day-check-info{display:flex;flex-direction:column;gap:1px}
-.v2-day-check-name{
-  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;
-  color:var(--v2-wh);
+.v2-minical-cell{
+  aspect-ratio:1;max-width:36px;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Mono',monospace;font-size:10px;
+  color:rgba(200,236,200,.25);cursor:pointer;transition:all .15s;
+  border:1px solid rgba(0,255,65,.08);
 }
-.v2-day-check-tarifa{
-  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.1em;
-  color:rgba(200,236,200,.35);
+.v2-minical-cell:hover{border-color:rgba(0,255,65,.3)}
+.v2-minical-cell--empty{cursor:default;border-color:transparent}
+.v2-minical-cell--empty:hover{border-color:transparent}
+.v2-minical-cell--active{
+  background:var(--v2-g);color:var(--v2-bk);font-weight:700;
+  border-color:var(--v2-g);
 }
-.v2-day-check--wknd .v2-day-check-tarifa{color:rgba(212,175,55,.45)}
-
-/* Quick action buttons */
-.v2-days-quick{
-  display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;
+.v2-minical-cell--active.v2-minical-cell--wknd{
+  background:var(--v2-go);color:var(--v2-bk);
+  border-color:var(--v2-go);
 }
-.v2-days-qbtn{
-  padding:4px 12px;
-  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;
-  color:rgba(0,255,65,.6);
-  background:rgba(0,255,65,.04);
-  border:1px solid rgba(0,255,65,.15);
-  cursor:pointer;transition:all .15s;
-  text-transform:uppercase;
-}
-.v2-days-qbtn:hover{
-  color:var(--v2-g);border-color:rgba(0,255,65,.4);
-  background:rgba(0,255,65,.1);
-}
-
-/* Summary + toggle for collapsed mode */
-.v2-days-summary{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:6px 0;margin-bottom:4px;
-}
-.v2-days-summary-text{
-  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;
-  color:var(--v2-wh);
-}
-.v2-days-toggle{
-  font-family:'Space Mono',monospace;font-size:8px;letter-spacing:.15em;
-  color:var(--v2-g);
-  background:none;border:1px solid rgba(0,255,65,.25);
-  padding:4px 12px;cursor:pointer;transition:all .15s;
-}
-.v2-days-toggle:hover{
-  border-color:var(--v2-g);background:rgba(0,255,65,.08);
-}
-
-/* Collapsed state */
-.v2-days-picker--collapsed{
-  max-height:0;overflow:hidden;margin:0;padding:0;
-}
+.v2-minical-cell--wknd{border-color:rgba(212,175,55,.08)}
+.v2-minical-cell--wknd:hover{border-color:rgba(212,175,55,.3)}
+.v2-minical-cell--last{opacity:.5;cursor:not-allowed}
+.v2-minical-cell--last:hover{border-color:rgba(0,255,65,.08)}
 
 /* ── PASO 4 — RESUMEN ── */
 .v2-resumen-block{
@@ -552,7 +582,10 @@ body::after{
   .v2-sc-montaje{padding:10px 14px 14px 48px;flex-wrap:wrap;gap:8px}
   .v2-montaje-label{font-size:9px;width:100%}
 
-  .v2-day-check{flex:1 0 100%;min-width:0}
+  .v2-cal-popup{position:fixed;top:auto;bottom:0;left:0;right:0;
+    border-radius:12px 12px 0 0;max-height:70vh;overflow-y:auto;
+  }
+  .v2-minical-cell{font-size:9px}
   .v2-resumen-block,.v2-resumen-totals,.v2-grand-total{padding-left:16px;padding-right:16px}
   .v2-gt-amount{font-size:clamp(28px,8vw,38px)}
   .v2-footer{padding:16px}
