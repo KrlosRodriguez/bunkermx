@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home3torre/bunkermx/html
+    - /bin/find . -mindepth 1 -maxdepth 1 ! -name ".git" ! -name ".cpanel.yml" -exec cp -R {} "$DEPLOYPATH" \;
