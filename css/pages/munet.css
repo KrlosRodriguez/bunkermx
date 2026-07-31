@@ -330,4 +330,14 @@
 @media(max-width:640px){
   .espacios-grid{grid-template-columns:1fr}
   .espacios-grid .munet-svc-exp-panel{grid-column:auto}
+
+  /* Reorder: cada expand panel justo debajo de su card */
+  #esp01{order:1}  #esp01-exp{order:2}
+  #esp02{order:3}  #esp02-exp{order:4}
+  #esp03{order:5}  #esp03-exp{order:6}
+  #esp04{order:7}  #esp04-exp{order:8}
+  #esp05{order:9}  #esp05-exp{order:10}
+  #esp06{order:11} #esp06-exp{order:12}
+  #esp07{order:13} #esp07-exp{order:14}
+  #esp08{order:15} #esp08-exp{order:16}
 }
