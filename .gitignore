@@ -34,6 +34,7 @@ node_modules/
 
 .claude/
 .firebase/
+.playwright-mcp/
 
 capturas/
 branding/
