@@ -114,6 +114,7 @@ body::after{
   background:linear-gradient(90deg,transparent,transparent);
   transition:background .4s;
 }
+.v2-step--active{overflow:visible}
 .v2-step--active::before{
   background:linear-gradient(90deg,var(--v2-g),rgba(0,255,65,.2),transparent);
 }
