@@ -151,6 +151,90 @@
     return { regular: 0, weekend: 0, total: 0 };
   }
 
+  function renderSpaceCalendar(spaceId) {
+    var state = selected[spaceId];
+    if (!state) return '';
+
+    var viewMonth = state.calViewMonth;
+    var viewYear = state.calViewYear;
+
+    var firstDay = new Date(viewYear, viewMonth, 1);
+    var startDow = (firstDay.getDay() + 6) % 7; // lun=0
+    var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    var spaceDays = state.eventDays || [];
+
+    var html = '<div class="v2-vcal" data-space="' + spaceId + '">';
+
+    // Header con navegación
+    html += '<div class="v2-vcal-header">' +
+      '<button type="button" class="v2-vcal-nav v2-vcal-prev" data-space="' + spaceId + '" data-dir="-1">&#8249;</button>' +
+      '<span class="v2-vcal-month">' + MONTH_NAMES[viewMonth] + ' ' + viewYear + '</span>' +
+      '<button type="button" class="v2-vcal-nav v2-vcal-next" data-space="' + spaceId + '" data-dir="1">&#8250;</button>' +
+    '</div>';
+
+    // Weekday headers
+    html += '<div class="v2-vcal-weekdays">' +
+      '<span>LUN</span><span>MAR</span><span>MI\u00C9</span><span>JUE</span>' +
+      '<span>VIE</span><span>S\u00C1B</span><span>DOM</span>' +
+    '</div>';
+
+    // Grid
+    html += '<div class="v2-vcal-grid">';
+
+    // Empty cells before first day
+    for (var e = 0; e < startDow; e++) {
+      html += '<div class="v2-vcal-cell v2-vcal-cell--empty"></div>';
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateObj = new Date(viewYear, viewMonth, d);
+      var yyyy = dateObj.getFullYear();
+      var mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+      var dd = String(d).padStart(2, '0');
+      var dateStr = yyyy + '-' + mm + '-' + dd;
+
+      var dow = (dateObj.getDay() + 6) % 7;
+      var isWknd = dow === 4 || dow === 5; // vie=4, sáb=5 (lun-based)
+      var isPast = dateObj < today;
+      var isSelected = spaceDays.indexOf(dateStr) >= 0;
+      var isToday = dateObj.getTime() === today.getTime();
+
+      var cls = 'v2-vcal-cell';
+      if (isWknd) cls += ' v2-vcal-cell--wknd';
+      if (isPast) cls += ' v2-vcal-cell--past';
+      if (isSelected) cls += ' v2-vcal-cell--selected';
+      if (isToday) cls += ' v2-vcal-cell--today';
+
+      html += '<div class="' + cls + '" data-space="' + spaceId + '" data-date="' + dateStr + '">' + d + '</div>';
+    }
+
+    html += '</div>'; // grid
+
+    // Desglose debajo del calendario
+    var bd = calcDaysBreakdownForDates(spaceDays);
+    if (bd.total > 0) {
+      html += '<div class="v2-vcal-breakdown">';
+      if (bd.regular > 0) {
+        html += '<span class="v2-vcal-bd-tag">LUN\u2013JUE: ' + bd.regular + '</span>';
+      }
+      if (bd.weekend > 0) {
+        html += '<span class="v2-vcal-bd-tag v2-vcal-bd-tag--wknd">VIE\u2013S\u00C1B: ' + bd.weekend + '</span>';
+      }
+      html += '<span class="v2-vcal-bd-total">' + bd.total + ' D\u00CDA' + (bd.total > 1 ? 'S' : '') + '</span>';
+      html += '</div>';
+    } else {
+      html += '<div class="v2-vcal-breakdown"><span class="v2-vcal-bd-empty">SELECCIONA LOS D\u00CDAS DEL EVENTO</span></div>';
+    }
+
+    html += '</div>'; // v2-vcal
+
+    return html;
+  }
+
   // Verifica si un espacio está disponible con las fechas actuales
   function isSpaceAvailable(sp) {
     if (tipo === 'publico' && sp.onlyPrivado) return false;
@@ -202,7 +286,11 @@
   }
 
   function hasSpacesSelected() {
-    return Object.keys(selected).length > 0;
+    var ids = Object.keys(selected);
+    if (ids.length === 0) return false;
+    return ids.some(function (id) {
+      return selected[id].eventDays && selected[id].eventDays.length > 0;
+    });
   }
 
   function validateStep3() {
@@ -282,8 +370,13 @@
         });
       })(sp.id, isDisabled);
 
-      // Build desglose para card seleccionada
+      // Calendario per-venue
       var daysPickerHTML = '';
+      if (isSel) {
+        daysPickerHTML = renderSpaceCalendar(sp.id);
+      }
+
+      // Build desglose para card seleccionada
       var desgloseHTML = '';
       if (isSel) {
         var spBd = spBdCard;
@@ -387,13 +480,32 @@
       });
     });
 
-    // Mini-calendar day clicks
-    grid.querySelectorAll('.v2-minical-cell:not(.v2-minical-cell--empty):not(.v2-minical-cell--last)').forEach(function (cell) {
+    // Calendario per-venue: clicks en días
+    grid.querySelectorAll('.v2-vcal-cell:not(.v2-vcal-cell--empty):not(.v2-vcal-cell--past)').forEach(function (cell) {
       cell.addEventListener('click', function (e) {
         e.stopPropagation();
         var spaceId = cell.getAttribute('data-space');
         var dateStr = cell.getAttribute('data-date');
         toggleSpaceDay(spaceId, dateStr);
+      });
+    });
+
+    // Calendario per-venue: navegación mes
+    grid.querySelectorAll('.v2-vcal-nav').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = btn.getAttribute('data-space');
+        var dir = parseInt(btn.getAttribute('data-dir'), 10);
+        if (!selected[spaceId]) return;
+        selected[spaceId].calViewMonth += dir;
+        if (selected[spaceId].calViewMonth > 11) {
+          selected[spaceId].calViewMonth = 0;
+          selected[spaceId].calViewYear++;
+        } else if (selected[spaceId].calViewMonth < 0) {
+          selected[spaceId].calViewMonth = 11;
+          selected[spaceId].calViewYear--;
+        }
+        buildCards();
       });
     });
   }
@@ -415,7 +527,13 @@
     if (selected[id]) {
       delete selected[id];
     } else {
-      selected[id] = { montajeDays: 0, eventDays: [] };
+      var now = new Date();
+      selected[id] = {
+        montajeDays: 0,
+        eventDays: [],
+        calViewMonth: now.getMonth(),
+        calViewYear: now.getFullYear()
+      };
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
@@ -427,8 +545,6 @@
     var days = selected[spaceId].eventDays;
     var idx = days.indexOf(dateStr);
     if (idx >= 0) {
-      // No permitir quitar todos los días
-      if (days.length <= 1) return;
       days.splice(idx, 1);
     } else {
       days.push(dateStr);
@@ -436,6 +552,7 @@
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
+    validateStep3();
   }
 
   function changeMontaje(id, delta) {
