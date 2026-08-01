@@ -27,10 +27,10 @@
  */
 
 // ── CONFIGURACIÓN ──
-var SHEET_ID = 'TU_SHEET_ID_AQUI';
-var NOTIFY_EMAIL = 'ventas@bunker.mx';
+var SHEET_ID = '1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk';
+var NOTIFY_EMAIL = 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.com';
 var SHEET_NAME = 'Cotizaciones';
-var DRIVE_FOLDER_ID = 'TU_FOLDER_ID_AQUI';
+var DRIVE_FOLDER_ID = '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
 
 // ── doPost: Recibir cotización ──
 function doPost(e) {
