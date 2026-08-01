@@ -72,12 +72,6 @@
   var cotizacionEnviada = false;
   var currentFolio = null;
   var currentStep = 1;
-  var daysBreakdown = { regular: 0, weekend: 0, total: 0 }; // calculado de fechas
-
-  /* ── ESTADO CALENDARIO ── */
-  var calViewMonth = new Date().getMonth();
-  var calViewYear  = new Date().getFullYear();
-  var calSelectState = 0; // 0=nada, 1=inicio seleccionado, esperando fin
 
   /* ── UTILIDADES ── */
   function formatMXN(n) {
@@ -111,26 +105,6 @@
   var DAY_NAMES = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
   var MONTH_NAMES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 
-  // Devuelve array de 'YYYY-MM-DD' en el rango de fechas del evento
-  function getEventDates() {
-    var inicio = document.getElementById('v2FechaInicio').value;
-    var fin    = document.getElementById('v2FechaFin').value;
-    if (!inicio) return [];
-    if (!fin || fin < inicio) fin = inicio;
-
-    var dates = [];
-    var d = new Date(inicio + 'T12:00:00');
-    var end = new Date(fin + 'T12:00:00');
-    while (d <= end) {
-      var yyyy = d.getFullYear();
-      var mm = String(d.getMonth() + 1).padStart(2, '0');
-      var dd = String(d.getDate()).padStart(2, '0');
-      dates.push(yyyy + '-' + mm + '-' + dd);
-      d.setDate(d.getDate() + 1);
-    }
-    return dates;
-  }
-
   // Devuelve si una fecha es weekend (vie-sáb)
   function isWeekendDate(dateStr) {
     var d = new Date(dateStr + 'T12:00:00');
@@ -154,38 +128,6 @@
     return DAY_NAMES[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()];
   }
 
-  /* ── CÁLCULO DE DÍAS ── */
-  // Analiza el rango de fechas y cuenta días regulares (lun-jue+dom) y weekend (vie-sáb)
-  function calcDaysBreakdown() {
-    var inicio = document.getElementById('v2FechaInicio').value;
-    var fin    = document.getElementById('v2FechaFin').value;
-
-    if (!inicio) {
-      daysBreakdown = { regular: 0, weekend: 0, total: 0 };
-      return;
-    }
-
-    // Si no hay fecha fin, es un solo día
-    if (!fin || fin < inicio) fin = inicio;
-
-    var regular = 0;
-    var weekend = 0;
-    var d = new Date(inicio + 'T12:00:00'); // noon to avoid timezone issues
-    var end = new Date(fin + 'T12:00:00');
-
-    while (d <= end) {
-      var dow = d.getDay(); // 0=dom, 1=lun, ..., 5=vie, 6=sáb
-      if (dow === 5 || dow === 6) {
-        weekend++;
-      } else {
-        regular++;
-      }
-      d.setDate(d.getDate() + 1);
-    }
-
-    daysBreakdown = { regular: regular, weekend: weekend, total: regular + weekend };
-  }
-
   // Calcula el costo de renta de un espacio basado en sus días seleccionados
   function calcSpaceRenta(sp) {
     // Obtener desglose de días del venue (per-venue o global)
@@ -203,10 +145,10 @@
 
   // Obtiene el desglose de días para un espacio específico
   function getSpaceDaysBreakdown(sp) {
-    if (selected[sp.id] && selected[sp.id].eventDays) {
+    if (selected[sp.id] && selected[sp.id].eventDays && selected[sp.id].eventDays.length > 0) {
       return calcDaysBreakdownForDates(selected[sp.id].eventDays);
     }
-    return daysBreakdown;
+    return { regular: 0, weekend: 0, total: 0 };
   }
 
   // Verifica si un espacio está disponible con las fechas actuales
@@ -222,173 +164,6 @@
 
   function getMontajeUnit(sp) {
     return sp.priv?.montaje || 0;
-  }
-
-  /* ── RENDER DESGLOSE DE FECHAS (Paso 2) ── */
-  function renderDatesBreakdown() {
-    var el = document.getElementById('v2DatesBreakdown');
-    if (!el) return;
-
-    calcDaysBreakdown();
-
-    if (daysBreakdown.total === 0) {
-      el.innerHTML = '';
-      return;
-    }
-
-    var html = '<div class="v2-db-label">DESGLOSE DE TUS FECHAS</div>';
-
-    if (daysBreakdown.regular > 0) {
-      html += '<div class="v2-db-row">' +
-        '<span><span class="v2-db-tag">LUN\u2013JUE</span> TARIFA REGULAR</span>' +
-        '<span class="v2-db-count">' + daysBreakdown.regular + ' D\u00CDA' + (daysBreakdown.regular > 1 ? 'S' : '') + '</span>' +
-      '</div>';
-    }
-
-    if (daysBreakdown.weekend > 0) {
-      html += '<div class="v2-db-row">' +
-        '<span><span class="v2-db-tag v2-db-tag--wknd">VIE\u2013S\u00C1B</span> TARIFA PREMIUM</span>' +
-        '<span class="v2-db-count">' + daysBreakdown.weekend + ' D\u00CDA' + (daysBreakdown.weekend > 1 ? 'S' : '') + '</span>' +
-      '</div>';
-    }
-
-    html += '<div class="v2-db-row" style="margin-top:4px;border-top:1px solid rgba(0,255,65,.1);padding-top:6px;">' +
-      '<span>TOTAL</span>' +
-      '<span class="v2-db-count">' + daysBreakdown.total + ' D\u00CDA' + (daysBreakdown.total > 1 ? 'S' : '') + '</span>' +
-    '</div>';
-
-    el.innerHTML = html;
-  }
-
-  /* ── CALENDARIO POPUP (Paso 1) ── */
-  function renderCalPopup() {
-    var grid = document.getElementById('v2CalGrid');
-    if (!grid) return;
-
-    var monthLabel = document.getElementById('v2CalMonth');
-    monthLabel.textContent = MONTH_NAMES[calViewMonth] + ' ' + calViewYear;
-
-    var firstDay = new Date(calViewYear, calViewMonth, 1);
-    var startDow = (firstDay.getDay() + 6) % 7; // lun=0, mar=1, ..., dom=6
-    var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
-
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    var selStart = document.getElementById('v2FechaInicio').value;
-    var selEnd   = document.getElementById('v2FechaFin').value;
-
-    var html = '';
-
-    for (var e = 0; e < startDow; e++) {
-      html += '<div class="v2-cal-cell v2-cal-cell--empty"></div>';
-    }
-
-    for (var d = 1; d <= daysInMonth; d++) {
-      var dateObj = new Date(calViewYear, calViewMonth, d);
-      var yyyy = dateObj.getFullYear();
-      var mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-      var dd = String(d).padStart(2, '0');
-      var dateStr = yyyy + '-' + mm + '-' + dd;
-
-      var dow = (dateObj.getDay() + 6) % 7;
-      var isWknd = dow === 4 || dow === 5; // vie=4, sáb=5 en lun-based
-      var isPast = dateObj < today;
-
-      var cls = 'v2-cal-cell';
-      if (isWknd) cls += ' v2-cal-cell--wknd';
-      if (isPast) cls += ' v2-cal-cell--past';
-      if (dateStr === selStart) cls += ' v2-cal-cell--start';
-      if (dateStr === selEnd) cls += ' v2-cal-cell--end';
-      if (selStart && selEnd && dateStr > selStart && dateStr < selEnd) cls += ' v2-cal-cell--range';
-      if (dateStr === today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0')) cls += ' v2-cal-cell--today';
-
-      html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
-    }
-
-    grid.innerHTML = html;
-
-    grid.querySelectorAll('.v2-cal-cell:not(.v2-cal-cell--empty):not(.v2-cal-cell--past)').forEach(function (cell) {
-      cell.addEventListener('click', function () {
-        handleCalClick(cell.getAttribute('data-date'));
-      });
-    });
-  }
-
-  function handleCalClick(dateStr) {
-    var startInput = document.getElementById('v2FechaInicio');
-    var endInput   = document.getElementById('v2FechaFin');
-
-    if (calSelectState === 0) {
-      startInput.value = dateStr;
-      endInput.value = '';
-      calSelectState = 1;
-      renderCalPopup();
-      updateCalDisplay();
-      validateStep1();
-    } else {
-      var start = startInput.value;
-      if (dateStr < start) {
-        endInput.value = start;
-        startInput.value = dateStr;
-      } else if (dateStr === start) {
-        endInput.value = dateStr;
-      } else {
-        endInput.value = dateStr;
-      }
-      calSelectState = 0;
-      renderCalPopup();
-      updateCalDisplay();
-      closeCalPopup();
-      validateStep1();
-    }
-  }
-
-  function updateCalDisplay() {
-    var display = document.getElementById('v2CalDisplay');
-    var start = document.getElementById('v2FechaInicio').value;
-    var end   = document.getElementById('v2FechaFin').value;
-
-    if (!start) {
-      display.textContent = 'SELECCIONAR FECHAS';
-      display.className = 'v2-cal-trigger-placeholder';
-      display.removeAttribute('style');
-      return;
-    }
-
-    var startLabel = formatDayLabel(start);
-    display.className = '';
-    display.style.color = 'var(--v2-g)';
-    display.style.fontFamily = "'Space Mono',monospace";
-    display.style.fontSize = '12px';
-    display.style.letterSpacing = '.1em';
-
-    if (end && end !== start) {
-      display.textContent = startLabel + '  \u2014  ' + formatDayLabel(end);
-    } else if (end && end === start) {
-      display.textContent = startLabel + '  (1 D\u00CDA)';
-    } else {
-      display.textContent = startLabel + '  \u2014  SELECCIONA FIN';
-    }
-  }
-
-  function openCalPopup() {
-    document.getElementById('v2CalPopup').classList.add('v2-cal-popup--open');
-    document.getElementById('v2CalTrigger').classList.add('v2-cal-trigger--active');
-
-    var start = document.getElementById('v2FechaInicio').value;
-    if (start) {
-      var d = new Date(start + 'T12:00:00');
-      calViewMonth = d.getMonth();
-      calViewYear = d.getFullYear();
-    }
-
-    renderCalPopup();
-  }
-
-  function closeCalPopup() {
-    document.getElementById('v2CalPopup').classList.remove('v2-cal-popup--open');
-    document.getElementById('v2CalTrigger').classList.remove('v2-cal-trigger--active');
   }
 
   /* ── WIZARD — Gestión de pasos ── */
@@ -410,8 +185,7 @@
       document.getElementById('step' + stepNum).scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 
-    if (stepNum === 2) renderDatesBreakdown();
-    if (stepNum === 3) { syncEventDays(); buildCards(); }
+    if (stepNum === 3) { buildCards(); }
     if (stepNum === 4) renderResumen();
   }
 
@@ -420,8 +194,7 @@
     var contacto = document.getElementById('v2Contacto').value.trim();
     var telefono = document.getElementById('v2Telefono').value.trim();
     var correo   = document.getElementById('v2Correo').value.trim();
-    var fecha    = document.getElementById('v2FechaInicio').value;
-    return cliente && contacto && (telefono || correo) && fecha;
+    return cliente && contacto && (telefono || correo);
   }
 
   function validateStep1() {
@@ -442,14 +215,13 @@
     if (!grid) return;
     grid.innerHTML = '';
 
-    calcDaysBreakdown();
-
     SPACES.forEach(function (sp) {
       var isSel = !!selected[sp.id];
       var isDisabled = !isSpaceAvailable(sp);
       var montDays = selected[sp.id]?.montajeDays || 0;
       var montUnitario = sp.priv?.montaje || 0;
       var rentaTotal = calcSpaceRenta(sp);
+      var spBdCard = getSpaceDaysBreakdown(sp);
 
       // Deseleccionar si quedó deshabilitado
       if (isDisabled && isSel) {
@@ -462,15 +234,15 @@
       var periodoDisplay = '';
 
       if (tipo === 'privado') {
-        if (sp.onlySala && daysBreakdown.weekend > 0) {
+        if (sp.onlySala && spBdCard.weekend > 0) {
           precioDisplay = 'NO DISP.';
           periodoDisplay = 'SOLO LUN\u2013JUE';
         } else if (sp.priv) {
           // Mostrar ambas tarifas si hay ambos tipos de día
-          if (daysBreakdown.regular > 0 && daysBreakdown.weekend > 0 && sp.priv.regular !== (sp.priv.weekend ?? sp.priv.regular)) {
+          if (spBdCard.regular > 0 && spBdCard.weekend > 0 && sp.priv.regular !== (sp.priv.weekend ?? sp.priv.regular)) {
             precioDisplay = formatMXN(sp.priv.regular) + ' / ' + formatMXN(sp.priv.weekend ?? sp.priv.regular);
             periodoDisplay = 'LUN\u2013JUE / VIE\u2013S\u00C1B';
-          } else if (daysBreakdown.weekend > 0 && daysBreakdown.regular === 0) {
+          } else if (spBdCard.weekend > 0 && spBdCard.regular === 0) {
             precioDisplay = formatMXN(sp.priv.weekend ?? sp.priv.regular);
             periodoDisplay = 'VIE\u2013S\u00C1B / D\u00CDA';
           } else {
@@ -481,10 +253,10 @@
       } else {
         if (sp.pub && sp.priv) {
           // Público usa mismas tarifas que privado
-          if (daysBreakdown.regular > 0 && daysBreakdown.weekend > 0 && sp.priv.regular !== (sp.priv.weekend ?? sp.priv.regular)) {
+          if (spBdCard.regular > 0 && spBdCard.weekend > 0 && sp.priv.regular !== (sp.priv.weekend ?? sp.priv.regular)) {
             precioDisplay = formatMXN(sp.priv.regular) + ' / ' + formatMXN(sp.priv.weekend ?? sp.priv.regular);
             periodoDisplay = 'LUN\u2013JUE / VIE\u2013S\u00C1B';
-          } else if (daysBreakdown.weekend > 0 && daysBreakdown.regular === 0) {
+          } else if (spBdCard.weekend > 0 && spBdCard.regular === 0) {
             precioDisplay = formatMXN(sp.priv.weekend ?? sp.priv.regular);
             periodoDisplay = 'VIE\u2013S\u00C1B / D\u00CDA';
           } else {
@@ -510,76 +282,11 @@
         });
       })(sp.id, isDisabled);
 
-      // Build mini-calendario por venue
-      var daysPickerHTML = '';
-      if (isSel) {
-        var allDates = getEventDates();
-        var spaceDays = selected[sp.id].eventDays || [];
-
-        if (allDates.length > 0) {
-          var firstDate = new Date(allDates[0] + 'T12:00:00');
-          var lastDate  = new Date(allDates[allDates.length - 1] + 'T12:00:00');
-
-          // Retroceder al lunes de la semana del primer día
-          var startMon = new Date(firstDate);
-          var sDow = (startMon.getDay() + 6) % 7;
-          startMon.setDate(startMon.getDate() - sDow);
-
-          // Avanzar al domingo de la semana del último día
-          var endSun = new Date(lastDate);
-          var eDow = (endSun.getDay() + 6) % 7;
-          endSun.setDate(endSun.getDate() + (6 - eDow));
-
-          var selectedCount = spaceDays.length;
-          var totalCount = allDates.length;
-
-          daysPickerHTML += '<div class="v2-sc-montaje v2-minical-wrap">' +
-            '<div class="v2-montaje-label" style="width:100%;margin-bottom:6px;">' +
-              'D\u00CDAS DEL EVENTO \u00B7 ' + selectedCount + ' DE ' + totalCount + ' SELECCIONADOS' +
-            '</div>' +
-            '<div class="v2-minical-weekdays">' +
-              '<span class="v2-minical-weekday">L</span>' +
-              '<span class="v2-minical-weekday">M</span>' +
-              '<span class="v2-minical-weekday">M</span>' +
-              '<span class="v2-minical-weekday">J</span>' +
-              '<span class="v2-minical-weekday">V</span>' +
-              '<span class="v2-minical-weekday">S</span>' +
-              '<span class="v2-minical-weekday">D</span>' +
-            '</div>' +
-            '<div class="v2-minical-grid">';
-
-          var cursor = new Date(startMon);
-          while (cursor <= endSun) {
-            var cy = cursor.getFullYear();
-            var cm = String(cursor.getMonth() + 1).padStart(2, '0');
-            var cd = String(cursor.getDate()).padStart(2, '0');
-            var curDateStr = cy + '-' + cm + '-' + cd;
-            var inRange = allDates.indexOf(curDateStr) >= 0;
-            var isActive = spaceDays.indexOf(curDateStr) >= 0;
-            var isWknd = isWeekendDate(curDateStr);
-            var isLast = isActive && spaceDays.length <= 1;
-
-            if (!inRange) {
-              daysPickerHTML += '<div class="v2-minical-cell v2-minical-cell--empty"></div>';
-            } else {
-              var mcCls = 'v2-minical-cell';
-              if (isWknd) mcCls += ' v2-minical-cell--wknd';
-              if (isActive) mcCls += ' v2-minical-cell--active';
-              if (isLast) mcCls += ' v2-minical-cell--last';
-              daysPickerHTML += '<div class="' + mcCls + '" data-space="' + sp.id + '" data-date="' + curDateStr + '">' + cursor.getDate() + '</div>';
-            }
-
-            cursor.setDate(cursor.getDate() + 1);
-          }
-
-          daysPickerHTML += '</div></div>';
-        }
-      }
-
       // Build desglose para card seleccionada
+      var daysPickerHTML = '';
       var desgloseHTML = '';
       if (isSel) {
-        var spBd = getSpaceDaysBreakdown(sp);
+        var spBd = spBdCard;
 
         if (tipo === 'privado' && sp.priv) {
           var regPrice = sp.priv.regular || 0;
@@ -708,7 +415,7 @@
     if (selected[id]) {
       delete selected[id];
     } else {
-      selected[id] = { montajeDays: 0, eventDays: getEventDates().slice() };
+      selected[id] = { montajeDays: 0, eventDays: [] };
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
@@ -738,18 +445,6 @@
     buildCards();
   }
 
-  // Sincroniza eventDays de venues seleccionados cuando el rango de fechas cambia
-  function syncEventDays() {
-    var allDates = getEventDates();
-    Object.keys(selected).forEach(function (id) {
-      var current = selected[id].eventDays || [];
-      // Filtrar días que ya no están en el rango
-      var valid = current.filter(function (d) { return allDates.indexOf(d) >= 0; });
-      // Si no queda ninguno, usar todos
-      selected[id].eventDays = valid.length > 0 ? valid : allDates.slice();
-    });
-  }
-
   function resetEnvio() {
     cotizacionEnviada = false;
     currentFolio = null;
@@ -769,8 +464,8 @@
     var contacto    = document.getElementById('v2Contacto').value.trim();
     var telefono    = document.getElementById('v2Telefono').value.trim();
     var correo      = document.getElementById('v2Correo').value.trim();
-    var fechaInicio = document.getElementById('v2FechaInicio').value;
-    var fechaFin    = document.getElementById('v2FechaFin').value;
+    var fechaInicio = ''; // Task 3 adaptará fechas por venue
+    var fechaFin    = '';
     var asistentes  = document.getElementById('v2Asistentes').value.trim();
 
     document.getElementById('v2ResCliente').textContent = cliente || '\u2014';
@@ -798,16 +493,8 @@
 
     document.getElementById('v2ResTipo').textContent = tipo === 'privado' ? 'EVENTO PRIVADO' : 'EVENTO P\u00DABLICO';
 
-    // Desglose de días
-    var diasStr = daysBreakdown.total + ' d\u00EDa' + (daysBreakdown.total > 1 ? 's' : '');
-    if (daysBreakdown.regular > 0 && daysBreakdown.weekend > 0) {
-      diasStr += ' (' + daysBreakdown.regular + ' LUN\u2013JUE + ' + daysBreakdown.weekend + ' VIE\u2013S\u00C1B)';
-    } else if (daysBreakdown.weekend > 0) {
-      diasStr += ' (VIE\u2013S\u00C1B)';
-    } else {
-      diasStr += ' (LUN\u2013JUE)';
-    }
-    document.getElementById('v2ResDias').textContent = diasStr;
+    // Desglose de días — Task 3 adaptará esto por venue; por ahora se omite
+    document.getElementById('v2ResDias').textContent = '\u2014';
 
     // Horario
     var horaInicio = document.getElementById('v2HoraInicio').value;
@@ -961,16 +648,16 @@
       contacto:     document.getElementById('v2Contacto').value.trim(),
       telefono:     document.getElementById('v2Telefono').value.trim(),
       correo:       document.getElementById('v2Correo').value.trim(),
-      fechaInicio:  document.getElementById('v2FechaInicio').value,
-      fechaFin:     document.getElementById('v2FechaFin').value,
+      fechaInicio:  '', // Task 3 adaptará fechas por venue
+      fechaFin:     '',
       asistentes:   document.getElementById('v2Asistentes').value.trim(),
       descripcion:  document.getElementById('v2Descripcion').value.trim(),
       horaInicio:   document.getElementById('v2HoraInicio').value,
       horaFin:      document.getElementById('v2HoraFin').value,
       tipoEvento:   tipo,
-      diasRegular:  daysBreakdown.regular,
-      diasWeekend:  daysBreakdown.weekend,
-      diasTotal:    daysBreakdown.total,
+      diasRegular:  0,
+      diasWeekend:  0,
+      diasTotal:    0,
       espacios:     JSON.stringify(espaciosArr),
       espaciosArr:  espaciosArr,
       rentaTotal:   totalRenta,
@@ -1294,38 +981,6 @@
     document.getElementById('btnNext1').addEventListener('click', function () { if (isStep1Valid()) goToStep(2); });
     document.getElementById('btnNext2').addEventListener('click', function () { goToStep(3); });
     document.getElementById('btnNext3').addEventListener('click', function () { if (hasSpacesSelected()) goToStep(4); });
-
-    // Calendario popup
-    document.getElementById('v2CalTrigger').addEventListener('click', function (e) {
-      e.stopPropagation();
-      var popup = document.getElementById('v2CalPopup');
-      if (popup.classList.contains('v2-cal-popup--open')) {
-        closeCalPopup();
-      } else {
-        openCalPopup();
-      }
-    });
-
-    document.getElementById('v2CalPrev').addEventListener('click', function (e) {
-      e.stopPropagation();
-      calViewMonth--;
-      if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
-      renderCalPopup();
-    });
-
-    document.getElementById('v2CalNext').addEventListener('click', function (e) {
-      e.stopPropagation();
-      calViewMonth++;
-      if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
-      renderCalPopup();
-    });
-
-    document.addEventListener('click', function (e) {
-      var calField = document.getElementById('v2CalField');
-      if (calField && !calField.contains(e.target)) {
-        closeCalPopup();
-      }
-    });
 
     // Tipo
     document.querySelectorAll('.v2-tipo-btn').forEach(function (btn) {
