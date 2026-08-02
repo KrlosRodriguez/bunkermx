@@ -291,16 +291,6 @@ body::after{
   font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;
   color:rgba(200,236,200,.5);line-height:2;
 }
-.v2-dates-breakdown:empty{display:none}
-.v2-db-label{color:rgba(0,255,65,.35);letter-spacing:.3em;font-size:9px;margin-bottom:6px}
-.v2-db-row{display:flex;justify-content:space-between;align-items:center;padding:2px 0}
-.v2-db-tag{
-  display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.15em;
-  border:1px solid rgba(0,255,65,.2);color:var(--v2-g);margin-right:6px;
-}
-.v2-db-tag--wknd{border-color:rgba(212,175,55,.3);color:var(--v2-go)}
-.v2-db-count{color:var(--v2-wh);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em}
-
 /* ── SPACE CARDS ── */
 .v2-spaces-grid{display:flex;flex-direction:column;gap:2px}
 
