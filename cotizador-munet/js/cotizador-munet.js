@@ -955,7 +955,7 @@
       doc.setFontSize(6); doc.setTextColor(100, 118, 100);
       doc.text('Av. de los Compositores s/n \u00B7 Bosque de Chapultepec 2\u00AA Secc. \u00B7 CDMX', margin, fy);
       fy += 3.5;
-      doc.text('contacto@museomunet.com \u00B7 museomunet.com \u00B7 Precios + IVA \u00B7 Vigentes 2026', margin, fy);
+      doc.text('cotizaciones@bunkermx.com \u00B7 museomunet.com \u00B7 Precios + IVA \u00B7 Vigentes 2026', margin, fy);
 
       // Logo BUNKER (alineado a la derecha)
       if (typeof BUNKER_LOGO_B64 !== 'undefined') {
