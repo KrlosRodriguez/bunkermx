@@ -434,6 +434,49 @@ body::after{
   font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.15em;color:rgba(200,236,200,.2);
 }
 
+/* ── Accordion cards (Paso 3) ── */
+.v2-sc-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 22px;
+  border-top: 1px solid rgba(0,255,65,.08);
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.v2-sc-summary:hover {
+  background: rgba(0,255,65,.04);
+}
+
+.v2-sc-summary-days {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .1em;
+}
+
+.v2-sc-summary-toggle {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: rgba(0,255,65,.4);
+  transition: color .15s;
+}
+
+.v2-sc-summary:hover .v2-sc-summary-toggle {
+  color: var(--v2-g);
+}
+
+.v2-sc-expandable {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease;
+}
+
+.v2-sc-expandable--open {
+  max-height: 800px;
+}
+
 /* ── Calendario per-venue (Paso 3) ── */
 .v2-vcal {
   padding: 12px 16px;
@@ -598,6 +641,17 @@ body::after{
   .v2-sc-price-period{display:inline;margin-left:8px}
   .v2-sc-montaje{padding:10px 14px 14px 48px;flex-wrap:wrap;gap:8px}
   .v2-montaje-label{font-size:9px;width:100%}
+
+  .v2-sc-summary{padding:8px 14px}
+  .v2-sc-summary-days{font-size:10px}
+  .v2-vcal{padding:10px 12px}
+  .v2-vcal-cell{font-size:10px}
+  .v2-vcal-nav{width:24px;height:24px;font-size:16px}
+  .v2-vcal-month{font-size:11px}
+  .v2-vcal-weekdays span{font-size:8px}
+  .v2-vcal-bd-tag{font-size:9px;padding:2px 6px}
+  .v2-vcal-bd-total{font-size:9px}
+  .v2-vcal-bd-empty{font-size:9px}
 
   .v2-resumen-block,.v2-resumen-totals,.v2-grand-total{padding-left:16px;padding-right:16px}
   .v2-gt-amount{font-size:clamp(28px,8vw,38px)}

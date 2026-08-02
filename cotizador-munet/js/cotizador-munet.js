@@ -72,6 +72,7 @@
   var cotizacionEnviada = false;
   var currentFolio = null;
   var currentStep = 1;
+  var expandedSpace = null; // ID del espacio con calendario expandido
 
   /* ── UTILIDADES ── */
   function formatMXN(n) {
@@ -445,6 +446,33 @@
         '</div>';
       }
 
+      // Accordion: solo el espacio expandido muestra calendario/desglose
+      var isExpanded = expandedSpace === sp.id;
+      var expandableContent = '';
+      var summaryBar = '';
+
+      if (isSel) {
+        // Barra resumen cuando está colapsado
+        var spBdSum = getSpaceDaysBreakdown(sp);
+        var daysLabel = spBdSum.total > 0
+          ? spBdSum.total + ' D\u00CDA' + (spBdSum.total > 1 ? 'S' : '') +
+            (spBdSum.regular > 0 && spBdSum.weekend > 0
+              ? ' (' + spBdSum.regular + ' LUN\u2013JUE + ' + spBdSum.weekend + ' VIE\u2013S\u00C1B)'
+              : spBdSum.weekend > 0 ? ' (VIE\u2013S\u00C1B)' : spBdSum.total > 0 ? ' (LUN\u2013JUE)' : '')
+          : 'SIN FECHAS';
+        var toggleIcon = isExpanded ? '\u25B2' : '\u25BC';
+        var toggleText = isExpanded ? 'OCULTAR' : 'EDITAR FECHAS';
+
+        summaryBar = '<div class="v2-sc-summary" data-expand="' + sp.id + '">' +
+          '<span class="v2-sc-summary-days" style="color:' + sp.color + ';">' + daysLabel + '</span>' +
+          '<span class="v2-sc-summary-toggle">' + toggleText + ' ' + toggleIcon + '</span>' +
+        '</div>';
+
+        expandableContent = '<div class="v2-sc-expandable' + (isExpanded ? ' v2-sc-expandable--open' : '') + '">' +
+          daysPickerHTML + desgloseHTML + montajeHTML +
+        '</div>';
+      }
+
       card.innerHTML =
         '<div class="v2-sc-inner">' +
           '<div class="v2-sc-check">' +
@@ -467,7 +495,7 @@
             '<div class="v2-sc-price-period">' + periodoDisplay + '</div>' +
           '</div>' +
         '</div>' +
-        daysPickerHTML + desgloseHTML + montajeHTML + totalLineHTML;
+        summaryBar + expandableContent + totalLineHTML;
 
       grid.appendChild(card);
     });
@@ -477,6 +505,16 @@
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         changeMontaje(btn.getAttribute('data-space'), parseInt(btn.getAttribute('data-delta'), 10));
+      });
+    });
+
+    // Accordion: toggle expandir/colapsar
+    grid.querySelectorAll('.v2-sc-summary').forEach(function (bar) {
+      bar.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var spaceId = bar.getAttribute('data-expand');
+        expandedSpace = expandedSpace === spaceId ? null : spaceId;
+        buildCards();
       });
     });
 
@@ -526,6 +564,7 @@
   function toggleSpace(id) {
     if (selected[id]) {
       delete selected[id];
+      if (expandedSpace === id) expandedSpace = null;
     } else {
       var now = new Date();
       selected[id] = {
@@ -534,6 +573,7 @@
         calViewMonth: now.getMonth(),
         calViewYear: now.getFullYear()
       };
+      expandedSpace = id;
     }
     if (cotizacionEnviada) resetEnvio();
     buildCards();
