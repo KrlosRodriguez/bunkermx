@@ -581,8 +581,6 @@
     var contacto    = document.getElementById('v2Contacto').value.trim();
     var telefono    = document.getElementById('v2Telefono').value.trim();
     var correo      = document.getElementById('v2Correo').value.trim();
-    var fechaInicio = ''; // Task 3 adaptará fechas por venue
-    var fechaFin    = '';
     var asistentes  = document.getElementById('v2Asistentes').value.trim();
 
     document.getElementById('v2ResCliente').textContent = cliente || '\u2014';
@@ -600,8 +598,32 @@
     var tc = [telefono, correo].filter(function (v) { return v; }).join(' \u00B7 ');
     document.getElementById('v2ResTelCorreo').textContent = tc || '\u2014';
 
-    var fechaStr = formatFecha(fechaInicio);
-    if (fechaFin && fechaFin !== fechaInicio) fechaStr += ' \u2014 ' + formatFecha(fechaFin);
+    // Calcular fechas y días agregados de todos los venues
+    var allEventDays = [];
+    Object.keys(selected).forEach(function (id) {
+      var days = selected[id].eventDays || [];
+      days.forEach(function (d) {
+        if (allEventDays.indexOf(d) < 0) allEventDays.push(d);
+      });
+    });
+    allEventDays.sort();
+
+    // Mostrar fechas agrupadas por mes
+    var fechaStr = '';
+    if (allEventDays.length > 0) {
+      var byMonth = {};
+      allEventDays.forEach(function (d) {
+        var parts = d.split('-');
+        var key = MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+        if (!byMonth[key]) byMonth[key] = [];
+        byMonth[key].push(parseInt(parts[2], 10));
+      });
+      var monthParts = [];
+      Object.keys(byMonth).forEach(function (k) {
+        monthParts.push(k + ': ' + byMonth[k].join(', '));
+      });
+      fechaStr = monthParts.join(' \u00B7 ');
+    }
     document.getElementById('v2ResFechas').textContent = fechaStr || '\u2014';
 
     var asRow = document.getElementById('v2ResAsistentesRow');
@@ -610,8 +632,17 @@
 
     document.getElementById('v2ResTipo').textContent = tipo === 'privado' ? 'EVENTO PRIVADO' : 'EVENTO P\u00DABLICO';
 
-    // Desglose de días — Task 3 adaptará esto por venue; por ahora se omite
-    document.getElementById('v2ResDias').textContent = '\u2014';
+    // Días total agregado
+    var totalBd = calcDaysBreakdownForDates(allEventDays);
+    var diasStr = totalBd.total + ' d\u00EDa' + (totalBd.total > 1 ? 's' : '');
+    if (totalBd.regular > 0 && totalBd.weekend > 0) {
+      diasStr += ' (' + totalBd.regular + ' LUN\u2013JUE + ' + totalBd.weekend + ' VIE\u2013S\u00C1B)';
+    } else if (totalBd.weekend > 0) {
+      diasStr += ' (VIE\u2013S\u00C1B)';
+    } else if (totalBd.total > 0) {
+      diasStr += ' (LUN\u2013JUE)';
+    }
+    document.getElementById('v2ResDias').textContent = diasStr;
 
     // Horario
     var horaInicio = document.getElementById('v2HoraInicio').value;
@@ -758,6 +789,17 @@
     var iva = Math.round(subtotal * 0.16);
     var total = subtotal + iva;
 
+    // Calcular totales agregados de fechas por venue
+    var allDaysForPayload = [];
+    ids.forEach(function (id) {
+      var days = selected[id].eventDays || [];
+      days.forEach(function (d) {
+        if (allDaysForPayload.indexOf(d) < 0) allDaysForPayload.push(d);
+      });
+    });
+    allDaysForPayload.sort();
+    var totalBdPayload = calcDaysBreakdownForDates(allDaysForPayload);
+
     return {
       cliente:      document.getElementById('v2Cliente').value.trim(),
       agencia:      document.getElementById('v2Agencia').value.trim(),
@@ -765,16 +807,14 @@
       contacto:     document.getElementById('v2Contacto').value.trim(),
       telefono:     document.getElementById('v2Telefono').value.trim(),
       correo:       document.getElementById('v2Correo').value.trim(),
-      fechaInicio:  '', // Task 3 adaptará fechas por venue
-      fechaFin:     '',
       asistentes:   document.getElementById('v2Asistentes').value.trim(),
       descripcion:  document.getElementById('v2Descripcion').value.trim(),
       horaInicio:   document.getElementById('v2HoraInicio').value,
       horaFin:      document.getElementById('v2HoraFin').value,
       tipoEvento:   tipo,
-      diasRegular:  0,
-      diasWeekend:  0,
-      diasTotal:    0,
+      diasRegular:  totalBdPayload.regular,
+      diasWeekend:  totalBdPayload.weekend,
+      diasTotal:    totalBdPayload.total,
       espacios:     JSON.stringify(espaciosArr),
       espaciosArr:  espaciosArr,
       rentaTotal:   totalRenta,
@@ -904,8 +944,35 @@
     doc.setFontSize(22); doc.setTextColor(237, 248, 237); doc.text('TU COTIZACI\u00D3N', margin, y); y += 6;
     doc.setFontSize(7); doc.setTextColor(0, 255, 65); doc.text('MUNET \u00B7 RENTA DE ESPACIOS \u00B7 2026', margin, y); y += 10;
 
+    // Construir lista de fechas agrupadas por mes para el PDF
+    var allPdfDays = [];
+    data.espaciosArr.forEach(function (esp) {
+      (esp.eventDays || []).forEach(function (d) {
+        if (allPdfDays.indexOf(d) < 0) allPdfDays.push(d);
+      });
+    });
+    allPdfDays.sort();
+
+    var fechaDisplay = '\u2014';
+    if (allPdfDays.length > 0) {
+      var byMonthPdf = {};
+      allPdfDays.forEach(function (d) {
+        var parts = d.split('-');
+        var key = MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+        if (!byMonthPdf[key]) byMonthPdf[key] = [];
+        byMonthPdf[key].push(parseInt(parts[2], 10));
+      });
+      var monthPartsPdf = [];
+      Object.keys(byMonthPdf).forEach(function (k) {
+        monthPartsPdf.push(k + ': ' + byMonthPdf[k].join(', '));
+      });
+      fechaDisplay = monthPartsPdf.join(' \u00B7 ');
+    }
+
     // Client box — calcular altura dinámica
+    var muchasFechas = allPdfDays.length > 10;
     var boxRows = 5; // cliente, contacto, tel/correo, fechas, días (fijos)
+    if (muchasFechas) boxRows++;
     if (data.agencia) boxRows++;
     if (data.evento) boxRows++;
     if (data.horaInicio || data.horaFin) boxRows++;
@@ -937,10 +1004,12 @@
     doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('TEL / CORREO', labelX, cy);
     doc.setFontSize(9); doc.setTextColor(237, 248, 237); doc.text(telCorreo || '\u2014', valX, cy); cy += 6;
 
-    var fechaDisplay = formatFecha(data.fechaInicio) || '\u2014';
-    if (data.fechaFin && data.fechaFin !== data.fechaInicio) fechaDisplay += ' \u2014 ' + formatFecha(data.fechaFin);
     doc.setFontSize(6); doc.setTextColor(0, 200, 50); doc.text('FECHAS EVENTO', labelX, cy);
-    doc.setFontSize(9); doc.setTextColor(237, 248, 237); doc.text(fechaDisplay, valX, cy); cy += 6;
+    doc.setFontSize(9); doc.setTextColor(237, 248, 237);
+    var fechaLines = doc.splitTextToSize(fechaDisplay, contentW - 45);
+    doc.text(fechaLines[0], valX, cy);
+    if (fechaLines.length > 1) { cy += 4; doc.text(fechaLines[1], valX, cy); }
+    cy += 6;
 
     // Desglose de días
     var diasText = data.diasTotal + ' d\u00EDa' + (data.diasTotal > 1 ? 's' : '');
@@ -998,6 +1067,18 @@
       doc.setFontSize(7); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
       doc.text(espDiasLabel, margin + 5, y);
       y += 4;
+
+      // Fechas individuales del venue
+      var espDates = (esp.eventDays || []).slice().sort();
+      if (espDates.length > 0 && espDates.length <= 10) {
+        var espDateLabels = espDates.map(function (d) {
+          return formatDayLabel(d);
+        }).join(', ');
+        doc.setFontSize(6); doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+        var espDateLines = doc.splitTextToSize(espDateLabels, contentW - 10);
+        doc.text(espDateLines[0], margin + 5, y); y += 3.5;
+        if (espDateLines.length > 1) { doc.text(espDateLines[1], margin + 5, y); y += 3.5; }
+      }
 
       // Desglose por tipo de día
       if (data.tipoEvento === 'privado') {
