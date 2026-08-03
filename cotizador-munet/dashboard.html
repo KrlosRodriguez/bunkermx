@@ -318,12 +318,15 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       }
       // Filtro estado
       if (estado && d.estado !== estado) return false;
-      // Filtro fechas (usar fechaInicio del evento)
+      // Filtro fechas (usar fecha de creación de la cotización)
       if (desde || hasta) {
-        var fi = d.fechaInicio || '';
-        if (fi) {
-          if (desde && fi < desde) return false;
-          if (hasta && fi > hasta) return false;
+        var fc = d.fecha || '';
+        if (fc) {
+          // fecha viene como "dd/MM/yyyy HH:mm", convertir a comparable
+          var parts = fc.split(' ')[0].split('/');
+          var isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+          if (desde && isoDate < desde) return false;
+          if (hasta && isoDate > hasta) return false;
         }
       }
       return true;

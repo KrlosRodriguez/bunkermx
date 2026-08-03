@@ -20,7 +20,7 @@
  *
  * GOOGLE SHEET — Encabezados (fila 1 de la hoja "Cotizaciones"):
  *   A: Fecha | B: Folio | C: Cliente | D: Agencia | E: Evento | F: Contacto
- *   G: Teléfono | H: Correo | I: Tipo | J: Fecha Inicio | K: Fecha Fin
+ *   G: Teléfono | H: Correo | I: Tipo | J: Fechas | K: (vacía, legacy)
  *   L: Días Total | M: Descripción | N: Horario | O: Espacios
  *   P: Renta Total | Q: Montaje Total | R: Subtotal | S: IVA | T: Total
  *   U: Link PDF | V: Estado
@@ -65,7 +65,7 @@ function doPost(e) {
       sheet = ss.insertSheet(SHEET_NAME);
       sheet.appendRow([
         'Fecha', 'Folio', 'Cliente', 'Agencia', 'Evento', 'Contacto',
-        'Teléfono', 'Correo', 'Tipo', 'Fecha Inicio', 'Fecha Fin',
+        'Teléfono', 'Correo', 'Tipo', 'Fechas', '',
         'Días Total', 'Descripción', 'Horario', 'Espacios',
         'Renta Total', 'Montaje Total', 'Subtotal', 'IVA', 'Total',
         'Link PDF', 'Estado'
@@ -74,14 +74,17 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    // Construir nombres de espacios
-    var espaciosNombres = '';
+    // Parsear espacios
+    var espaciosArr = [];
     try {
-      var espaciosArr = JSON.parse(data.espacios || '[]');
-      espaciosNombres = espaciosArr.map(function (e) { return e.name; }).join(', ');
+      espaciosArr = JSON.parse(data.espacios || '[]');
     } catch (pe) {
-      espaciosNombres = data.espacios || '';
+      espaciosArr = [];
     }
+    var espaciosNombres = espaciosArr.map(function (e) { return e.name; }).join(', ');
+
+    // Construir resumen de fechas desde eventDays de cada espacio
+    var fechasResumen = buildFechasResumen(espaciosArr);
 
     // Horario
     var horario = '';
@@ -99,8 +102,8 @@ function doPost(e) {
       data.telefono || '',
       data.correo || '',
       data.tipoEvento === 'publico' ? 'Público' : 'Privado',
-      data.fechaInicio || '',
-      data.fechaFin || '',
+      fechasResumen,
+      '',
       data.diasTotal || 0,
       data.descripcion || '',
       horario,
@@ -131,7 +134,7 @@ function doPost(e) {
       + 'EVENTO\n'
       + '──────\n'
       + 'Tipo: ' + (data.tipoEvento === 'publico' ? 'Público' : 'Privado') + '\n'
-      + 'Fechas: ' + (data.fechaInicio || '—') + ' al ' + (data.fechaFin || '—') + '\n'
+      + 'Fechas: ' + (fechasResumen || '—') + '\n'
       + 'Días: ' + (data.diasTotal || 0) + '\n'
       + 'Horario: ' + (horario || '—') + '\n'
       + 'Descripción: ' + (data.descripcion || '—') + '\n\n'
@@ -230,8 +233,7 @@ function doGet(e) {
         telefono:    row[6],
         correo:      row[7],
         tipo:        row[8],
-        fechaInicio: row[9],
-        fechaFin:    row[10],
+        fechas:      row[9],
         diasTotal:   row[11],
         descripcion: row[12],
         horario:     row[13],
@@ -277,6 +279,40 @@ function updateStatus(folio, nuevoEstado) {
 }
 
 // ── Utilidades ──
+
+/**
+ * Construir resumen de fechas a partir de eventDays[] de cada espacio.
+ * Ejemplo salida: "AGO 2026: 15, 17 · SEP 2026: 3"
+ */
+function buildFechasResumen(espaciosArr) {
+  var meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  var allDays = [];
+  espaciosArr.forEach(function (esp) {
+    (esp.eventDays || []).forEach(function (d) {
+      if (allDays.indexOf(d) < 0) allDays.push(d);
+    });
+  });
+  if (allDays.length === 0) return '';
+  allDays.sort();
+
+  // Agrupar por "MES AÑO"
+  var groups = {};
+  var order = [];
+  allDays.forEach(function (iso) {
+    var parts = iso.split('-');
+    var y = parts[0];
+    var m = parseInt(parts[1], 10) - 1;
+    var day = parseInt(parts[2], 10);
+    var key = meses[m] + ' ' + y;
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(day);
+  });
+
+  return order.map(function (k) {
+    return k + ': ' + groups[k].join(', ');
+  }).join(' · ');
+}
+
 function formatNum(n) {
   if (!n && n !== 0) return '0';
   return Number(n).toLocaleString('es-MX');
