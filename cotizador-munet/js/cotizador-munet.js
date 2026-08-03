@@ -938,9 +938,12 @@
 
       doc.setTextColor(0, 255, 65); doc.setFont('helvetica', 'bold');
       doc.setFontSize(18); doc.text('MUNET', margin, 14);
-      doc.setFontSize(8); doc.text('FOLIO: ' + data.folio, W - margin, 10, { align: 'right' });
-      doc.setFontSize(6); doc.setTextColor(0, 200, 50);
-      doc.text('SIMULADOR DE COSTOS \u00B7 RENTA DE ESPACIOS \u00B7 2026', W - margin, 16, { align: 'right' });
+
+      // Logo BUNKER (alineado a la derecha del header)
+      if (typeof BUNKER_LOGO_B64 !== 'undefined') {
+        var hLogoW = 30, hLogoH = 11;
+        doc.addImage(BUNKER_LOGO_B64, 'PNG', W - margin - hLogoW, 4, hLogoW, hLogoH);
+      }
       doc.setFont('helvetica', 'normal');
     }
 
@@ -957,11 +960,13 @@
       fy += 3.5;
       doc.text('cotizaciones@bunkermx.com \u00B7 museomunet.com \u00B7 Precios + IVA \u00B7 Vigentes 2026', margin, fy);
 
-      // Logo BUNKER (alineado a la derecha)
-      if (typeof BUNKER_LOGO_B64 !== 'undefined') {
-        var logoW = 30, logoH = 11; // proporción 150:54
-        doc.addImage(BUNKER_LOGO_B64, 'PNG', W - margin - logoW, H - FOOTER_H + 6, logoW, logoH);
-      }
+      // Folio + subtítulo (alineado a la derecha)
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8); doc.setTextColor(0, 255, 65);
+      doc.text('FOLIO: ' + data.folio, W - margin, H - FOOTER_H + 9, { align: 'right' });
+      doc.setFontSize(6); doc.setTextColor(0, 200, 50);
+      doc.text('SIMULADOR DE COSTOS \u00B7 RENTA DE ESPACIOS \u00B7 2026', W - margin, H - FOOTER_H + 14, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
 
       // Número de página
       var pageNum = doc.internal.getNumberOfPages();
