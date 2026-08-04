@@ -20,7 +20,7 @@
  *
  * GOOGLE SHEET — Encabezados (fila 1 de la hoja "Cotizaciones"):
  *   A: Fecha | B: Folio | C: Cliente | D: Agencia | E: Evento | F: Contacto
- *   G: Teléfono | H: Correo | I: Tipo | J: Fechas | K: (vacía, legacy)
+ *   G: Teléfono | H: Correo | I: Tipo | J: Fechas | K: Desglose Venues (JSON)
  *   L: Días Total | M: Descripción | N: Horario | O: Espacios
  *   P: Renta Total | Q: Montaje Total | R: Subtotal | S: IVA | T: Total
  *   U: Link PDF | V: Estado
@@ -31,7 +31,7 @@ var SHEET_ID = '1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk';
 var NOTIFY_EMAIL = 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.com';
 var SHEET_NAME = 'Cotizaciones';
 var DRIVE_FOLDER_ID = '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
-var SEND_FROM = 'cotizaciones@bunkermx.com'; // alias configurado en Gmail de la cuenta desplegadora
+var SENDER_NAME = 'MUNET Cotizaciones · BUNKER'; // nombre visible del remitente (el email será el de la cuenta desplegadora)
 
 // ── doPost: Recibir cotización ──
 function doPost(e) {
@@ -66,7 +66,7 @@ function doPost(e) {
       sheet = ss.insertSheet(SHEET_NAME);
       sheet.appendRow([
         'Fecha', 'Folio', 'Cliente', 'Agencia', 'Evento', 'Contacto',
-        'Teléfono', 'Correo', 'Tipo', 'Fechas', '',
+        'Teléfono', 'Correo', 'Tipo', 'Fechas', 'Desglose Venues',
         'Días Total', 'Descripción', 'Horario', 'Espacios',
         'Renta Total', 'Montaje Total', 'Subtotal', 'IVA', 'Total',
         'Link PDF', 'Estado'
@@ -87,6 +87,22 @@ function doPost(e) {
     // Construir resumen de fechas desde eventDays de cada espacio
     var fechasResumen = buildFechasResumen(espaciosArr);
 
+    // Desglose por venue (JSON para no perder datos individuales)
+    var desgloseVenues = JSON.stringify(espaciosArr.map(function (esp) {
+      return {
+        name: esp.name,
+        diasRegular: esp.diasRegular || 0,
+        diasWeekend: esp.diasWeekend || 0,
+        diasTotal: esp.diasTotal || 0,
+        eventDays: esp.eventDays || [],
+        precioRegular: esp.precioRegular || 0,
+        precioWeekend: esp.precioWeekend || 0,
+        eventoTotal: esp.eventoTotal || 0,
+        montajeDias: esp.montajeDias || 0,
+        montajeTotal: esp.montajeTotal || 0
+      };
+    }));
+
     // Horario
     var horario = '';
     if (data.horaInicio || data.horaFin) {
@@ -104,7 +120,7 @@ function doPost(e) {
       data.correo || '',
       data.tipoEvento === 'publico' ? 'Público' : 'Privado',
       fechasResumen,
-      '',
+      desgloseVenues,
       data.diasTotal || 0,
       data.descripcion || '',
       horario,
@@ -152,9 +168,9 @@ function doPost(e) {
       + (driveLink ? 'PDF: ' + driveLink + '\n\n' : '')
       + '— MUNET · Simulador de Costos';
 
-    var adminMailOptions = { to: NOTIFY_EMAIL, subject: adminSubject, body: adminBody, from: SEND_FROM };
+    var adminMailOptions = { name: SENDER_NAME };
     if (pdfBlob) adminMailOptions.attachments = [pdfBlob];
-    GmailApp.sendEmail(NOTIFY_EMAIL, adminSubject, adminBody, adminMailOptions);
+    MailApp.sendEmail(NOTIFY_EMAIL, adminSubject, adminBody, adminMailOptions);
 
     // ── Email al cliente ──
     if (data.correo) {
@@ -174,11 +190,10 @@ function doPost(e) {
         + 'contacto@museomunet.com · museomunet.com';
 
       var clientMailOptions = {
-        from: SEND_FROM,
-        name: 'MUNET — Museo Nacional de Energía y Tecnología'
+        name: SENDER_NAME
       };
       if (pdfBlob) clientMailOptions.attachments = [pdfBlob];
-      GmailApp.sendEmail(data.correo, clientSubject, clientBody, clientMailOptions);
+      MailApp.sendEmail(data.correo, clientSubject, clientBody, clientMailOptions);
     }
 
     return ContentService.createTextOutput(JSON.stringify({
@@ -222,28 +237,41 @@ function doGet(e) {
     var values = range.getValues();
 
     var cotizaciones = values.map(function (row) {
+      // Formatear fecha: puede ser Date object o string
+      var fechaVal = row[0];
+      if (fechaVal instanceof Date) {
+        fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy HH:mm');
+      }
+
+      // Parsear desglose de venues si existe
+      var desgloseVenues = [];
+      try {
+        if (row[10]) desgloseVenues = JSON.parse(row[10]);
+      } catch (pe) {}
+
       return {
-        fecha:       row[0],
-        folio:       row[1],
-        cliente:     row[2],
-        agencia:     row[3],
-        evento:      row[4],
-        contacto:    row[5],
-        telefono:    row[6],
-        correo:      row[7],
-        tipo:        row[8],
-        fechas:      row[9],
-        diasTotal:   row[11],
-        descripcion: row[12],
-        horario:     row[13],
-        espacios:    row[14],
-        rentaTotal:  row[15],
-        montajeTotal:row[16],
-        subtotal:    row[17],
-        iva:         row[18],
-        total:       row[19],
-        linkPdf:     row[20],
-        estado:      row[21]
+        fecha:        fechaVal,
+        folio:        row[1],
+        cliente:      row[2],
+        agencia:      row[3],
+        evento:       row[4],
+        contacto:     row[5],
+        telefono:     row[6],
+        correo:       row[7],
+        tipo:         row[8],
+        fechas:       row[9],
+        desgloseVenues: desgloseVenues,
+        diasTotal:    row[11],
+        descripcion:  row[12],
+        horario:      row[13],
+        espacios:     row[14],
+        rentaTotal:   row[15],
+        montajeTotal: row[16],
+        subtotal:     row[17],
+        iva:          row[18],
+        total:        row[19],
+        linkPdf:      row[20],
+        estado:       row[21]
       };
     });
 

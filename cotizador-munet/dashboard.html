@@ -78,7 +78,16 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .dash-table .col-folio{font-family:'Space Mono',monospace;font-size:12px;color:var(--g);cursor:pointer}
 .dash-table .col-folio:hover{text-decoration:underline}
 .dash-table .col-total{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--g)}
-.dash-table .col-espacios{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.dash-table .col-espacios{max-width:260px;overflow:hidden;text-overflow:ellipsis;position:relative;cursor:default}
+.venue-tooltip{display:none;position:absolute;bottom:100%;left:0;z-index:60;background:var(--dk);border:1px solid var(--g);
+  padding:12px 16px;min-width:300px;max-width:420px;white-space:normal;margin-bottom:6px;font-size:12px;line-height:1.5}
+.venue-tooltip::after{content:'';position:absolute;top:100%;left:20px;border:6px solid transparent;border-top-color:var(--g)}
+.col-espacios:hover .venue-tooltip{display:block}
+.venue-item{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.venue-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.venue-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;color:var(--g)}
+.venue-detail{color:var(--tx);font-size:11px}
+.venue-detail span{color:var(--wh)}
 
 /* Estado badges */
 .estado-badge{display:inline-block;padding:3px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;
@@ -232,6 +241,73 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     return div.innerHTML;
   }
 
+  // Parsear fecha flexible: soporta "dd/MM/yyyy HH:mm" y ISO "2026-08-03T21:25:00.000Z"
+  function parseFecha(str) {
+    if (!str) return null;
+    str = String(str);
+    // Formato dd/MM/yyyy
+    var parts = str.split(' ')[0].split('/');
+    if (parts.length === 3 && parts[0].length <= 2) {
+      var d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
+      if (y < 100) y += 2000;
+      return new Date(y, m, d);
+    }
+    // ISO format
+    var isoDate = new Date(str);
+    if (!isNaN(isoDate.getTime())) return isoDate;
+    return null;
+  }
+
+  // Formatear fecha para display: "03/AGO/2026 21:25"
+  function formatFechaDisplay(str) {
+    if (!str) return '—';
+    str = String(str);
+    var meses = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+    var date = parseFecha(str);
+    if (!date) return str;
+    var dd = String(date.getDate()).padStart(2, '0');
+    var mm = meses[date.getMonth()];
+    var yy = date.getFullYear();
+    // Extraer hora
+    var hora = '';
+    if (str.indexOf(':') > -1) {
+      if (str.indexOf('T') > -1) {
+        hora = ' ' + str.split('T')[1].substring(0, 5);
+      } else if (str.indexOf(' ') > -1) {
+        hora = ' ' + str.split(' ')[1];
+      }
+    }
+    return dd + '/' + mm + '/' + yy + hora;
+  }
+
+  // Generar HTML del tooltip de desglose de venues
+  function buildVenueTooltip(desglose) {
+    if (!desglose || !desglose.length) return '';
+    var html = '<div class="venue-tooltip">';
+    desglose.forEach(function (v) {
+      var dias = (v.diasRegular || 0) + (v.diasWeekend || 0);
+      var fechas = (v.eventDays || []).sort();
+      html += '<div class="venue-item">';
+      html += '<div class="venue-name">' + escapeHTML(v.name) + '</div>';
+      html += '<div class="venue-detail"><span>' + dias + ' d\u00EDa' + (dias !== 1 ? 's' : '') + '</span>';
+      if (v.diasRegular > 0 && v.diasWeekend > 0) {
+        html += ' (' + v.diasRegular + ' L-J + ' + v.diasWeekend + ' V-S)';
+      }
+      html += '</div>';
+      if (fechas.length > 0 && fechas.length <= 12) {
+        html += '<div class="venue-detail">Fechas: <span>' + fechas.map(function(f) {
+          var p = f.split('-'); return parseInt(p[2],10) + '/' + parseInt(p[1],10);
+        }).join(', ') + '</span></div>';
+      }
+      html += '<div class="venue-detail">Renta: <span>' + formatMXN(v.eventoTotal) + '</span>';
+      if (v.montajeDias > 0) html += ' + Montaje: <span>' + formatMXN(v.montajeTotal) + '</span> (' + v.montajeDias + 'd)';
+      html += '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
   // ── CARGAR DATOS ──
   function loadData() {
     var loading = document.getElementById('dashLoading');
@@ -272,17 +348,16 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
   // ── INDICADORES ──
   function updateIndicators(data) {
+    var filtered = getFilteredData();
     var now = new Date();
     var mesActual = now.getMonth();
     var anioActual = now.getFullYear();
 
-    var delMes = data.filter(function (d) {
-      var parts = (d.fecha || '').split('/');
-      if (parts.length >= 3) {
-        var mes = parseInt(parts[1], 10) - 1;
-        var anio = parseInt(parts[2], 10);
-        if (anio < 100) anio += 2000;
-        return mes === mesActual && anio === anioActual;
+    // Cotizaciones del mes (sobre datos filtrados)
+    var delMes = filtered.filter(function (d) {
+      var date = parseFecha(d.fecha);
+      if (date) {
+        return date.getMonth() === mesActual && date.getFullYear() === anioActual;
       }
       return false;
     });
@@ -291,10 +366,10 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     var montoTotal = 0;
     delMes.forEach(function (d) { montoTotal += Number(d.total) || 0; });
     var promedio = totalMes > 0 ? Math.round(montoTotal / totalMes) : 0;
-    var pendientes = data.filter(function (d) { return d.estado === 'Nueva'; }).length;
+    var pendientes = filtered.filter(function (d) { return d.estado === 'Nueva'; }).length;
 
     document.getElementById('indTotal').textContent = totalMes;
-    document.getElementById('indTotalSub').textContent = data.length + ' total hist\u00F3rico';
+    document.getElementById('indTotalSub').textContent = filtered.length + ' mostradas · ' + allData.length + ' total';
     document.getElementById('indMonto').textContent = formatMXN(montoTotal);
     document.getElementById('indMontoSub').textContent = 'del mes en curso';
     document.getElementById('indPromedio').textContent = formatMXN(promedio);
@@ -320,11 +395,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       if (estado && d.estado !== estado) return false;
       // Filtro fechas (usar fecha de creación de la cotización)
       if (desde || hasta) {
-        var fc = d.fecha || '';
-        if (fc) {
-          // fecha viene como "dd/MM/yyyy HH:mm", convertir a comparable
-          var parts = fc.split(' ')[0].split('/');
-          var isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+        var date = parseFecha(d.fecha);
+        if (date) {
+          var isoDate = date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
           if (desde && isoDate < desde) return false;
           if (hasta && isoDate > hasta) return false;
         }
@@ -344,6 +417,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       table.style.display = 'none';
       empty.style.display = 'block';
       empty.querySelector('.dash-empty-text').textContent = 'NO HAY COTIZACIONES';
+      updateIndicators(allData);
       return;
     }
 
@@ -358,13 +432,14 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     var html = '';
     filtered.forEach(function (d) {
       var estadoClass = 'estado-' + (d.estado || 'Nueva').replace(/\s/g, '');
+      var venueTooltipHTML = buildVenueTooltip(d.desgloseVenues);
       html += '<tr>'
         + '<td class="col-folio"' + (d.linkPdf ? ' onclick="window.open(\'' + escapeHTML(d.linkPdf) + '\',\'_blank\')"' : '') + '>' + escapeHTML(d.folio) + '</td>'
-        + '<td>' + escapeHTML(d.fecha) + '</td>'
+        + '<td>' + formatFechaDisplay(d.fecha) + '</td>'
         + '<td>' + escapeHTML(d.cliente) + '</td>'
         + '<td>' + escapeHTML(d.evento || '—') + '</td>'
         + '<td>' + escapeHTML(d.tipo) + '</td>'
-        + '<td class="col-espacios" title="' + escapeHTML(d.espacios) + '">' + escapeHTML(d.espacios) + '</td>'
+        + '<td class="col-espacios">' + escapeHTML(d.espacios) + venueTooltipHTML + '</td>'
         + '<td class="col-total">' + formatMXN(d.total) + '</td>'
         + '<td>'
         +   '<div class="estado-dropdown">'
@@ -382,6 +457,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     });
 
     tbody.innerHTML = html;
+
+    // Actualizar indicadores con datos filtrados
+    updateIndicators(allData);
   }
 
   // ── ACTUALIZAR ESTADO ──
