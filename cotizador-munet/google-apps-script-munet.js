@@ -31,6 +31,7 @@ var SHEET_ID = '1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk';
 var NOTIFY_EMAIL = 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.com';
 var SHEET_NAME = 'Cotizaciones';
 var DRIVE_FOLDER_ID = '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
+var SEND_FROM = 'cotizaciones@bunkermx.com'; // alias configurado en Gmail de la cuenta desplegadora
 
 // ── doPost: Recibir cotización ──
 function doPost(e) {
@@ -151,9 +152,9 @@ function doPost(e) {
       + (driveLink ? 'PDF: ' + driveLink + '\n\n' : '')
       + '— MUNET · Simulador de Costos';
 
-    var adminMailOptions = { to: NOTIFY_EMAIL, subject: adminSubject, body: adminBody };
+    var adminMailOptions = { to: NOTIFY_EMAIL, subject: adminSubject, body: adminBody, from: SEND_FROM };
     if (pdfBlob) adminMailOptions.attachments = [pdfBlob];
-    MailApp.sendEmail(adminMailOptions);
+    GmailApp.sendEmail(NOTIFY_EMAIL, adminSubject, adminBody, adminMailOptions);
 
     // ── Email al cliente ──
     if (data.correo) {
@@ -173,13 +174,11 @@ function doPost(e) {
         + 'contacto@museomunet.com · museomunet.com';
 
       var clientMailOptions = {
-        to: data.correo,
-        subject: clientSubject,
-        body: clientBody,
+        from: SEND_FROM,
         name: 'MUNET — Museo Nacional de Energía y Tecnología'
       };
       if (pdfBlob) clientMailOptions.attachments = [pdfBlob];
-      MailApp.sendEmail(clientMailOptions);
+      GmailApp.sendEmail(data.correo, clientSubject, clientBody, clientMailOptions);
     }
 
     return ContentService.createTextOutput(JSON.stringify({
