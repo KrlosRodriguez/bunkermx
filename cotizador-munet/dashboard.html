@@ -210,6 +210,32 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .completitud-fg{fill:none;stroke:var(--g);stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .4s}
 .completitud-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;color:var(--g)}
 
+/* ── STATUS BADGE (% completitud en tabla) ── */
+.status-pct{display:inline-block;padding:2px 8px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid;min-width:45px;text-align:center}
+.status-pct--low{color:var(--red);border-color:rgba(255,68,85,.3);background:rgba(255,68,85,.06)}
+.status-pct--mid{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
+.status-pct--high{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+
+/* ── TIPO PROVEEDOR BADGE ── */
+.tipo-prv-badge{display:inline-block;padding:2px 8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;border:1px solid}
+.tipo-Pool{color:var(--blu);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06)}
+.tipo-One-Shot{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
+
+/* ── CUENTA ACTIVA BADGE ── */
+.cuenta-badge{display:inline-block;width:10px;height:10px;border-radius:50%}
+.cuenta-badge--on{background:var(--g);box-shadow:0 0 6px rgba(0,255,65,.4)}
+.cuenta-badge--off{background:var(--red);box-shadow:0 0 6px rgba(255,68,85,.4)}
+
+/* ── ACTION BUTTONS IN TABLE ── */
+.tbl-action{background:none;border:1px solid var(--bd);color:var(--tx);padding:4px 8px;font-size:12px;cursor:pointer;transition:all .2s;margin-right:4px}
+.tbl-action:hover{color:var(--wh);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+.tbl-action--del{color:var(--red);border-color:rgba(255,68,85,.3)}
+.tbl-action--del:hover{background:rgba(255,68,85,.1);border-color:var(--red)}
+
+/* ── SERVICIO INLINE EDIT ROW ── */
+.srv-edit-row{display:grid;grid-template-columns:140px 1fr 80px 110px 36px;gap:6px;padding:8px 0;align-items:center;border-bottom:1px solid rgba(0,255,65,.06)}
+.srv-edit-row input,.srv-edit-row select{padding:6px 8px;background:var(--card);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif;font-size:12px;outline:none}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .dash-indicators{grid-template-columns:repeat(2,1fr)}
@@ -222,6 +248,11 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   .bnk-conceptos-header{display:none}
   .bnk-concepto-row{grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
   .bnk-concepto-row select,.bnk-concepto-row input{width:100%}
+  .dash-tabs{padding:0 16px;overflow-x:auto}
+  .dash-tab{padding:10px 16px;font-size:11px;white-space:nowrap}
+  .modal-tabs{overflow-x:auto}
+  .modal-tab{padding:8px 12px;font-size:10px;white-space:nowrap}
+  .srv-edit-row{grid-template-columns:100px 1fr 60px 80px 36px;gap:4px}
 }
 @media(max-width:600px){
   .dash-indicators{grid-template-columns:1fr}
@@ -230,6 +261,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   .bnk-concepto-row{grid-template-columns:1fr}
   .dash-nav-right{gap:6px}
   .dash-btn--bnk{padding:6px 10px;font-size:11px;letter-spacing:1px}
+  .dash-tab{padding:8px 10px;font-size:10px;letter-spacing:1px}
 }
 </style>
 </head>
