@@ -248,6 +248,47 @@
     // Mostrar primer tab
     _activarTab('cliTab1');
 
+    // ── Cotizaciones vinculadas ──
+    var wrap = _getEl('cliCotizacionesWrap');
+    if (!wrap) {
+      // Inyectar contenedor si no existe en el HTML
+      wrap = document.createElement('div');
+      wrap.id = 'cliCotizacionesWrap';
+      wrap.style.marginTop = '16px';
+      var modalBody = overlay.querySelector('.bnk-modal-body');
+      if (modalBody) modalBody.appendChild(wrap);
+    }
+    var empresaNombre = (clienteData && clienteData.empresa) ? String(clienteData.empresa).toLowerCase() : '';
+    var allCots = (window.DASH && window.DASH.allData) ? window.DASH.allData : [];
+    var vinculadas = [];
+    if (empresaNombre) {
+      vinculadas = allCots.filter(function (cot) {
+        var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
+        return cotEmpresa === empresaNombre;
+      });
+    }
+    var cotHtml = '<div class="bnk-section-label" style="margin-top:16px">COTIZACIONES VINCULADAS: ' + vinculadas.length + '</div>';
+    cotHtml += '<div id="cliCotizaciones">';
+    if (vinculadas.length === 0) {
+      cotHtml += '<span style="color:var(--tx-muted);font-size:12px">Sin cotizaciones vinculadas</span>';
+    } else {
+      vinculadas.forEach(function (cot) {
+        var folio = _escapeHTML(cot.folio || '');
+        var estado = _escapeHTML(cot.estado || '');
+        var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
+        if (pdfUrl) {
+          cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
+        } else {
+          cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
+        }
+        if (estado) {
+          cotHtml += '<span style="font-size:11px;color:var(--tx-muted)">(' + estado + ')</span> ';
+        }
+      });
+    }
+    cotHtml += '</div>';
+    wrap.innerHTML = cotHtml;
+
     // Hacer visible el overlay
     overlay.classList.add('visible');
   }

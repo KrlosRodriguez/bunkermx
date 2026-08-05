@@ -280,6 +280,49 @@
     // Mostrar primer tab
     _activarTab('prvTab1');
 
+    // ── Cotizaciones vinculadas ──
+    var wrap = _getEl('prvCotizacionesWrap');
+    if (!wrap) {
+      // Inyectar contenedor si no existe en el HTML
+      wrap = document.createElement('div');
+      wrap.id = 'prvCotizacionesWrap';
+      wrap.style.marginTop = '16px';
+      var modalBody = overlay.querySelector('.bnk-modal-body');
+      if (modalBody) modalBody.appendChild(wrap);
+    }
+    var prvId = (proveedorData && proveedorData.id) ? String(proveedorData.id) : '';
+    var prvNombreComercial = (proveedorData && proveedorData.nombreComercial) ? String(proveedorData.nombreComercial).toLowerCase() : '';
+    var prvRazonSocial = (proveedorData && proveedorData.razonSocial) ? String(proveedorData.razonSocial).toLowerCase() : '';
+    var allCots = (window.DASH && window.DASH.allData) ? window.DASH.allData : [];
+    var vinculadas = allCots.filter(function (cot) {
+      // Filtrar por proveedorId si está disponible, o por coincidencia de nombre
+      if (prvId && cot.proveedorId && String(cot.proveedorId) === prvId) return true;
+      var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
+      return (prvNombreComercial && cotEmpresa === prvNombreComercial) ||
+             (prvRazonSocial && cotEmpresa === prvRazonSocial);
+    });
+    var cotHtml = '<div class="bnk-section-label" style="margin-top:16px">COTIZACIONES VINCULADAS: ' + vinculadas.length + '</div>';
+    cotHtml += '<div id="prvCotizaciones">';
+    if (vinculadas.length === 0) {
+      cotHtml += '<span style="color:var(--tx-muted);font-size:12px">Sin cotizaciones vinculadas</span>';
+    } else {
+      vinculadas.forEach(function (cot) {
+        var folio = _escapeHTML(cot.folio || '');
+        var estado = _escapeHTML(cot.estado || '');
+        var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
+        if (pdfUrl) {
+          cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
+        } else {
+          cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
+        }
+        if (estado) {
+          cotHtml += '<span style="font-size:11px;color:var(--tx-muted)">(' + estado + ')</span> ';
+        }
+      });
+    }
+    cotHtml += '</div>';
+    wrap.innerHTML = cotHtml;
+
     // Hacer visible el overlay
     overlay.classList.add('visible');
   }
@@ -853,7 +896,9 @@
     guardarProveedor:  guardarProveedor,
     eliminarProveedor: eliminarProveedor,
     loadServicios:     loadServicios,
-    eliminarServicio:  eliminarServicio
+    eliminarServicio:  eliminarServicio,
+    // Expuesto para que el autocompletado BNK pueda filtrar proveedores
+    getAll: function () { return _proveedores; }
   };
 
 })();

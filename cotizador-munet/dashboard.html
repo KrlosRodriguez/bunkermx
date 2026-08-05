@@ -492,6 +492,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
           <label class="bnk-label">EMPRESA</label>
           <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar o crear cliente..." autocomplete="off">
           <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
+          <input type="hidden" id="bnkClienteId">
         </div>
         <div class="bnk-form-group">
           <label class="bnk-label">CONTACTO</label>
@@ -524,6 +525,12 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         <div class="bnk-form-group bnk-form-full">
           <label class="bnk-label">NOTA INTERNA</label>
           <input type="text" class="bnk-input" id="bnkNota" placeholder="Nota opcional para el perfil del cliente">
+        </div>
+        <div class="bnk-form-group">
+          <label class="bnk-label">PROVEEDOR (OPCIONAL)</label>
+          <input type="text" class="bnk-input" id="bnkProveedor" placeholder="Buscar proveedor..." autocomplete="off">
+          <div class="bnk-autocomplete" id="bnkAutoProveedor"></div>
+          <input type="hidden" id="bnkProveedorId">
         </div>
       </div>
 
@@ -1232,6 +1239,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         loading.style.display = 'none';
         if (result.status === 'ok') {
           allData = result.data || [];
+          window.DASH.allData = allData;
           renderTable();
           updateIndicators(allData);
           document.getElementById('dashLastUpdate').textContent = 'ACT: ' + new Date().toLocaleTimeString('es-MX');
@@ -1439,6 +1447,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     document.getElementById('bnkFechaEvento').value = '';
     document.getElementById('bnkSede').value = 'MUNET';
     document.getElementById('bnkNota').value = '';
+    document.getElementById('bnkClienteId').value = '';
+    document.getElementById('bnkProveedor').value = '';
+    document.getElementById('bnkProveedorId').value = '';
 
     document.getElementById('bnkPlantilla').value = 'estandar';
     document.getElementById('bnkCondiciones').value = PLANTILLAS.estandar;
@@ -1460,6 +1471,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
     input.addEventListener('input', function () {
       var val = input.value.trim().toLowerCase();
+      // Limpiar clienteId cuando el usuario escribe manualmente
+      document.getElementById('bnkClienteId').value = '';
       if (val.length < 2) { dropdown.classList.remove('visible'); return; }
 
       var matches = allClientes.filter(function (c) {
@@ -1468,7 +1481,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
       var html = '';
       matches.forEach(function (c) {
-        html += '<div class="bnk-ac-item" data-id="' + c.id + '" data-empresa="' + escapeHTML(c.empresa) + '" data-contacto="' + escapeHTML(c.contacto) + '" data-telefono="' + escapeHTML(c.telefono) + '" data-correo="' + escapeHTML(c.correo) + '">' + escapeHTML(c.empresa) + '</div>';
+        html += '<div class="bnk-ac-item" data-id="' + escapeHTML(c.id || '') + '" data-empresa="' + escapeHTML(c.empresa) + '" data-contacto="' + escapeHTML(c.contacto) + '" data-telefono="' + escapeHTML(c.telefono) + '" data-correo="' + escapeHTML(c.correo) + '">' + escapeHTML(c.empresa) + '</div>';
       });
 
       if (matches.length === 0) {
@@ -1492,11 +1505,58 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       document.getElementById('bnkContacto').value = item.getAttribute('data-contacto') || '';
       document.getElementById('bnkTelefono').value = item.getAttribute('data-telefono') || '';
       document.getElementById('bnkCorreo').value = item.getAttribute('data-correo') || '';
+      document.getElementById('bnkClienteId').value = item.getAttribute('data-id') || '';
       dropdown.classList.remove('visible');
     });
 
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.bnk-form-group')) dropdown.classList.remove('visible');
+    });
+
+    // ── AUTOCOMPLETADO DE PROVEEDORES ──
+    var prvInput    = document.getElementById('bnkProveedor');
+    var prvDropdown = document.getElementById('bnkAutoProveedor');
+
+    prvInput.addEventListener('input', function () {
+      var val = prvInput.value.trim().toLowerCase();
+      document.getElementById('bnkProveedorId').value = '';
+      if (val.length < 2) { prvDropdown.classList.remove('visible'); return; }
+
+      var lista = (window.BNKProveedores && window.BNKProveedores.getAll) ? window.BNKProveedores.getAll() : [];
+      // Fallback: intentar obtener desde window.DASH si existe
+      if (!lista.length && window.DASH && window.DASH.allProveedores) {
+        lista = window.DASH.allProveedores;
+      }
+
+      var matches = lista.filter(function (p) {
+        var haystack = ((p.nombreComercial || '') + ' ' + (p.razonSocial || '')).toLowerCase();
+        return haystack.indexOf(val) !== -1;
+      });
+
+      var html = '';
+      matches.slice(0, 10).forEach(function (p) {
+        var nombre = p.nombreComercial || p.razonSocial || '';
+        html += '<div class="bnk-ac-item" data-id="' + escapeHTML(p.id || '') + '" data-nombre="' + escapeHTML(nombre) + '">' + escapeHTML(nombre) + '</div>';
+      });
+
+      if (matches.length === 0) {
+        html = '<div class="bnk-ac-item" style="opacity:0.5;cursor:default">Sin coincidencias</div>';
+      }
+
+      prvDropdown.innerHTML = html;
+      prvDropdown.classList.add('visible');
+    });
+
+    prvDropdown.addEventListener('click', function (e) {
+      var item = e.target.closest('.bnk-ac-item');
+      if (!item || item.style.cursor === 'default') return;
+      document.getElementById('bnkProveedor').value = item.getAttribute('data-nombre') || '';
+      document.getElementById('bnkProveedorId').value = item.getAttribute('data-id') || '';
+      prvDropdown.classList.remove('visible');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.bnk-form-group')) prvDropdown.classList.remove('visible');
     });
   }
 
@@ -1884,7 +1944,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       tipoCotizacion: 'BNK',
       folio: folio,
       folioMNT: document.getElementById('bnkFolioMNT').value.trim(),
-      clienteId: '',
+      clienteId: document.getElementById('bnkClienteId').value.trim(),
+      proveedorId: document.getElementById('bnkProveedorId').value.trim(),
       empresa: empresa,
       contacto: contacto,
       telefono: document.getElementById('bnkTelefono').value.trim(),
