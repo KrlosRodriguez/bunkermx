@@ -347,12 +347,75 @@
   }
 
 
+  // ══════════════════════════════════════════════════════════
+  // BNKAnimate — count-up animado para KPIs
+  // ══════════════════════════════════════════════════════════
+
+  function _easeOut(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function _formatAnimValue(val, opts) {
+    var s = '';
+    if (opts.prefix) s += opts.prefix;
+    if (opts.separator) {
+      var parts = Math.round(val).toString().split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, opts.separator);
+      s += parts[0];
+    } else {
+      s += Math.round(val);
+    }
+    if (opts.suffix) s += opts.suffix;
+    return s;
+  }
+
+  var BNKAnimate = {
+    countUp: function (element, targetValue, options) {
+      if (!element) return;
+      var opts = options || {};
+      var duration = opts.duration || 800;
+      var target = parseFloat(targetValue) || 0;
+      var start = null;
+
+      // Si el valor anterior es el mismo, no animar
+      var currentText = element.textContent || '';
+      var currentNum = parseFloat(currentText.replace(/[^0-9.-]/g, '')) || 0;
+      if (currentNum === target) {
+        element.textContent = _formatAnimValue(target, opts);
+        return;
+      }
+
+      function step(ts) {
+        if (!start) start = ts;
+        var elapsed = ts - start;
+        var progress = Math.min(elapsed / duration, 1);
+        var easedProgress = _easeOut(progress);
+        var current = currentNum + (target - currentNum) * easedProgress;
+        element.textContent = _formatAnimValue(current, opts);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+
+      requestAnimationFrame(step);
+    },
+
+    staggerCountUp: function (items, staggerDelay) {
+      var delay = staggerDelay || 100;
+      items.forEach(function (item, i) {
+        setTimeout(function () {
+          BNKAnimate.countUp(item.element, item.value, item.options);
+        }, i * delay);
+      });
+    }
+  };
+
+
   // ── Exponer globalmente ──
   window.BNKToast      = BNKToast;
   window.BNKConfirm    = BNKConfirm;
   window.BNKSort       = BNKSort;
   window.BNKPagination = BNKPagination;
   window.BNKExport     = BNKExport;
+  window.BNKAnimate    = BNKAnimate;
   window.BNKHelpers    = {
     updateResultCount: _updateResultCount,
     hasActiveFilters:  _hasActiveFilters,

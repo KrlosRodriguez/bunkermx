@@ -141,9 +141,13 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   color:var(--ylw);border:1px solid rgba(240,192,64,.3);background:rgba(240,192,64,.06);margin-left:6px}
 
 /* ── MODAL BNK ── */
-.bnk-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);overflow-y:auto;padding:30px}
-.bnk-overlay.visible{display:flex;justify-content:center;align-items:flex-start}
-.bnk-modal{background:var(--dk);border:1px solid var(--bd);width:100%;max-width:960px;position:relative}
+.bnk-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);overflow-y:auto;padding:30px;
+  display:flex;justify-content:center;align-items:flex-start;
+  visibility:hidden;opacity:0;pointer-events:none;transition:opacity 200ms ease,visibility 0s 200ms}
+.bnk-overlay.visible{visibility:visible;opacity:1;pointer-events:auto;transition:opacity 200ms ease,visibility 0s}
+.bnk-modal{background:var(--dk);border:1px solid var(--bd);width:100%;max-width:960px;position:relative;
+  transform:translateY(24px);opacity:0;transition:transform 250ms ease-out 50ms,opacity 250ms ease-out 50ms}
+.bnk-overlay.visible .bnk-modal{transform:translateY(0);opacity:1}
 .bnk-modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--bd);background:var(--card)}
 .bnk-modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;color:var(--ylw)}
 .bnk-modal-close{background:none;border:none;color:var(--tx);font-size:24px;cursor:pointer;padding:0 4px}
@@ -341,7 +345,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
 <!-- TABLE -->
 <div class="dash-table-wrap">
-  <div class="dash-loading" id="dashLoading">CARGANDO DATOS...</div>
+  <div class="skeleton-loader" id="dashLoading"><div class="skeleton-bar"></div><div class="skeleton-bar"></div><div class="skeleton-bar"></div></div>
   <table class="dash-table" id="dashTable" style="display:none">
     <thead>
       <tr>
@@ -406,7 +410,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <span class="result-count" id="cliCount"></span>
   </div>
   <div class="dash-table-wrap">
-    <div class="dash-loading" id="cliLoading" style="display:none">CARGANDO CLIENTES...</div>
+    <div class="skeleton-loader" id="cliLoading" style="display:none"><div class="skeleton-bar"></div><div class="skeleton-bar"></div><div class="skeleton-bar"></div></div>
     <table class="dash-table" id="cliTable" style="display:none">
       <thead>
         <tr>
@@ -467,7 +471,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <span class="result-count" id="prvCount"></span>
   </div>
   <div class="dash-table-wrap">
-    <div class="dash-loading" id="prvLoading" style="display:none">CARGANDO PROVEEDORES...</div>
+    <div class="skeleton-loader" id="prvLoading" style="display:none"><div class="skeleton-bar"></div><div class="skeleton-bar"></div><div class="skeleton-bar"></div></div>
     <table class="dash-table" id="prvTable" style="display:none">
       <thead>
         <tr>
@@ -1320,13 +1324,22 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     var totalMNT = allData.filter(function(d){ return (d.fuente || 'MNT') === 'MNT'; }).length;
     var totalBNK = allData.filter(function(d){ return d.fuente === 'BNK'; }).length;
 
-    document.getElementById('indTotal').textContent = totalMes;
-    document.getElementById('indTotalSub').textContent = totalMNT + ' MNT + ' + totalBNK + ' BNK · ' + filtered.length + ' mostradas';
-    document.getElementById('indMonto').textContent = formatMXN(montoTotal);
+    if (window.BNKAnimate) {
+      BNKAnimate.staggerCountUp([
+        { element: document.getElementById('indTotal'), value: totalMes, options: {} },
+        { element: document.getElementById('indMonto'), value: montoTotal, options: { prefix: '$', separator: ',' } },
+        { element: document.getElementById('indPromedio'), value: promedio, options: { prefix: '$', separator: ',' } },
+        { element: document.getElementById('indPendientes'), value: pendientes, options: {} }
+      ]);
+    } else {
+      document.getElementById('indTotal').textContent = totalMes;
+      document.getElementById('indMonto').textContent = formatMXN(montoTotal);
+      document.getElementById('indPromedio').textContent = formatMXN(promedio);
+      document.getElementById('indPendientes').textContent = pendientes;
+    }
+    document.getElementById('indTotalSub').textContent = totalMNT + ' MNT + ' + totalBNK + ' BNK \u00B7 ' + filtered.length + ' mostradas';
     document.getElementById('indMontoSub').textContent = 'del mes en curso';
-    document.getElementById('indPromedio').textContent = formatMXN(promedio);
     document.getElementById('indPromedioSub').textContent = 'por cotizaci\u00F3n';
-    document.getElementById('indPendientes').textContent = pendientes;
     document.getElementById('indPendientesSub').textContent = 'estado: Nueva';
   }
 
@@ -2058,29 +2071,69 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   document.addEventListener('DOMContentLoaded', function () {
     loadData();
 
-    // ── NAVEGACIÓN DE TABS ──
+    // ── NAVEGACIÓN DE TABS (con fade transition) ──
+    var _tabSwitching = false;
     document.querySelectorAll('.dash-tab').forEach(function (tab) {
       tab.addEventListener('click', function () {
+        if (_tabSwitching) return;
         var target = this.getAttribute('data-tab');
-
-        document.querySelectorAll('.dash-tab').forEach(function (t) { t.classList.remove('active'); });
-        document.querySelectorAll('.dash-section').forEach(function (s) {
-          s.classList.remove('active');
-          s.style.display = 'none';
-        });
-
-        this.classList.add('active');
         var secId = target === 'cotizaciones' ? 'secCotizaciones'
                   : target === 'clientes'     ? 'secClientes'
                   :                             'secProveedores';
-        var sec = document.getElementById(secId);
-        if (sec) { sec.classList.add('active'); sec.style.display = 'block'; }
 
-        if (target === 'clientes'    && window.BNKClientes)    window.BNKClientes.load();
-        if (target === 'proveedores' && window.BNKProveedores) window.BNKProveedores.load();
+        // No hacer nada si ya es el tab activo
+        var currentActive = document.querySelector('.dash-section.active');
+        if (currentActive && currentActive.id === secId) return;
+
+        // Actualizar tabs
+        document.querySelectorAll('.dash-tab').forEach(function (t) { t.classList.remove('active'); });
+        this.classList.add('active');
 
         var btnBNK = document.getElementById('btnNuevaBNK');
         if (btnBNK) btnBNK.style.display = (target === 'cotizaciones') ? '' : 'none';
+
+        // Fade out sección activa → fade in nueva
+        _tabSwitching = true;
+        var nextSec = document.getElementById(secId);
+
+        if (currentActive) {
+          currentActive.style.transition = 'opacity 80ms ease-out';
+          currentActive.style.opacity = '0';
+          setTimeout(function () {
+            currentActive.classList.remove('active');
+            currentActive.style.display = 'none';
+            currentActive.style.opacity = '';
+            currentActive.style.transition = '';
+
+            if (nextSec) {
+              nextSec.style.opacity = '0';
+              nextSec.style.display = 'block';
+              nextSec.classList.add('active');
+              // Trigger cargas
+              if (target === 'clientes'    && window.BNKClientes)    BNKClientes.load();
+              if (target === 'proveedores' && window.BNKProveedores) BNKProveedores.load();
+              requestAnimationFrame(function () {
+                nextSec.style.transition = 'opacity 120ms ease-in';
+                nextSec.style.opacity = '1';
+                setTimeout(function () {
+                  nextSec.style.transition = '';
+                  _tabSwitching = false;
+                }, 120);
+              });
+            } else {
+              _tabSwitching = false;
+            }
+          }, 80);
+        } else {
+          // No hay sección activa, mostrar directamente
+          if (nextSec) {
+            nextSec.style.display = 'block';
+            nextSec.classList.add('active');
+            if (target === 'clientes'    && window.BNKClientes)    BNKClientes.load();
+            if (target === 'proveedores' && window.BNKProveedores) BNKProveedores.load();
+          }
+          _tabSwitching = false;
+        }
       });
     });
 

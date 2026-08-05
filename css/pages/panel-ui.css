@@ -320,6 +320,46 @@
   border-color: var(--red);
 }
 
+/* ══════════════════════════════════════════════════════════
+   BLOQUE 3: Animaciones y transiciones
+   ══════════════════════════════════════════════════════════ */
+
+/* ── SKELETON LOADER ── */
+.skeleton-loader {
+  padding: 40px 30px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.skeleton-bar {
+  height: 16px;
+  border-radius: 4px;
+  background: var(--card);
+  background-image: linear-gradient(90deg, transparent 0%, rgba(0, 255, 65, 0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-bar:nth-child(1) { width: 100%; }
+.skeleton-bar:nth-child(2) { width: 80%; }
+.skeleton-bar:nth-child(3) { width: 60%; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Skeleton compacto para servicios en modal */
+.skeleton-loader--compact {
+  padding: 12px 0;
+  gap: 10px;
+}
+
+.skeleton-loader--compact .skeleton-bar {
+  height: 12px;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .pag-controls { padding: 12px 16px 16px; }

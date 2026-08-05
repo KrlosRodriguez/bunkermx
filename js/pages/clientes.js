@@ -122,15 +122,23 @@
     _clientes.forEach(function (c) { sumPct += calcCompletitud(c); });
     var avgPct = total > 0 ? Math.round(sumPct / total) : 0;
 
-    var elTotal = _getEl('indCliTotal');
-    var elActivos = _getEl('indCliActivos');
-    var elInactivos = _getEl('indCliInactivos');
-    var elComp = _getEl('indCliCompletitud');
-
-    if (elTotal) elTotal.textContent = total;
-    if (elActivos) elActivos.textContent = activos;
-    if (elInactivos) elInactivos.textContent = inactivos;
-    if (elComp) elComp.textContent = avgPct + '%';
+    if (window.BNKAnimate) {
+      BNKAnimate.staggerCountUp([
+        { element: _getEl('indCliTotal'), value: total, options: {} },
+        { element: _getEl('indCliActivos'), value: activos, options: {} },
+        { element: _getEl('indCliInactivos'), value: inactivos, options: {} },
+        { element: _getEl('indCliCompletitud'), value: avgPct, options: { suffix: '%' } }
+      ]);
+    } else {
+      var elTotal = _getEl('indCliTotal');
+      var elActivos = _getEl('indCliActivos');
+      var elInactivos = _getEl('indCliInactivos');
+      var elComp = _getEl('indCliCompletitud');
+      if (elTotal) elTotal.textContent = total;
+      if (elActivos) elActivos.textContent = activos;
+      if (elInactivos) elInactivos.textContent = inactivos;
+      if (elComp) elComp.textContent = avgPct + '%';
+    }
   }
 
   // ── renderTable ──
@@ -360,30 +368,53 @@
     if (btnGuardar) btnGuardar.style.display = '';
   }
 
-  // ── Activar tab en el modal ──
+  // ── Activar tab en el modal (con fade) ──
+  var _modalTabSwitching = false;
   function _activarTab(tabId) {
     var overlay = _getEl('cliOverlay');
-    if (!overlay) return;
+    if (!overlay || _modalTabSwitching) return;
 
-    // Desactivar todos los tabs
+    var currentPanel = overlay.querySelector('.modal-tab-content.active');
+    var nextPanel = _getEl(tabId);
+
+    // Actualizar botones de tab
     var tabs = overlay.querySelectorAll('.modal-tab');
     tabs.forEach(function (t) { t.classList.remove('active'); });
-    var panels = overlay.querySelectorAll('.modal-tab-content');
-    panels.forEach(function (p) {
-      p.classList.remove('active');
-      p.style.display = 'none';
-    });
-
-    // Activar el solicitado
-    var panelTarget = _getEl(tabId);
-    if (panelTarget) {
-      panelTarget.classList.add('active');
-      panelTarget.style.display = 'block';
-    }
-
-    // Activar botón de tab correspondiente
     var btn = overlay.querySelector('[data-target="' + tabId + '"]');
     if (btn) btn.classList.add('active');
+
+    // Si no hay panel actual o es el mismo, activar directo
+    if (!currentPanel || currentPanel === nextPanel || !nextPanel) {
+      if (currentPanel && currentPanel !== nextPanel) {
+        currentPanel.classList.remove('active');
+        currentPanel.style.display = 'none';
+      }
+      if (nextPanel) { nextPanel.classList.add('active'); nextPanel.style.display = 'block'; }
+      return;
+    }
+
+    // Fade transition
+    _modalTabSwitching = true;
+    currentPanel.style.transition = 'opacity 60ms ease-out';
+    currentPanel.style.opacity = '0';
+    setTimeout(function () {
+      currentPanel.classList.remove('active');
+      currentPanel.style.display = 'none';
+      currentPanel.style.opacity = '';
+      currentPanel.style.transition = '';
+
+      nextPanel.style.opacity = '0';
+      nextPanel.style.display = 'block';
+      nextPanel.classList.add('active');
+      requestAnimationFrame(function () {
+        nextPanel.style.transition = 'opacity 80ms ease-in';
+        nextPanel.style.opacity = '1';
+        setTimeout(function () {
+          nextPanel.style.transition = '';
+          _modalTabSwitching = false;
+        }, 80);
+      });
+    }, 60);
   }
 
   // ── Validar email ──

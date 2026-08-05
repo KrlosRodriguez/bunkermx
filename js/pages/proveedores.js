@@ -137,15 +137,23 @@
     _proveedores.forEach(function (p) { sumPct += calcCompletitud(p); });
     var avgPct   = total > 0 ? Math.round(sumPct / total) : 0;
 
-    var elTotal   = _getEl('indPrvTotal');
-    var elPool    = _getEl('indPrvPool');
-    var elOneShot = _getEl('indPrvOneShot');
-    var elComp    = _getEl('indPrvCompletitud');
-
-    if (elTotal)   elTotal.textContent   = total;
-    if (elPool)    elPool.textContent    = pool;
-    if (elOneShot) elOneShot.textContent = oneShot;
-    if (elComp)    elComp.textContent    = avgPct + '%';
+    if (window.BNKAnimate) {
+      BNKAnimate.staggerCountUp([
+        { element: _getEl('indPrvTotal'), value: total, options: {} },
+        { element: _getEl('indPrvPool'), value: pool, options: {} },
+        { element: _getEl('indPrvOneShot'), value: oneShot, options: {} },
+        { element: _getEl('indPrvCompletitud'), value: avgPct, options: { suffix: '%' } }
+      ]);
+    } else {
+      var elTotal   = _getEl('indPrvTotal');
+      var elPool    = _getEl('indPrvPool');
+      var elOneShot = _getEl('indPrvOneShot');
+      var elComp    = _getEl('indPrvCompletitud');
+      if (elTotal)   elTotal.textContent   = total;
+      if (elPool)    elPool.textContent    = pool;
+      if (elOneShot) elOneShot.textContent = oneShot;
+      if (elComp)    elComp.textContent    = avgPct + '%';
+    }
   }
 
   // ── renderTable ──
@@ -396,35 +404,59 @@
     if (btnAddSrv) btnAddSrv.style.display = '';
   }
 
-  // ── Activar tab en el modal ──
+  // ── Activar tab en el modal (con fade) ──
+  var _modalTabSwitching = false;
   function _activarTab(tabId) {
     var overlay = _getEl('prvOverlay');
-    if (!overlay) return;
+    if (!overlay || _modalTabSwitching) return;
 
-    // Desactivar todos los tabs
+    var currentPanel = overlay.querySelector('.modal-tab-content.active');
+    var nextPanel = _getEl(tabId);
+
+    // Actualizar botones de tab
     var tabs = overlay.querySelectorAll('.modal-tab');
     tabs.forEach(function (t) { t.classList.remove('active'); });
-    var panels = overlay.querySelectorAll('.modal-tab-content');
-    panels.forEach(function (p) {
-      p.classList.remove('active');
-      p.style.display = 'none';
-    });
-
-    // Activar el solicitado
-    var panelTarget = _getEl(tabId);
-    if (panelTarget) {
-      panelTarget.classList.add('active');
-      panelTarget.style.display = 'block';
-    }
-
-    // Activar botón de tab correspondiente
     var btn = overlay.querySelector('[data-target="' + tabId + '"]');
     if (btn) btn.classList.add('active');
 
-    // Si se abre Tab5 y hay proveedor activo, cargar servicios
-    if (tabId === 'prvTab5' && _proveedorActivoId) {
-      loadServicios(_proveedorActivoId);
+    // Si no hay panel actual o es el mismo, activar directo
+    if (!currentPanel || currentPanel === nextPanel || !nextPanel) {
+      if (currentPanel && currentPanel !== nextPanel) {
+        currentPanel.classList.remove('active');
+        currentPanel.style.display = 'none';
+      }
+      if (nextPanel) { nextPanel.classList.add('active'); nextPanel.style.display = 'block'; }
+      // Cargar servicios si es Tab5
+      if (tabId === 'prvTab5' && _proveedorActivoId) loadServicios(_proveedorActivoId);
+      return;
     }
+
+    // Fade transition
+    _modalTabSwitching = true;
+    currentPanel.style.transition = 'opacity 60ms ease-out';
+    currentPanel.style.opacity = '0';
+    setTimeout(function () {
+      currentPanel.classList.remove('active');
+      currentPanel.style.display = 'none';
+      currentPanel.style.opacity = '';
+      currentPanel.style.transition = '';
+
+      nextPanel.style.opacity = '0';
+      nextPanel.style.display = 'block';
+      nextPanel.classList.add('active');
+
+      // Cargar servicios si es Tab5
+      if (tabId === 'prvTab5' && _proveedorActivoId) loadServicios(_proveedorActivoId);
+
+      requestAnimationFrame(function () {
+        nextPanel.style.transition = 'opacity 80ms ease-in';
+        nextPanel.style.opacity = '1';
+        setTimeout(function () {
+          nextPanel.style.transition = '';
+          _modalTabSwitching = false;
+        }, 80);
+      });
+    }, 60);
   }
 
   // ── Validar email ──
@@ -576,7 +608,7 @@
     if (!url || !proveedorId) return;
 
     var srvBody = _getEl('prvServiciosBody');
-    if (srvBody) srvBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:12px;color:var(--tx-muted)">Cargando...</td></tr>';
+    if (srvBody) srvBody.innerHTML = '<tr><td colspan="5"><div class="skeleton-loader skeleton-loader--compact"><div class="skeleton-bar"></div></div></td></tr>';
     _mostrarServiciosEmpty(false);
 
     fetch(url + '?action=listServicios&proveedorId=' + encodeURIComponent(proveedorId))
