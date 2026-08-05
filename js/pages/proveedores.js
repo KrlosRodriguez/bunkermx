@@ -26,7 +26,7 @@
     actividadPrincipal:   'prvActividadPrincipal',
     fechaConstitucion:    'prvFechaConstitucion',
     observaciones:        'prvObservaciones',
-    personaContacto:      'prvPersonaContacto',
+    nombreContacto:       'prvNombreContacto',
     puestoContacto:       'prvPuestoContacto',
     correoContacto:       'prvCorreoContacto',
     telefonoContacto:     'prvTelefonoContacto',
@@ -37,18 +37,17 @@
     formaPago:            'prvFormaPago',
     metodoPago:           'prvMetodoPago',
     diasCredito:          'prvDiasCredito',
-    opinion32D:           'prvOpinion32D',
-    fechaConstancia:      'prvFechaConstancia',
+    opinion32d:           'prvOpinion32d',
+    fechaConstanciaFiscal:'prvFechaConstanciaFiscal',
     calle:                'prvCalle',
-    noExt:                'prvNoExt',
-    noInt:                'prvNoInt',
+    numero:               'prvNumero',
     colonia:              'prvColonia',
     cp:                   'prvCp',
     alcaldia:             'prvAlcaldia',
-    estadoGeo:            'prvEstadoGeo',
+    entidad:              'prvEntidad',
     pais:                 'prvPais',
     bancoMxn:             'prvBancoMxn',
-    sucursal:             'prvSucursal',
+    sucursalPlaza:        'prvSucursalPlaza',
     titularCuenta:        'prvTitularCuenta',
     cuentaCorta:          'prvCuentaCorta',
     clabe:                'prvClabe',
@@ -152,7 +151,7 @@
 
     var filtered = _proveedores.filter(function (p) {
       if (search) {
-        var hay = [p.id, p.razonSocial, p.nombreComercial, p.personaContacto].join(' ').toLowerCase();
+        var hay = [p.id, p.razonSocial, p.nombreComercial, p.nombreContacto].join(' ').toLowerCase();
         if (hay.indexOf(search) === -1) return false;
       }
       if (tipoFiltro && String(p.tipoProveedor) !== tipoFiltro) return false;
