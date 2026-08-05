@@ -474,11 +474,12 @@ body::after{
 }
 
 .v2-sc-expandable--open {
-  max-height: 800px;
+  max-height: 2000px;
 }
 
 /* ── Calendario per-venue (Paso 3) ── */
 .v2-vcal {
+  max-width: 340px;
   padding: 12px 16px;
   border-top: 1px solid rgba(0,255,65,.08);
 }
@@ -537,7 +538,7 @@ body::after{
 }
 
 .v2-vcal-cell {
-  aspect-ratio: 1;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
