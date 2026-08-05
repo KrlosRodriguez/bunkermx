@@ -318,7 +318,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 </div>
 
 <!-- FILTERS -->
-<div class="dash-filters">
+<div class="dash-filters" id="cotFilters">
   <input type="text" class="dash-search" id="dashSearch" placeholder="Buscar por cliente, folio, evento...">
   <select class="dash-select" id="dashEstado">
     <option value="">TODOS LOS ESTADOS</option>
@@ -334,6 +334,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   </select>
   <input type="date" class="dash-date" id="dashDesde" title="Desde">
   <input type="date" class="dash-date" id="dashHasta" title="Hasta">
+  <button class="dash-btn dash-btn--export" id="cotExport">&darr; EXPORTAR</button>
+  <button class="dash-btn dash-btn--clear" id="cotClear">&times; LIMPIAR</button>
+  <span class="result-count" id="cotCount"></span>
 </div>
 
 <!-- TABLE -->
@@ -343,14 +346,14 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <thead>
       <tr>
         <th></th>
-        <th>FOLIO</th>
-        <th>FECHA</th>
-        <th>CLIENTE</th>
-        <th>EVENTO</th>
+        <th class="sortable" data-key="folio">FOLIO</th>
+        <th class="sortable" data-key="fecha">FECHA</th>
+        <th class="sortable" data-key="cliente">CLIENTE</th>
+        <th class="sortable" data-key="evento">EVENTO</th>
         <th>TIPO</th>
         <th>DETALLE</th>
-        <th>TOTAL</th>
-        <th>ESTADO</th>
+        <th class="sortable" data-key="total">TOTAL</th>
+        <th class="sortable" data-key="estado">ESTADO</th>
         <th>PDF</th>
       </tr>
     </thead>
@@ -361,6 +364,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <div class="dash-empty-text">NO HAY COTIZACIONES</div>
   </div>
 </div>
+
+<!-- PAGINATION -->
+<div class="pag-controls" id="cotPagination"></div>
 
 <!-- FOOTER -->
 <footer class="dash-footer">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV</footer>
@@ -387,7 +393,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <div class="dash-card-value" id="indCliCompletitud">—</div>
     </div>
   </div>
-  <div class="dash-filters">
+  <div class="dash-filters" id="cliFilters">
     <input type="text" class="dash-search" id="cliSearch" placeholder="Buscar por nombre, marca o ID...">
     <select class="dash-select" id="cliEstado">
       <option value="">TODOS</option>
@@ -395,17 +401,21 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <option value="No">INACTIVOS</option>
     </select>
     <button class="dash-btn dash-btn--accent" id="btnNuevoCliente">+ NUEVO CLIENTE</button>
+    <button class="dash-btn dash-btn--export" id="cliExport">&darr; EXPORTAR</button>
+    <button class="dash-btn dash-btn--clear" id="cliClear">&times; LIMPIAR</button>
+    <span class="result-count" id="cliCount"></span>
   </div>
   <div class="dash-table-wrap">
     <div class="dash-loading" id="cliLoading" style="display:none">CARGANDO CLIENTES...</div>
     <table class="dash-table" id="cliTable" style="display:none">
       <thead>
         <tr>
-          <th>NO. CLIENTE</th>
-          <th>STATUS %</th>
-          <th>EMPRESA</th>
+          <th class="sortable" data-key="id">NO. CLIENTE</th>
+          <th class="sortable" data-key="_pct">STATUS %</th>
+          <th class="sortable" data-key="empresa">EMPRESA</th>
           <th>MARCAS</th>
           <th>CUENTA</th>
+          <th class="sortable" data-key="fechaEdicion">&Uacute;LT. EDICI&Oacute;N</th>
           <th>ACCIONES</th>
         </tr>
       </thead>
@@ -416,6 +426,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <div class="dash-empty-text">NO HAY CLIENTES REGISTRADOS</div>
     </div>
   </div>
+  <div class="pag-controls" id="cliPagination"></div>
 </div><!-- /secClientes -->
 
 <!-- SECCIÓN: PROVEEDORES -->
@@ -438,7 +449,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <div class="dash-card-value" id="indPrvCompletitud">—</div>
     </div>
   </div>
-  <div class="dash-filters">
+  <div class="dash-filters" id="prvFilters">
     <input type="text" class="dash-search" id="prvSearch" placeholder="Buscar por nombre, razón social o ID...">
     <select class="dash-select" id="prvTipo">
       <option value="">TODOS LOS TIPOS</option>
@@ -451,19 +462,23 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <option value="No">INACTIVOS</option>
     </select>
     <button class="dash-btn dash-btn--accent" id="btnNuevoProveedor">+ NUEVO PROVEEDOR</button>
+    <button class="dash-btn dash-btn--export" id="prvExport">&darr; EXPORTAR</button>
+    <button class="dash-btn dash-btn--clear" id="prvClear">&times; LIMPIAR</button>
+    <span class="result-count" id="prvCount"></span>
   </div>
   <div class="dash-table-wrap">
     <div class="dash-loading" id="prvLoading" style="display:none">CARGANDO PROVEEDORES...</div>
     <table class="dash-table" id="prvTable" style="display:none">
       <thead>
         <tr>
-          <th>NO. PROVEEDOR</th>
-          <th>STATUS %</th>
-          <th>RAZÓN SOCIAL</th>
+          <th class="sortable" data-key="id">NO. PROVEEDOR</th>
+          <th class="sortable" data-key="_pct">STATUS %</th>
+          <th class="sortable" data-key="razonSocial">RAZ&Oacute;N SOCIAL</th>
           <th>NOMBRE COMERCIAL</th>
-          <th>TIPO</th>
+          <th class="sortable" data-key="tipoProveedor">TIPO</th>
           <th>CUENTA</th>
-          <th>FECHA ALTA</th>
+          <th class="sortable" data-key="fechaAlta">FECHA ALTA</th>
+          <th class="sortable" data-key="fechaEdicion">&Uacute;LT. EDICI&Oacute;N</th>
           <th>ACCIONES</th>
         </tr>
       </thead>
@@ -474,6 +489,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       <div class="dash-empty-text">NO HAY PROVEEDORES REGISTRADOS</div>
     </div>
   </div>
+  <div class="pag-controls" id="prvPagination"></div>
 </div><!-- /secProveedores -->
 
 <!-- MODAL BNK -->
@@ -1123,6 +1139,11 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   var allClientes = [];
   var allCatalogo = [];
 
+  // Sort & pagination state para cotizaciones
+  var _cotSortKey = 'fecha';
+  var _cotSortDir = 'desc';
+  var _cotPage = 1;
+
   // ── EXPONER PARA MÓDULOS EXTERNOS (clientes.js, proveedores.js) ──
   window.DASH = {
     APPS_SCRIPT_URL: APPS_SCRIPT_URL,
@@ -1341,16 +1362,22 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   }
 
   // ── RENDER TABLE ──
-  function renderTable() {
+  function renderTable(keepPage) {
     var filtered = getFilteredData();
     var table = document.getElementById('dashTable');
     var empty = document.getElementById('dashEmpty');
     var tbody = document.getElementById('dashBody');
 
+    // Toggle clear button
+    if (window.BNKHelpers) BNKHelpers.toggleClearButton('cotClear', 'cotFilters');
+
     if (filtered.length === 0) {
       table.style.display = 'none';
       empty.style.display = 'block';
       empty.querySelector('.dash-empty-text').textContent = 'NO HAY COTIZACIONES';
+      if (window.BNKHelpers) BNKHelpers.updateResultCount('cotCount', '0', 0, allData.length, 'cotizaciones');
+      var pagEl = document.getElementById('cotPagination');
+      if (pagEl) pagEl.style.display = 'none';
       updateIndicators(allData);
       return;
     }
@@ -1358,24 +1385,43 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     table.style.display = 'table';
     empty.style.display = 'none';
 
-    // Ordenar por fecha descendente
-    filtered.sort(function (a, b) {
-      return (b.fecha || '').localeCompare(a.fecha || '');
-    });
+    // Sort
+    if (window.BNKSort && _cotSortKey) {
+      filtered = BNKSort.apply(filtered, _cotSortKey, _cotSortDir);
+    }
+
+    // Reset page on filter change
+    if (!keepPage) _cotPage = 1;
+
+    // Paginate
+    var pageResult = { rows: filtered, currentPage: 1, totalPages: 1, totalFiltered: filtered.length };
+    if (window.BNKPagination) {
+      pageResult = BNKPagination.paginate(filtered, _cotPage);
+      _cotPage = pageResult.currentPage;
+      BNKPagination.render('cotPagination', pageResult, function (p) { _cotPage = p; renderTable(true); });
+    }
+
+    // Result count
+    var showRange = pageResult.rows.length > 0
+      ? ((pageResult.currentPage - 1) * 50 + 1) + '\u2013' + ((pageResult.currentPage - 1) * 50 + pageResult.rows.length)
+      : '0';
+    if (window.BNKHelpers) BNKHelpers.updateResultCount('cotCount', showRange, filtered.length, allData.length, 'cotizaciones');
+
+    // Update sort indicators in thead
+    _updateSortHeaders('dashTable', _cotSortKey, _cotSortDir);
 
     var html = '';
-    filtered.forEach(function (d) {
+    pageResult.rows.forEach(function (d) {
       var estadoClass = 'estado-' + (d.estado || 'Nueva').replace(/\s/g, '');
       var tipoClass = 'tipo-' + (d.fuente || 'MNT');
       var isMNT = (d.fuente || 'MNT') === 'MNT';
 
-      // Contar BNK vinculadas a este folio MNT
       var bnkCount = 0;
       if (isMNT) {
         bnkCount = allData.filter(function(x){ return x.fuente === 'BNK' && x.folioMNT === d.folio; }).length;
       }
 
-      var detalleText = isMNT ? escapeHTML(d.espacios || '—') : 'Servicios';
+      var detalleText = isMNT ? escapeHTML(d.espacios || '\u2014') : 'Servicios';
       if (isMNT && bnkCount > 0) {
         detalleText += ' <span class="bnk-count">' + bnkCount + ' BNK</span>';
       }
@@ -1385,7 +1431,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         + '<td class="col-folio"' + (d.linkPdf ? ' onclick="window.open(\'' + escapeHTML(d.linkPdf) + '\',\'_blank\')"' : '') + '>' + escapeHTML(d.folio) + '</td>'
         + '<td>' + formatFechaDisplay(d.fecha) + '</td>'
         + '<td>' + escapeHTML(d.cliente) + '</td>'
-        + '<td>' + escapeHTML(d.evento || '—') + '</td>'
+        + '<td>' + escapeHTML(d.evento || '\u2014') + '</td>'
         + '<td><span class="tipo-badge ' + tipoClass + '">' + (d.fuente || 'MNT') + '</span></td>'
         + '<td class="col-espacios">' + detalleText + '</td>'
         + '<td class="col-total">' + formatMXN(d.total) + '</td>'
@@ -1400,14 +1446,25 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         +     '</div>'
         +   '</div>'
         + '</td>'
-        + '<td>' + (d.linkPdf ? '<a href="' + escapeHTML(d.linkPdf) + '" target="_blank" class="pdf-link">VER PDF</a>' : '—') + '</td>'
+        + '<td>' + (d.linkPdf ? '<a href="' + escapeHTML(d.linkPdf) + '" target="_blank" class="pdf-link">VER PDF</a>' : '\u2014') + '</td>'
         + '</tr>';
     });
 
     tbody.innerHTML = html;
-
-    // Actualizar indicadores con datos filtrados
     updateIndicators(allData);
+  }
+
+  // Helper para actualizar clases de sort en headers
+  function _updateSortHeaders(tableId, activeKey, activeDir) {
+    var table = document.getElementById(tableId);
+    if (!table) return;
+    var ths = table.querySelectorAll('th.sortable');
+    ths.forEach(function (th) {
+      th.classList.remove('sort-asc', 'sort-desc');
+      if (th.getAttribute('data-key') === activeKey) {
+        th.classList.add(activeDir === 'desc' ? 'sort-desc' : 'sort-asc');
+      }
+    });
   }
 
   // ── ACTUALIZAR ESTADO ──
@@ -2028,11 +2085,43 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     });
 
     document.getElementById('dashRefresh').addEventListener('click', loadData);
-    document.getElementById('dashSearch').addEventListener('input', renderTable);
-    document.getElementById('dashEstado').addEventListener('change', renderTable);
-    document.getElementById('dashTipo').addEventListener('change', renderTable);
-    document.getElementById('dashDesde').addEventListener('change', renderTable);
-    document.getElementById('dashHasta').addEventListener('change', renderTable);
+    document.getElementById('dashSearch').addEventListener('input', function () { renderTable(); });
+    document.getElementById('dashEstado').addEventListener('change', function () { renderTable(); });
+    document.getElementById('dashTipo').addEventListener('change', function () { renderTable(); });
+    document.getElementById('dashDesde').addEventListener('change', function () { renderTable(); });
+    document.getElementById('dashHasta').addEventListener('change', function () { renderTable(); });
+
+    // Sort headers for cotizaciones
+    document.querySelectorAll('#dashTable th.sortable').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var key = this.getAttribute('data-key');
+        if (_cotSortKey === key) {
+          _cotSortDir = _cotSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          _cotSortKey = key;
+          _cotSortDir = 'asc';
+        }
+        renderTable(true);
+      });
+    });
+
+    // Export CSV cotizaciones
+    document.getElementById('cotExport').addEventListener('click', function () {
+      if (!window.BNKExport) return;
+      var data = getFilteredData();
+      if (_cotSortKey && window.BNKSort) data = BNKSort.apply(data, _cotSortKey, _cotSortDir);
+      var headers = ['Folio', 'Fecha', 'Cliente', 'Evento', 'Tipo', 'Detalle', 'Total', 'Estado'];
+      var rows = data.map(function (d) {
+        return [d.folio, d.fecha, d.cliente, d.evento || '', d.fuente || 'MNT', d.espacios || '', d.total || 0, d.estado || ''];
+      });
+      var hoy = new Date().toISOString().slice(0, 10);
+      BNKExport.csv('cotizaciones_' + hoy + '.csv', headers, rows);
+    });
+
+    // Clear filters cotizaciones
+    document.getElementById('cotClear').addEventListener('click', function () {
+      if (window.BNKHelpers) BNKHelpers.clearFilters('cotFilters', renderTable);
+    });
 
     // Modal BNK
     document.getElementById('bnkClose').addEventListener('click', cerrarModalBNK);

@@ -12,6 +12,11 @@
   var _clientes = [];
   var _cargado = false;
 
+  // Sort & pagination state
+  var _sortKey = 'id';
+  var _sortDir = 'asc';
+  var _page = 1;
+
   // ── Mapeo campo backend → id de elemento HTML ──
   var CAMPO_ID = {
     empresa:             'cliEmpresa',
@@ -129,9 +134,12 @@
   }
 
   // ── renderTable ──
-  function renderTable() {
+  function renderTable(keepPage) {
     var search = (_getEl('cliSearch') ? _getEl('cliSearch').value.trim().toLowerCase() : '');
     var estadoFiltro = (_getEl('cliEstado') ? _getEl('cliEstado').value : '');
+
+    // Toggle clear button
+    if (window.BNKHelpers) BNKHelpers.toggleClearButton('cliClear', 'cliFilters');
 
     var filtered = _clientes.filter(function (c) {
       if (search) {
@@ -141,6 +149,9 @@
       if (estadoFiltro && String(c.cuentaActiva) !== estadoFiltro) return false;
       return true;
     });
+
+    // Enrich with _pct for sorting
+    filtered.forEach(function (c) { c._pct = calcCompletitud(c); });
 
     var cliTable   = _getEl('cliTable');
     var cliEmpty   = _getEl('cliEmpty');
@@ -152,15 +163,43 @@
     if (!filtered.length) {
       if (cliTable)  cliTable.style.display  = 'none';
       if (cliEmpty)  cliEmpty.style.display  = 'block';
+      if (window.BNKHelpers) BNKHelpers.updateResultCount('cliCount', '0', 0, _clientes.length, 'clientes');
+      var pagEl = _getEl('cliPagination');
+      if (pagEl) pagEl.style.display = 'none';
       return;
     }
 
     if (cliTable)  cliTable.style.display  = 'table';
     if (cliEmpty)  cliEmpty.style.display  = 'none';
 
+    // Sort
+    if (window.BNKSort && _sortKey) {
+      filtered = BNKSort.apply(filtered, _sortKey, _sortDir);
+    }
+
+    // Reset page on filter change
+    if (!keepPage) _page = 1;
+
+    // Paginate
+    var pageResult = { rows: filtered, currentPage: 1, totalPages: 1, totalFiltered: filtered.length };
+    if (window.BNKPagination) {
+      pageResult = BNKPagination.paginate(filtered, _page);
+      _page = pageResult.currentPage;
+      BNKPagination.render('cliPagination', pageResult, function (p) { _page = p; renderTable(true); });
+    }
+
+    // Result count
+    var showRange = pageResult.rows.length > 0
+      ? ((pageResult.currentPage - 1) * 50 + 1) + '\u2013' + ((pageResult.currentPage - 1) * 50 + pageResult.rows.length)
+      : '0';
+    if (window.BNKHelpers) BNKHelpers.updateResultCount('cliCount', showRange, filtered.length, _clientes.length, 'clientes');
+
+    // Update sort indicators
+    _updateSortHeaders('cliTable', _sortKey, _sortDir);
+
     var html = '';
-    filtered.forEach(function (c) {
-      var pct = calcCompletitud(c);
+    pageResult.rows.forEach(function (c) {
+      var pct = c._pct;
       var pctClass = pct >= 70 ? 'status-pct--high' : pct >= 40 ? 'status-pct--mid' : 'status-pct--low';
       var cuentaActiva = String(c.cuentaActiva) === 'Sí';
       var cuentaClass  = cuentaActiva ? 'cuenta-badge--on' : 'cuenta-badge--off';
@@ -169,6 +208,7 @@
       var idSafe      = _escapeHTML(c.id || '');
       var empresaSafe = _escapeHTML(c.empresa || '\u2014');
       var marcasSafe  = _escapeHTML(c.marcas  || '\u2014');
+      var fechaEdSafe = _escapeHTML(c.fechaEdicion || '\u2014');
 
       html += '<tr>'
         + '<td><span class="dash-table col-folio">' + idSafe + '</span></td>'
@@ -176,6 +216,7 @@
         + '<td>' + empresaSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + marcasSafe + '</td>'
         + '<td><span class="cuenta-badge ' + cuentaClass + '" title="' + cuentaLabel + '"></span></td>'
+        + '<td style="color:var(--tx);font-size:12px">' + fechaEdSafe + '</td>'
         + '<td>'
         +   '<button class="tbl-action tbl-action--edit" data-id="' + idSafe + '" title="Editar">&#9998;</button>'
         +   '<button class="tbl-action tbl-action--view" data-id="' + idSafe + '" title="Ver">&#128065;</button>'
@@ -185,6 +226,19 @@
     });
 
     if (cliBody) cliBody.innerHTML = html;
+  }
+
+  // Helper para actualizar clases de sort en headers
+  function _updateSortHeaders(tableId, activeKey, activeDir) {
+    var table = _getEl(tableId);
+    if (!table) return;
+    var ths = table.querySelectorAll('th.sortable');
+    ths.forEach(function (th) {
+      th.classList.remove('sort-asc', 'sort-desc');
+      if (th.getAttribute('data-key') === activeKey) {
+        th.classList.add(activeDir === 'desc' ? 'sort-desc' : 'sort-asc');
+      }
+    });
   }
 
   // ── Actualizar círculo de completitud en el modal ──
@@ -481,8 +535,51 @@
   function _setupFiltros() {
     var search = _getEl('cliSearch');
     var estado = _getEl('cliEstado');
-    if (search) search.addEventListener('input', renderTable);
-    if (estado) estado.addEventListener('change', renderTable);
+    if (search) search.addEventListener('input', function () { renderTable(); });
+    if (estado) estado.addEventListener('change', function () { renderTable(); });
+
+    // Sort headers
+    var table = _getEl('cliTable');
+    if (table) {
+      table.querySelectorAll('th.sortable').forEach(function (th) {
+        th.addEventListener('click', function () {
+          var key = this.getAttribute('data-key');
+          if (_sortKey === key) {
+            _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            _sortKey = key;
+            _sortDir = 'asc';
+          }
+          renderTable(true);
+        });
+      });
+    }
+
+    // Export CSV
+    var btnExport = _getEl('cliExport');
+    if (btnExport) {
+      btnExport.addEventListener('click', function () {
+        if (!window.BNKExport) return;
+        var data = _clientes.slice();
+        if (window.BNKSort && _sortKey) data = BNKSort.apply(data, _sortKey, _sortDir);
+        var headers = ['No. Cliente', 'Empresa', 'Marcas', 'Cuenta Activa', 'Tipo Persona', 'Contacto', 'Correo', 'Teléfono', 'RFC', 'Fecha Alta', 'Últ. Edición'];
+        var rows = data.map(function (c) {
+          return [c.id, c.empresa || '', c.marcas || '', c.cuentaActiva || '', c.tipoPersona || '',
+            c.personaContacto || '', c.correoContacto || '', c.telefonoContacto || '',
+            c.rfc || '', c.fechaAlta || '', c.fechaEdicion || ''];
+        });
+        var hoy = new Date().toISOString().slice(0, 10);
+        BNKExport.csv('clientes_' + hoy + '.csv', headers, rows);
+      });
+    }
+
+    // Clear filters
+    var btnClear = _getEl('cliClear');
+    if (btnClear) {
+      btnClear.addEventListener('click', function () {
+        if (window.BNKHelpers) BNKHelpers.clearFilters('cliFilters', function () { renderTable(); });
+      });
+    }
   }
 
   // ── Event delegation en la tabla ──

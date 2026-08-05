@@ -193,3 +193,140 @@
   background: #ff4444;
   color: #fff;
 }
+
+/* ══════════════════════════════════════════════════════════
+   BLOQUE 2: Tablas profesionales
+   ══════════════════════════════════════════════════════════ */
+
+/* ── SORTABLE HEADERS ── */
+.dash-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 22px;
+  transition: color 0.2s;
+}
+
+.dash-table th.sortable:hover {
+  color: var(--wh);
+}
+
+.dash-table th.sortable::after {
+  content: '\25B2\25BC';
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 7px;
+  opacity: 0.3;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.dash-table th.sortable.sort-asc::after {
+  content: '\25B2';
+  opacity: 1;
+  color: var(--g);
+  letter-spacing: 0;
+}
+
+.dash-table th.sortable.sort-desc::after {
+  content: '\25BC';
+  opacity: 1;
+  color: var(--g);
+  letter-spacing: 0;
+}
+
+.dash-table th.sortable.sort-asc,
+.dash-table th.sortable.sort-desc {
+  color: var(--g);
+}
+
+/* ── PAGINATION CONTROLS ── */
+.pag-controls {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 30px 20px;
+}
+
+.pag-btn {
+  padding: 6px 16px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  color: var(--g);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pag-btn:hover:not([disabled]) {
+  background: rgba(0, 255, 65, 0.08);
+  border-color: rgba(0, 255, 65, 0.3);
+}
+
+.pag-btn[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.pag-info {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--tx);
+  letter-spacing: 1px;
+}
+
+/* ── RESULT COUNT ── */
+.result-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--tx);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* ── EXPORT BUTTON ── */
+.dash-btn--export {
+  border-color: var(--bd);
+  color: var(--tx);
+  font-size: 11px;
+  padding: 8px 14px;
+  letter-spacing: 1px;
+}
+
+.dash-btn--export:hover {
+  color: var(--g);
+  border-color: rgba(0, 255, 65, 0.3);
+  background: rgba(0, 255, 65, 0.06);
+}
+
+/* ── CLEAR FILTERS BUTTON ── */
+.dash-btn--clear {
+  display: none;
+  border-color: rgba(255, 68, 85, 0.3);
+  color: var(--red);
+  font-size: 11px;
+  padding: 8px 14px;
+  letter-spacing: 1px;
+}
+
+.dash-btn--clear:hover {
+  background: rgba(255, 68, 85, 0.08);
+  border-color: var(--red);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .pag-controls { padding: 12px 16px 16px; }
+  .result-count { margin-left: 0; flex-basis: 100%; text-align: right; }
+}
+
+@media (max-width: 600px) {
+  .pag-btn { padding: 6px 10px; font-size: 10px; }
+  .pag-info { font-size: 10px; }
+}

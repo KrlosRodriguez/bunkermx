@@ -15,6 +15,11 @@
   // Proveedor activo en el modal (para carga de servicios en Tab 5)
   var _proveedorActivoId = null;
 
+  // Sort & pagination state
+  var _sortKey = 'id';
+  var _sortDir = 'asc';
+  var _page = 1;
+
   // ── Mapeo campo backend → id de elemento HTML ──
   var CAMPO_ID = {
     razonSocial:          'prvRazonSocial',
@@ -144,10 +149,13 @@
   }
 
   // ── renderTable ──
-  function renderTable() {
+  function renderTable(keepPage) {
     var search    = (_getEl('prvSearch')  ? _getEl('prvSearch').value.trim().toLowerCase()  : '');
     var tipoFiltro  = (_getEl('prvTipo')  ? _getEl('prvTipo').value  : '');
     var estadoFiltro = (_getEl('prvEstado') ? _getEl('prvEstado').value : '');
+
+    // Toggle clear button
+    if (window.BNKHelpers) BNKHelpers.toggleClearButton('prvClear', 'prvFilters');
 
     var filtered = _proveedores.filter(function (p) {
       if (search) {
@@ -159,6 +167,9 @@
       return true;
     });
 
+    // Enrich with _pct for sorting
+    filtered.forEach(function (p) { p._pct = calcCompletitud(p); });
+
     var prvTable   = _getEl('prvTable');
     var prvEmpty   = _getEl('prvEmpty');
     var prvLoading = _getEl('prvLoading');
@@ -169,15 +180,43 @@
     if (!filtered.length) {
       if (prvTable)  prvTable.style.display  = 'none';
       if (prvEmpty)  prvEmpty.style.display  = 'block';
+      if (window.BNKHelpers) BNKHelpers.updateResultCount('prvCount', '0', 0, _proveedores.length, 'proveedores');
+      var pagEl = _getEl('prvPagination');
+      if (pagEl) pagEl.style.display = 'none';
       return;
     }
 
     if (prvTable)  prvTable.style.display  = 'table';
     if (prvEmpty)  prvEmpty.style.display  = 'none';
 
+    // Sort
+    if (window.BNKSort && _sortKey) {
+      filtered = BNKSort.apply(filtered, _sortKey, _sortDir);
+    }
+
+    // Reset page on filter change
+    if (!keepPage) _page = 1;
+
+    // Paginate
+    var pageResult = { rows: filtered, currentPage: 1, totalPages: 1, totalFiltered: filtered.length };
+    if (window.BNKPagination) {
+      pageResult = BNKPagination.paginate(filtered, _page);
+      _page = pageResult.currentPage;
+      BNKPagination.render('prvPagination', pageResult, function (p) { _page = p; renderTable(true); });
+    }
+
+    // Result count
+    var showRange = pageResult.rows.length > 0
+      ? ((pageResult.currentPage - 1) * 50 + 1) + '\u2013' + ((pageResult.currentPage - 1) * 50 + pageResult.rows.length)
+      : '0';
+    if (window.BNKHelpers) BNKHelpers.updateResultCount('prvCount', showRange, filtered.length, _proveedores.length, 'proveedores');
+
+    // Update sort indicators
+    _updateSortHeaders('prvTable', _sortKey, _sortDir);
+
     var html = '';
-    filtered.forEach(function (p) {
-      var pct = calcCompletitud(p);
+    pageResult.rows.forEach(function (p) {
+      var pct = p._pct;
       var pctClass = pct >= 70 ? 'status-pct--high' : pct >= 40 ? 'status-pct--mid' : 'status-pct--low';
       var cuentaActiva = String(p.cuentaActiva) === 'Sí';
       var cuentaClass  = cuentaActiva ? 'cuenta-badge--on' : 'cuenta-badge--off';
@@ -189,6 +228,7 @@
       var razonSocialSafe   = _escapeHTML(p.razonSocial    || '\u2014');
       var nombreComSafe     = _escapeHTML(p.nombreComercial || '\u2014');
       var fechaAltaSafe     = _escapeHTML(p.fechaAlta      || '\u2014');
+      var fechaEdSafe       = _escapeHTML(p.fechaEdicion    || '\u2014');
 
       html += '<tr>'
         + '<td><span class="dash-table col-folio">' + idSafe + '</span></td>'
@@ -198,6 +238,7 @@
         + '<td>' + (tipo ? '<span class="tipo-badge ' + tipoClass + '">' + _escapeHTML(tipo) + '</span>' : '\u2014') + '</td>'
         + '<td><span class="cuenta-badge ' + cuentaClass + '" title="' + cuentaLabel + '"></span></td>'
         + '<td style="color:var(--tx);font-size:12px">' + fechaAltaSafe + '</td>'
+        + '<td style="color:var(--tx);font-size:12px">' + fechaEdSafe + '</td>'
         + '<td>'
         +   '<button class="tbl-action tbl-action--edit" data-id="' + idSafe + '" title="Editar">&#9998;</button>'
         +   '<button class="tbl-action tbl-action--view" data-id="' + idSafe + '" title="Ver">&#128065;</button>'
@@ -207,6 +248,19 @@
     });
 
     if (prvBody) prvBody.innerHTML = html;
+  }
+
+  // Helper para actualizar clases de sort en headers
+  function _updateSortHeaders(tableId, activeKey, activeDir) {
+    var table = _getEl(tableId);
+    if (!table) return;
+    var ths = table.querySelectorAll('th.sortable');
+    ths.forEach(function (th) {
+      th.classList.remove('sort-asc', 'sort-desc');
+      if (th.getAttribute('data-key') === activeKey) {
+        th.classList.add(activeDir === 'desc' ? 'sort-desc' : 'sort-asc');
+      }
+    });
   }
 
   // ── Actualizar círculo de completitud en el modal ──
@@ -771,9 +825,53 @@
     var search  = _getEl('prvSearch');
     var tipo    = _getEl('prvTipo');
     var estado  = _getEl('prvEstado');
-    if (search) search.addEventListener('input', renderTable);
-    if (tipo)   tipo.addEventListener('change', renderTable);
-    if (estado) estado.addEventListener('change', renderTable);
+    if (search) search.addEventListener('input', function () { renderTable(); });
+    if (tipo)   tipo.addEventListener('change', function () { renderTable(); });
+    if (estado) estado.addEventListener('change', function () { renderTable(); });
+
+    // Sort headers
+    var table = _getEl('prvTable');
+    if (table) {
+      table.querySelectorAll('th.sortable').forEach(function (th) {
+        th.addEventListener('click', function () {
+          var key = this.getAttribute('data-key');
+          if (_sortKey === key) {
+            _sortDir = _sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            _sortKey = key;
+            _sortDir = 'asc';
+          }
+          renderTable(true);
+        });
+      });
+    }
+
+    // Export CSV
+    var btnExport = _getEl('prvExport');
+    if (btnExport) {
+      btnExport.addEventListener('click', function () {
+        if (!window.BNKExport) return;
+        var data = _proveedores.slice();
+        if (window.BNKSort && _sortKey) data = BNKSort.apply(data, _sortKey, _sortDir);
+        var headers = ['No. Proveedor', 'Razón Social', 'Nombre Comercial', 'Tipo', 'Cuenta Activa',
+          'Contacto', 'Correo', 'Teléfono', 'RFC', 'Fecha Alta', 'Últ. Edición'];
+        var rows = data.map(function (p) {
+          return [p.id, p.razonSocial || '', p.nombreComercial || '', p.tipoProveedor || '',
+            p.cuentaActiva || '', p.nombreContacto || '', p.correoContacto || '',
+            p.telefonoContacto || '', p.rfc || '', p.fechaAlta || '', p.fechaEdicion || ''];
+        });
+        var hoy = new Date().toISOString().slice(0, 10);
+        BNKExport.csv('proveedores_' + hoy + '.csv', headers, rows);
+      });
+    }
+
+    // Clear filters
+    var btnClear = _getEl('prvClear');
+    if (btnClear) {
+      btnClear.addEventListener('click', function () {
+        if (window.BNKHelpers) BNKHelpers.clearFilters('prvFilters', function () { renderTable(); });
+      });
+    }
   }
 
   // ── Event delegation en la tabla principal ──
