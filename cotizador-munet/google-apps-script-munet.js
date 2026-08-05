@@ -35,6 +35,33 @@ var SENDER_NAME = 'MUNET Cotizaciones · BUNKER'; // nombre visible del remitent
 var SHEET_CLIENTES = 'Clientes';
 var SHEET_BNK = 'CotizacionesBNK';
 var SHEET_CATALOGO = 'CatalogoPrecio';
+var SHEET_PROVEEDORES = 'Proveedores';
+var SHEET_SERVICIOS_PROVEEDOR = 'ServiciosProveedor';
+
+var CLIENTES_HEADERS = [
+  'ID','Empresa','Marcas','Cuenta Activa','Tipo Persona','Condiciones Pago','Observaciones',
+  'Persona Contacto','Puesto Contacto','Correo Contacto','Teléfono Contacto',
+  'Razón Social','RFC','CURP','Régimen Fiscal','Uso CFDI','Forma Pago','Método Pago',
+  'Calle','No. Ext','No. Int','Colonia','CP','Alcaldía/Municipio','Estado','País',
+  'Banco MXN','Sucursal','Titular Cuenta','Cuenta Corta','CLABE','Tipo Cuenta',
+  'Banco Extranjero','Divisa','Titular Extranjero','Cuenta/IBAN','SWIFT/BIC','ABA/Routing',
+  'Banco Intermediario','SWIFT Intermediario','Fecha Alta','Fecha Última Edición'
+];
+
+var PROVEEDORES_HEADERS = [
+  'ID','Razón Social','Nombre Comercial','Tipo Proveedor','Cuenta Activa','Tipo Persona',
+  'Actividad Principal','Fecha Constitución','Observaciones',
+  'Nombre Contacto','Puesto Contacto','Correo Contacto','Teléfono Contacto',
+  'RFC','CURP','Régimen Fiscal','Uso CFDI','Forma Pago','Método Pago',
+  'Días Crédito','Opinión 32-D','Fecha Constancia Fiscal',
+  'Calle','Número','Colonia','CP','Alcaldía/Municipio','Entidad','País',
+  'Banco MXN','Sucursal/Plaza','Titular Cuenta','Cuenta Corta','CLABE','Tipo Cuenta',
+  'Banco Extranjero','Divisa','Titular Extranjero','Cuenta/IBAN','SWIFT/BIC','ABA/Routing',
+  'Dirección Banco','Banco Intermediario','SWIFT Intermediario','Gastos Bancarios',
+  'Fecha Alta','Fecha Última Edición'
+];
+
+var SERVICIOS_HEADERS = ['ID','Proveedor ID','Categoría','Servicio','Unidad','Costo Unitario','Activo'];
 
 // ── Utilidad: obtener o crear hoja con encabezados ──
 function getOrCreateSheet(ss, name, headers, colCount) {
@@ -57,6 +84,18 @@ function doPost(e) {
     if (data.tipoCotizacion === 'BNK') {
       return crearCotizacionBNK(data);
     }
+
+    // ── Clientes POST ──
+    if (data.tipoOperacion === 'createCliente') return createCliente(data);
+    if (data.tipoOperacion === 'updateCliente') return updateCliente(data);
+
+    // ── Proveedores POST ──
+    if (data.tipoOperacion === 'createProveedor') return createProveedor(data);
+    if (data.tipoOperacion === 'updateProveedor') return updateProveedor(data);
+
+    // ── Servicios Proveedor POST ──
+    if (data.tipoOperacion === 'createServicio') return createServicio(data);
+    if (data.tipoOperacion === 'updateServicio') return updateServicio(data);
 
     var ss = SpreadsheetApp.openById(SHEET_ID);
 
@@ -325,45 +364,45 @@ function crearCotizacionBNK(data) {
 // ── Clientes ──
 function listClientes() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
-  var headers = ['ID', 'Empresa', 'Contacto', 'Teléfono', 'Correo', 'Nota', 'Fecha Alta'];
-  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, headers, 7);
-
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, CLIENTES_HEADERS, CLIENTES_HEADERS.length);
   var lastRow = sheet.getLastRow();
   if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
 
-  var values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
-  var clientes = values.map(function (row) {
-    var fechaVal = row[6];
-    if (fechaVal instanceof Date) {
-      fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy');
-    }
-    return {
-      id: row[0],
-      empresa: row[1],
-      contacto: row[2],
-      telefono: row[3],
-      correo: row[4],
-      nota: row[5],
-      fechaAlta: fechaVal
-    };
+  var values = sheet.getRange(2, 1, lastRow - 1, CLIENTES_HEADERS.length).getValues();
+  var keys = ['id','empresa','marcas','cuentaActiva','tipoPersona','condicionesPago','observaciones',
+    'personaContacto','puestoContacto','correoContacto','telefonoContacto',
+    'razonSocial','rfc','curp','regimenFiscal','usoCfdi','formaPago','metodoPago',
+    'calle','noExt','noInt','colonia','cp','alcaldia','estado','pais',
+    'bancoMxn','sucursal','titularCuenta','cuentaCorta','clabe','tipoCuenta',
+    'bancoExtranjero','divisa','titularExtranjero','cuentaIban','swiftBic','abaRouting',
+    'bancoIntermediario','swiftIntermediario','fechaAlta','fechaEdicion'];
+
+  var clientes = values.map(function(row) {
+    var obj = {};
+    keys.forEach(function(key, i) {
+      var val = row[i];
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, 'America/Mexico_City', 'dd/MM/yyyy');
+      }
+      obj[key] = val;
+    });
+    return obj;
   });
   return jsonResponse({ status: 'ok', data: clientes });
 }
 
-function createCliente(params) {
-  if (!params.empresa) {
+function createCliente(data) {
+  if (!data.empresa) {
     return jsonResponse({ status: 'error', message: 'El campo empresa es obligatorio' });
   }
   var ss = SpreadsheetApp.openById(SHEET_ID);
-  var headers = ['ID', 'Empresa', 'Contacto', 'Teléfono', 'Correo', 'Nota', 'Fecha Alta'];
-  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, headers, 7);
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, CLIENTES_HEADERS, CLIENTES_HEADERS.length);
 
-  // Generar ID auto-incremental CLI-0001
   var lastRow = sheet.getLastRow();
   var nextNum = 1;
   if (lastRow >= 2) {
     var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-    ids.forEach(function (r) {
+    ids.forEach(function(r) {
       var match = String(r[0]).match(/CLI-(\d+)/);
       if (match) {
         var n = parseInt(match[1], 10);
@@ -374,17 +413,79 @@ function createCliente(params) {
   var newId = 'CLI-' + ('0000' + nextNum).slice(-4);
   var fechaAlta = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy');
 
-  sheet.appendRow([
-    newId,
-    params.empresa || '',
-    params.contacto || '',
-    params.telefono || '',
-    params.correo || '',
-    params.nota || '',
-    fechaAlta
-  ]);
+  var row = [
+    newId, data.empresa || '', data.marcas || '', data.cuentaActiva || 'Sí', data.tipoPersona || '',
+    data.condicionesPago || '', data.observaciones || '',
+    data.personaContacto || '', data.puestoContacto || '', data.correoContacto || '', data.telefonoContacto || '',
+    data.razonSocial || '', data.rfc || '', data.curp || '', data.regimenFiscal || '',
+    data.usoCfdi || '', data.formaPago || '', data.metodoPago || '',
+    data.calle || '', data.noExt || '', data.noInt || '', data.colonia || '',
+    data.cp || '', data.alcaldia || '', data.estado || '', data.pais || '',
+    data.bancoMxn || '', data.sucursal || '', data.titularCuenta || '',
+    data.cuentaCorta || '', data.clabe || '', data.tipoCuenta || '',
+    data.bancoExtranjero || '', data.divisa || '', data.titularExtranjero || '',
+    data.cuentaIban || '', data.swiftBic || '', data.abaRouting || '',
+    data.bancoIntermediario || '', data.swiftIntermediario || '',
+    fechaAlta, fechaAlta
+  ];
 
+  sheet.appendRow(row);
   return jsonResponse({ status: 'ok', id: newId });
+}
+
+function updateCliente(data) {
+  if (!data.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, CLIENTES_HEADERS, CLIENTES_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay clientes' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var rowIndex = -1;
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(data.id)) { rowIndex = i + 2; break; }
+  }
+  if (rowIndex === -1) return jsonResponse({ status: 'error', message: 'Cliente no encontrado' });
+
+  var fechaEdicion = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy');
+  var keys = ['id','empresa','marcas','cuentaActiva','tipoPersona','condicionesPago','observaciones',
+    'personaContacto','puestoContacto','correoContacto','telefonoContacto',
+    'razonSocial','rfc','curp','regimenFiscal','usoCfdi','formaPago','metodoPago',
+    'calle','noExt','noInt','colonia','cp','alcaldia','estado','pais',
+    'bancoMxn','sucursal','titularCuenta','cuentaCorta','clabe','tipoCuenta',
+    'bancoExtranjero','divisa','titularExtranjero','cuentaIban','swiftBic','abaRouting',
+    'bancoIntermediario','swiftIntermediario','fechaAlta','fechaEdicion'];
+
+  var currentRow = sheet.getRange(rowIndex, 1, 1, CLIENTES_HEADERS.length).getValues()[0];
+  var updatedRow = keys.map(function(key, i) {
+    if (key === 'id') return currentRow[0];
+    if (key === 'fechaAlta') return currentRow[i];
+    if (key === 'fechaEdicion') return fechaEdicion;
+    return (data[key] !== undefined && data[key] !== null) ? data[key] : currentRow[i];
+  });
+
+  sheet.getRange(rowIndex, 1, 1, CLIENTES_HEADERS.length).setValues([updatedRow]);
+  return jsonResponse({ status: 'ok' });
+}
+
+function deleteCliente(params) {
+  if (!params.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, CLIENTES_HEADERS, CLIENTES_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay clientes' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(params.id)) {
+      sheet.getRange(i + 2, 4).setValue('No'); // Columna D = Cuenta Activa
+      sheet.getRange(i + 2, CLIENTES_HEADERS.length).setValue(
+        Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy')
+      );
+      return jsonResponse({ status: 'ok' });
+    }
+  }
+  return jsonResponse({ status: 'error', message: 'Cliente no encontrado' });
 }
 
 // ── Catálogo de precios ──
@@ -671,14 +772,25 @@ function doGet(e) {
     }
 
     // ── Endpoints BNK ──
-    if (action === 'listClientes') return listClientes();
-    if (action === 'createCliente') return createCliente(params);
     if (action === 'listCatalogo') return listCatalogo();
     if (action === 'saveCatalogo') return saveCatalogo(params);
     if (action === 'listBNK') return listBNK();
     if (action === 'listAll') return listAll();
     if (action === 'updateStatusBNK') return updateStatusBNK(params.folio, params.estado);
     if (action === 'seedCatalogo') return seedCatalogo();
+
+    // ── Clientes CRUD ──
+    if (action === 'listClientes') return listClientes();
+    if (action === 'createCliente') return createCliente(params);
+    if (action === 'deleteCliente') return deleteCliente(params);
+
+    // ── Proveedores CRUD ──
+    if (action === 'listProveedores') return listProveedores();
+    if (action === 'deleteProveedor') return deleteProveedor(params);
+
+    // ── Servicios Proveedor ──
+    if (action === 'listServicios') return listServicios(params);
+    if (action === 'deleteServicio') return deleteServicio(params);
 
     // Listar cotizaciones
     var ss = SpreadsheetApp.openById(SHEET_ID);
