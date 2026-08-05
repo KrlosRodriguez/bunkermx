@@ -488,6 +488,236 @@ function deleteCliente(params) {
   return jsonResponse({ status: 'error', message: 'Cliente no encontrado' });
 }
 
+// ── Proveedores ──
+function listProveedores() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PROVEEDORES, PROVEEDORES_HEADERS, PROVEEDORES_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
+
+  var values = sheet.getRange(2, 1, lastRow - 1, PROVEEDORES_HEADERS.length).getValues();
+  var keys = ['id','razonSocial','nombreComercial','tipoProveedor','cuentaActiva','tipoPersona',
+    'actividadPrincipal','fechaConstitucion','observaciones',
+    'nombreContacto','puestoContacto','correoContacto','telefonoContacto',
+    'rfc','curp','regimenFiscal','usoCfdi','formaPago','metodoPago',
+    'diasCredito','opinion32d','fechaConstanciaFiscal',
+    'calle','numero','colonia','cp','alcaldia','entidad','pais',
+    'bancoMxn','sucursalPlaza','titularCuenta','cuentaCorta','clabe','tipoCuenta',
+    'bancoExtranjero','divisa','titularExtranjero','cuentaIban','swiftBic','abaRouting',
+    'direccionBanco','bancoIntermediario','swiftIntermediario','gastosBancarios',
+    'fechaAlta','fechaEdicion'];
+
+  var proveedores = values.map(function(row) {
+    var obj = {};
+    keys.forEach(function(key, i) {
+      var val = row[i];
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, 'America/Mexico_City', 'dd/MM/yyyy');
+      }
+      obj[key] = val;
+    });
+    return obj;
+  });
+  return jsonResponse({ status: 'ok', data: proveedores });
+}
+
+function createProveedor(data) {
+  if (!data.razonSocial && !data.nombreComercial) {
+    return jsonResponse({ status: 'error', message: 'Razón social o nombre comercial requerido' });
+  }
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PROVEEDORES, PROVEEDORES_HEADERS, PROVEEDORES_HEADERS.length);
+
+  var lastRow = sheet.getLastRow();
+  var nextNum = 1;
+  if (lastRow >= 2) {
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    ids.forEach(function(r) {
+      var match = String(r[0]).match(/PRV-(\d+)/);
+      if (match) {
+        var n = parseInt(match[1], 10);
+        if (n >= nextNum) nextNum = n + 1;
+      }
+    });
+  }
+  var newId = 'PRV-' + ('0000' + nextNum).slice(-4);
+  var fechaAlta = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy');
+
+  var row = [
+    newId, data.razonSocial || '', data.nombreComercial || '', data.tipoProveedor || 'Pool',
+    data.cuentaActiva || 'Sí', data.tipoPersona || '', data.actividadPrincipal || '',
+    data.fechaConstitucion || '', data.observaciones || '',
+    data.nombreContacto || '', data.puestoContacto || '', data.correoContacto || '', data.telefonoContacto || '',
+    data.rfc || '', data.curp || '', data.regimenFiscal || '', data.usoCfdi || '',
+    data.formaPago || '', data.metodoPago || '', data.diasCredito || '', data.opinion32d || '',
+    data.fechaConstanciaFiscal || '',
+    data.calle || '', data.numero || '', data.colonia || '', data.cp || '',
+    data.alcaldia || '', data.entidad || '', data.pais || '',
+    data.bancoMxn || '', data.sucursalPlaza || '', data.titularCuenta || '',
+    data.cuentaCorta || '', data.clabe || '', data.tipoCuenta || '',
+    data.bancoExtranjero || '', data.divisa || '', data.titularExtranjero || '',
+    data.cuentaIban || '', data.swiftBic || '', data.abaRouting || '',
+    data.direccionBanco || '', data.bancoIntermediario || '', data.swiftIntermediario || '',
+    data.gastosBancarios || '',
+    fechaAlta, fechaAlta
+  ];
+
+  sheet.appendRow(row);
+  return jsonResponse({ status: 'ok', id: newId });
+}
+
+function updateProveedor(data) {
+  if (!data.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PROVEEDORES, PROVEEDORES_HEADERS, PROVEEDORES_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay proveedores' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var rowIndex = -1;
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(data.id)) { rowIndex = i + 2; break; }
+  }
+  if (rowIndex === -1) return jsonResponse({ status: 'error', message: 'Proveedor no encontrado' });
+
+  var fechaEdicion = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy');
+  var keys = ['id','razonSocial','nombreComercial','tipoProveedor','cuentaActiva','tipoPersona',
+    'actividadPrincipal','fechaConstitucion','observaciones',
+    'nombreContacto','puestoContacto','correoContacto','telefonoContacto',
+    'rfc','curp','regimenFiscal','usoCfdi','formaPago','metodoPago',
+    'diasCredito','opinion32d','fechaConstanciaFiscal',
+    'calle','numero','colonia','cp','alcaldia','entidad','pais',
+    'bancoMxn','sucursalPlaza','titularCuenta','cuentaCorta','clabe','tipoCuenta',
+    'bancoExtranjero','divisa','titularExtranjero','cuentaIban','swiftBic','abaRouting',
+    'direccionBanco','bancoIntermediario','swiftIntermediario','gastosBancarios',
+    'fechaAlta','fechaEdicion'];
+
+  var currentRow = sheet.getRange(rowIndex, 1, 1, PROVEEDORES_HEADERS.length).getValues()[0];
+  var updatedRow = keys.map(function(key, i) {
+    if (key === 'id') return currentRow[0];
+    if (key === 'fechaAlta') return currentRow[i];
+    if (key === 'fechaEdicion') return fechaEdicion;
+    return (data[key] !== undefined && data[key] !== null) ? data[key] : currentRow[i];
+  });
+
+  sheet.getRange(rowIndex, 1, 1, PROVEEDORES_HEADERS.length).setValues([updatedRow]);
+  return jsonResponse({ status: 'ok' });
+}
+
+function deleteProveedor(params) {
+  if (!params.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_PROVEEDORES, PROVEEDORES_HEADERS, PROVEEDORES_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay proveedores' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(params.id)) {
+      sheet.getRange(i + 2, 5).setValue('No'); // Columna E = Cuenta Activa
+      sheet.getRange(i + 2, PROVEEDORES_HEADERS.length).setValue(
+        Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy')
+      );
+      return jsonResponse({ status: 'ok' });
+    }
+  }
+  return jsonResponse({ status: 'error', message: 'Proveedor no encontrado' });
+}
+
+// ── Servicios de Proveedor ──
+function listServicios(params) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_SERVICIOS_PROVEEDOR, SERVICIOS_HEADERS, SERVICIOS_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
+
+  var values = sheet.getRange(2, 1, lastRow - 1, SERVICIOS_HEADERS.length).getValues();
+  var items = [];
+  values.forEach(function(row) {
+    if (String(row[6]).toLowerCase() !== 'no') {
+      var matchProveedor = !params.proveedorId || String(row[1]) === String(params.proveedorId);
+      if (matchProveedor) {
+        items.push({
+          id: row[0], proveedorId: row[1], categoria: row[2],
+          servicio: row[3], unidad: row[4], costoUnitario: row[5], activo: row[6]
+        });
+      }
+    }
+  });
+  return jsonResponse({ status: 'ok', data: items });
+}
+
+function createServicio(data) {
+  if (!data.proveedorId || !data.servicio) {
+    return jsonResponse({ status: 'error', message: 'proveedorId y servicio requeridos' });
+  }
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_SERVICIOS_PROVEEDOR, SERVICIOS_HEADERS, SERVICIOS_HEADERS.length);
+
+  var lastRow = sheet.getLastRow();
+  var nextNum = 1;
+  if (lastRow >= 2) {
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    ids.forEach(function(r) {
+      var match = String(r[0]).match(/SRV-(\d+)/);
+      if (match) {
+        var n = parseInt(match[1], 10);
+        if (n >= nextNum) nextNum = n + 1;
+      }
+    });
+  }
+  var newId = 'SRV-' + ('0000' + nextNum).slice(-4);
+
+  sheet.appendRow([
+    newId, data.proveedorId, data.categoria || '', data.servicio,
+    data.unidad || 'Servicio', data.costoUnitario || 0, 'Sí'
+  ]);
+  return jsonResponse({ status: 'ok', id: newId });
+}
+
+function updateServicio(data) {
+  if (!data.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_SERVICIOS_PROVEEDOR, SERVICIOS_HEADERS, SERVICIOS_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay servicios' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(data.id)) {
+      var rowIndex = i + 2;
+      var currentRow = sheet.getRange(rowIndex, 1, 1, SERVICIOS_HEADERS.length).getValues()[0];
+      sheet.getRange(rowIndex, 1, 1, SERVICIOS_HEADERS.length).setValues([[
+        currentRow[0], currentRow[1],
+        data.categoria !== undefined ? data.categoria : currentRow[2],
+        data.servicio !== undefined ? data.servicio : currentRow[3],
+        data.unidad !== undefined ? data.unidad : currentRow[4],
+        data.costoUnitario !== undefined ? data.costoUnitario : currentRow[5],
+        data.activo !== undefined ? data.activo : currentRow[6]
+      ]]);
+      return jsonResponse({ status: 'ok' });
+    }
+  }
+  return jsonResponse({ status: 'error', message: 'Servicio no encontrado' });
+}
+
+function deleteServicio(params) {
+  if (!params.id) return jsonResponse({ status: 'error', message: 'ID requerido' });
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = getOrCreateSheet(ss, SHEET_SERVICIOS_PROVEEDOR, SERVICIOS_HEADERS, SERVICIOS_HEADERS.length);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'No hay servicios' });
+
+  var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(params.id)) {
+      sheet.getRange(i + 2, 7).setValue('No'); // Columna G = Activo
+      return jsonResponse({ status: 'ok' });
+    }
+  }
+  return jsonResponse({ status: 'error', message: 'Servicio no encontrado' });
+}
+
 // ── Catálogo de precios ──
 function listCatalogo() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
