@@ -186,6 +186,30 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .bnk-total-row{display:flex;justify-content:space-between;padding:4px 0;font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--tx)}
 .bnk-total-gran{font-size:20px;font-weight:700;color:var(--ylw);border-top:1px solid var(--ylw);padding-top:8px;margin-top:4px}
 
+/* ── DASH TABS ── */
+.dash-tabs{display:flex;gap:0;padding:0 30px;border-bottom:1px solid var(--bd);background:rgba(5,9,5,.95);position:sticky;top:54px;z-index:90}
+.dash-tab{padding:12px 24px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.dash-tab:hover{color:var(--wh)}
+.dash-tab.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── DASH SECTION ── */
+.dash-section{display:block}
+
+/* ── MODAL TABS ── */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:20px}
+.modal-tab{padding:10px 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.modal-tab:hover{color:var(--wh)}
+.modal-tab.active{color:var(--g);border-bottom-color:var(--g)}
+.modal-tab-content{display:block}
+.modal-tab-content[style*="display:none"]{display:none!important}
+
+/* ── COMPLETITUD CIRCLE ── */
+.completitud-circle{position:relative;width:40px;height:40px;flex-shrink:0}
+.completitud-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.completitud-bg{fill:none;stroke:var(--bd);stroke-width:3}
+.completitud-fg{fill:none;stroke:var(--g);stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .4s}
+.completitud-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;color:var(--g)}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .dash-indicators{grid-template-columns:repeat(2,1fr)}
@@ -226,6 +250,16 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <a href="index.html" class="dash-btn">COTIZADOR</a>
   </div>
 </nav>
+
+<!-- TABS -->
+<div class="dash-tabs" id="dashTabs">
+  <button class="dash-tab active" data-tab="cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab" data-tab="clientes">CLIENTES</button>
+  <button class="dash-tab" data-tab="proveedores">PROVEEDORES</button>
+</div>
+
+<!-- SECCIÓN: COTIZACIONES -->
+<div class="dash-section active" id="secCotizaciones">
 
 <!-- INDICATORS -->
 <div class="dash-indicators">
@@ -298,6 +332,117 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
 <!-- FOOTER -->
 <footer class="dash-footer">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV</footer>
+
+</div><!-- /secCotizaciones -->
+
+<!-- SECCIÓN: CLIENTES -->
+<div class="dash-section" id="secClientes" style="display:none">
+  <div class="dash-indicators">
+    <div class="dash-card">
+      <div class="dash-card-label">TOTAL CLIENTES</div>
+      <div class="dash-card-value" id="indCliTotal">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">ACTIVOS</div>
+      <div class="dash-card-value" id="indCliActivos">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">INACTIVOS</div>
+      <div class="dash-card-value" id="indCliInactivos">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">% COMPLETITUD PROMEDIO</div>
+      <div class="dash-card-value" id="indCliCompletitud">—</div>
+    </div>
+  </div>
+  <div class="dash-filters">
+    <input type="text" class="dash-search" id="cliSearch" placeholder="Buscar por nombre, marca o ID...">
+    <select class="dash-select" id="cliEstado">
+      <option value="">TODOS</option>
+      <option value="Sí">ACTIVOS</option>
+      <option value="No">INACTIVOS</option>
+    </select>
+    <button class="dash-btn dash-btn--accent" id="btnNuevoCliente">+ NUEVO CLIENTE</button>
+  </div>
+  <div class="dash-table-wrap">
+    <div class="dash-loading" id="cliLoading" style="display:none">CARGANDO CLIENTES...</div>
+    <table class="dash-table" id="cliTable" style="display:none">
+      <thead>
+        <tr>
+          <th>NO. CLIENTE</th>
+          <th>STATUS %</th>
+          <th>EMPRESA</th>
+          <th>MARCAS</th>
+          <th>CUENTA</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody id="cliBody"></tbody>
+    </table>
+    <div class="dash-empty" id="cliEmpty" style="display:none">
+      <div class="dash-empty-icon">&#128100;</div>
+      <div class="dash-empty-text">NO HAY CLIENTES REGISTRADOS</div>
+    </div>
+  </div>
+</div><!-- /secClientes -->
+
+<!-- SECCIÓN: PROVEEDORES -->
+<div class="dash-section" id="secProveedores" style="display:none">
+  <div class="dash-indicators">
+    <div class="dash-card">
+      <div class="dash-card-label">TOTAL PROVEEDORES</div>
+      <div class="dash-card-value" id="indPrvTotal">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">POOL</div>
+      <div class="dash-card-value" id="indPrvPool">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">ONE SHOT</div>
+      <div class="dash-card-value" id="indPrvOneShot">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">% COMPLETITUD PROMEDIO</div>
+      <div class="dash-card-value" id="indPrvCompletitud">—</div>
+    </div>
+  </div>
+  <div class="dash-filters">
+    <input type="text" class="dash-search" id="prvSearch" placeholder="Buscar por nombre, razón social o ID...">
+    <select class="dash-select" id="prvTipo">
+      <option value="">TODOS LOS TIPOS</option>
+      <option value="Pool">POOL</option>
+      <option value="One Shot">ONE SHOT</option>
+    </select>
+    <select class="dash-select" id="prvEstado">
+      <option value="">TODOS</option>
+      <option value="Sí">ACTIVOS</option>
+      <option value="No">INACTIVOS</option>
+    </select>
+    <button class="dash-btn dash-btn--accent" id="btnNuevoProveedor">+ NUEVO PROVEEDOR</button>
+  </div>
+  <div class="dash-table-wrap">
+    <div class="dash-loading" id="prvLoading" style="display:none">CARGANDO PROVEEDORES...</div>
+    <table class="dash-table" id="prvTable" style="display:none">
+      <thead>
+        <tr>
+          <th>NO. PROVEEDOR</th>
+          <th>STATUS %</th>
+          <th>RAZÓN SOCIAL</th>
+          <th>NOMBRE COMERCIAL</th>
+          <th>TIPO</th>
+          <th>CUENTA</th>
+          <th>FECHA ALTA</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody id="prvBody"></tbody>
+    </table>
+    <div class="dash-empty" id="prvEmpty" style="display:none">
+      <div class="dash-empty-icon">&#128188;</div>
+      <div class="dash-empty-text">NO HAY PROVEEDORES REGISTRADOS</div>
+    </div>
+  </div>
+</div><!-- /secProveedores -->
 
 <!-- MODAL BNK -->
 <div class="bnk-overlay" id="bnkOverlay">
@@ -392,6 +537,540 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     </div>
   </div>
 </div>
+
+<!-- MODAL CLIENTE -->
+<div class="bnk-overlay" id="cliOverlay">
+  <div class="bnk-modal" style="max-width:1060px">
+    <div class="bnk-modal-header">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="bnk-modal-title" id="cliModalTitle">NUEVO CLIENTE</span>
+        <div class="completitud-circle" id="cliCompletitud">
+          <svg viewBox="0 0 36 36" class="completitud-svg">
+            <path class="completitud-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="completitud-fg" id="cliCompletitudPath" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="completitud-text" id="cliCompletitudText">0%</span>
+        </div>
+      </div>
+      <button class="bnk-modal-close" id="cliClose">&times;</button>
+    </div>
+    <div class="bnk-modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-target="cliTab1">DATOS GENERALES</button>
+        <button class="modal-tab" data-target="cliTab2">CONTACTO</button>
+        <button class="modal-tab" data-target="cliTab3">FACTURACIÓN</button>
+        <button class="modal-tab" data-target="cliTab4">BANCARIOS</button>
+      </div>
+      <input type="hidden" id="cliId">
+      <!-- Tab 1: Datos Generales -->
+      <div class="modal-tab-content active" id="cliTab1">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">EMPRESA / NOMBRE *</label>
+            <input type="text" class="bnk-input" id="cliEmpresa" placeholder="Nombre de la empresa">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">MARCAS</label>
+            <input type="text" class="bnk-input" id="cliMarcas" placeholder="Separar con coma: Marca1, Marca2">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PERSONA</label>
+            <select class="bnk-input" id="cliTipoPersona">
+              <option value="">— Seleccionar —</option>
+              <option value="Persona moral">Persona moral</option>
+              <option value="Persona física">Persona física con actividad empresarial</option>
+              <option value="Residente en el extranjero">Residente en el extranjero</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CONDICIONES DE PAGO (DÍAS)</label>
+            <input type="text" class="bnk-input" id="cliCondicionesPago" placeholder="Ej: 30">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA ACTIVA</label>
+            <select class="bnk-input" id="cliCuentaActiva">
+              <option value="Sí">Sí</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE ALTA</label>
+            <input type="text" class="bnk-input" id="cliFechaAlta" readonly>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">OBSERVACIONES</label>
+            <textarea class="bnk-textarea" id="cliObservaciones" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 2: Datos de Contacto -->
+      <div class="modal-tab-content" id="cliTab2" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PERSONA DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="cliPersonaContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PUESTO / DESCRIPCIÓN</label>
+            <input type="text" class="bnk-input" id="cliPuestoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CORREO DE CONTACTO</label>
+            <input type="email" class="bnk-input" id="cliCorreoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TELÉFONO DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="cliTelefonoContacto">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 3: Datos de Facturación -->
+      <div class="modal-tab-content" id="cliTab3" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">RAZÓN SOCIAL</label>
+            <input type="text" class="bnk-input" id="cliRazonSocial">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RFC</label>
+            <input type="text" class="bnk-input" id="cliRfc">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CURP (PERSONA FÍSICA)</label>
+            <input type="text" class="bnk-input" id="cliCurp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RÉGIMEN FISCAL</label>
+            <input type="text" class="bnk-input" id="cliRegimenFiscal" placeholder="Clave y descripción">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">USO DE CFDI</label>
+            <input type="text" class="bnk-input" id="cliUsoCfdi">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FORMA DE PAGO</label>
+            <input type="text" class="bnk-input" id="cliFormaPago">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">MÉTODO DE PAGO</label>
+            <select class="bnk-input" id="cliMetodoPago">
+              <option value="">— Seleccionar —</option>
+              <option value="PUE">PUE</option>
+              <option value="PPD">PPD</option>
+            </select>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label" style="margin-top:12px;border-bottom:1px solid var(--bd);padding-bottom:6px">DIRECCIÓN FISCAL</label>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CALLE</label>
+            <input type="text" class="bnk-input" id="cliCalle">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. EXT</label>
+            <input type="text" class="bnk-input" id="cliNoExt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. INT</label>
+            <input type="text" class="bnk-input" id="cliNoInt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">COLONIA</label>
+            <input type="text" class="bnk-input" id="cliColonia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CP</label>
+            <input type="text" class="bnk-input" id="cliCp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ALCALDÍA / MUNICIPIO</label>
+            <input type="text" class="bnk-input" id="cliAlcaldia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ESTADO</label>
+            <input type="text" class="bnk-input" id="cliEstadoGeo">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PAÍS</label>
+            <input type="text" class="bnk-input" id="cliPais" value="México">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 4: Datos Bancarios -->
+      <div class="modal-tab-content" id="cliTab4" style="display:none">
+        <div class="bnk-section-label">MONEDA NACIONAL (MXN)</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO</label>
+            <input type="text" class="bnk-input" id="cliBancoMxn">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SUCURSAL / PLAZA</label>
+            <input type="text" class="bnk-input" id="cliSucursal">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR DE LA CUENTA</label>
+            <input type="text" class="bnk-input" id="cliTitularCuenta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA CORTA</label>
+            <input type="text" class="bnk-input" id="cliCuentaCorta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CLABE (18 DÍGITOS)</label>
+            <input type="text" class="bnk-input" id="cliClabe" maxlength="18">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE CUENTA</label>
+            <select class="bnk-input" id="cliTipoCuenta">
+              <option value="">— Seleccionar —</option>
+              <option value="Cheques">Cheques</option>
+              <option value="Inversión">Inversión</option>
+            </select>
+          </div>
+        </div>
+        <div class="bnk-section-label" style="margin-top:20px">MONEDA EXTRANJERA</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO (NOMBRE Y PAÍS)</label>
+            <input type="text" class="bnk-input" id="cliBancoExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DIVISA</label>
+            <input type="text" class="bnk-input" id="cliDivisa" placeholder="USD, EUR, etc.">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR</label>
+            <input type="text" class="bnk-input" id="cliTitularExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA / IBAN</label>
+            <input type="text" class="bnk-input" id="cliCuentaIban">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT / BIC</label>
+            <input type="text" class="bnk-input" id="cliSwiftBic">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ABA / ROUTING</label>
+            <input type="text" class="bnk-input" id="cliAbaRouting">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="cliBancoIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="cliSwiftIntermediario">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bnk-modal-footer">
+      <button class="dash-btn" id="cliCancel">CANCELAR</button>
+      <button class="dash-btn dash-btn--accent" id="cliGuardar">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div class="bnk-overlay" id="prvOverlay">
+  <div class="bnk-modal" style="max-width:1060px">
+    <div class="bnk-modal-header">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="bnk-modal-title" id="prvModalTitle">NUEVO PROVEEDOR</span>
+        <div class="completitud-circle" id="prvCompletitud">
+          <svg viewBox="0 0 36 36" class="completitud-svg">
+            <path class="completitud-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="completitud-fg" id="prvCompletitudPath" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="completitud-text" id="prvCompletitudText">0%</span>
+        </div>
+      </div>
+      <button class="bnk-modal-close" id="prvClose">&times;</button>
+    </div>
+    <div class="bnk-modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-target="prvTab1">DATOS GENERALES</button>
+        <button class="modal-tab" data-target="prvTab2">CONTACTO</button>
+        <button class="modal-tab" data-target="prvTab3">FISCALES / FACTURACIÓN</button>
+        <button class="modal-tab" data-target="prvTab4">BANCARIOS</button>
+        <button class="modal-tab" data-target="prvTab5">SERVICIOS</button>
+      </div>
+      <input type="hidden" id="prvId">
+      <!-- Tab 1: Datos Generales -->
+      <div class="modal-tab-content active" id="prvTab1">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">RAZÓN SOCIAL *</label>
+            <input type="text" class="bnk-input" id="prvRazonSocial" placeholder="Razón social del proveedor">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">NOMBRE COMERCIAL</label>
+            <input type="text" class="bnk-input" id="prvNombreComercial" placeholder="Nombre comercial o marca">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PERSONA</label>
+            <select class="bnk-input" id="prvTipoPersona">
+              <option value="">— Seleccionar —</option>
+              <option value="Persona moral">Persona moral</option>
+              <option value="Persona física">Persona física con actividad empresarial</option>
+              <option value="Residente en el extranjero">Residente en el extranjero</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ACTIVIDAD PRINCIPAL</label>
+            <input type="text" class="bnk-input" id="prvActividadPrincipal" placeholder="Giro o actividad principal">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE CONSTITUCIÓN</label>
+            <input type="text" class="bnk-input" id="prvFechaConstitucion" placeholder="DD/MM/AAAA">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PROVEEDOR</label>
+            <select class="bnk-input" id="prvTipoProveedor">
+              <option value="">— Seleccionar —</option>
+              <option value="Pool">Pool</option>
+              <option value="One Shot">One Shot</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA ACTIVA</label>
+            <select class="bnk-input" id="prvCuentaActiva">
+              <option value="Sí">Sí</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE ALTA</label>
+            <input type="text" class="bnk-input" id="prvFechaAlta" readonly>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">OBSERVACIONES</label>
+            <textarea class="bnk-textarea" id="prvObservaciones" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 2: Contacto -->
+      <div class="modal-tab-content" id="prvTab2" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PERSONA DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="prvPersonaContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PUESTO / DESCRIPCIÓN</label>
+            <input type="text" class="bnk-input" id="prvPuestoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CORREO DE CONTACTO</label>
+            <input type="email" class="bnk-input" id="prvCorreoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TELÉFONO DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="prvTelefonoContacto">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 3: Fiscales / Facturación -->
+      <div class="modal-tab-content" id="prvTab3" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">RFC</label>
+            <input type="text" class="bnk-input" id="prvRfc">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CURP (PERSONA FÍSICA)</label>
+            <input type="text" class="bnk-input" id="prvCurp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RÉGIMEN FISCAL</label>
+            <input type="text" class="bnk-input" id="prvRegimenFiscal" placeholder="Clave y descripción">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">USO DE CFDI</label>
+            <input type="text" class="bnk-input" id="prvUsoCfdi">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FORMA DE PAGO</label>
+            <input type="text" class="bnk-input" id="prvFormaPago">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">MÉTODO DE PAGO</label>
+            <select class="bnk-input" id="prvMetodoPago">
+              <option value="">— Seleccionar —</option>
+              <option value="PUE">PUE</option>
+              <option value="PPD">PPD</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DÍAS CRÉDITO</label>
+            <input type="text" class="bnk-input" id="prvDiasCredito" placeholder="Ej: 30">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">OPINIÓN 32-D</label>
+            <select class="bnk-input" id="prvOpinion32D">
+              <option value="">— Seleccionar —</option>
+              <option value="Positiva">Positiva</option>
+              <option value="Negativa">Negativa</option>
+              <option value="No aplica">No aplica</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA CONSTANCIA FISCAL</label>
+            <input type="text" class="bnk-input" id="prvFechaConstancia" placeholder="DD/MM/AAAA">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label" style="margin-top:12px;border-bottom:1px solid var(--bd);padding-bottom:6px">DIRECCIÓN FISCAL</label>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CALLE</label>
+            <input type="text" class="bnk-input" id="prvCalle">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. EXT</label>
+            <input type="text" class="bnk-input" id="prvNoExt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. INT</label>
+            <input type="text" class="bnk-input" id="prvNoInt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">COLONIA</label>
+            <input type="text" class="bnk-input" id="prvColonia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CP</label>
+            <input type="text" class="bnk-input" id="prvCp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ALCALDÍA / MUNICIPIO</label>
+            <input type="text" class="bnk-input" id="prvAlcaldia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ESTADO</label>
+            <input type="text" class="bnk-input" id="prvEstadoGeo">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PAÍS</label>
+            <input type="text" class="bnk-input" id="prvPais" value="México">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 4: Bancarios -->
+      <div class="modal-tab-content" id="prvTab4" style="display:none">
+        <div class="bnk-section-label">MONEDA NACIONAL (MXN)</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO</label>
+            <input type="text" class="bnk-input" id="prvBancoMxn">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SUCURSAL / PLAZA</label>
+            <input type="text" class="bnk-input" id="prvSucursal">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR DE LA CUENTA</label>
+            <input type="text" class="bnk-input" id="prvTitularCuenta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA CORTA</label>
+            <input type="text" class="bnk-input" id="prvCuentaCorta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CLABE (18 DÍGITOS)</label>
+            <input type="text" class="bnk-input" id="prvClabe" maxlength="18">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE CUENTA</label>
+            <select class="bnk-input" id="prvTipoCuenta">
+              <option value="">— Seleccionar —</option>
+              <option value="Cheques">Cheques</option>
+              <option value="Inversión">Inversión</option>
+            </select>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">DIRECCIÓN DEL BANCO</label>
+            <input type="text" class="bnk-input" id="prvDireccionBanco">
+          </div>
+        </div>
+        <div class="bnk-section-label" style="margin-top:20px">MONEDA EXTRANJERA</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO (NOMBRE Y PAÍS)</label>
+            <input type="text" class="bnk-input" id="prvBancoExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DIVISA</label>
+            <input type="text" class="bnk-input" id="prvDivisa" placeholder="USD, EUR, etc.">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR</label>
+            <input type="text" class="bnk-input" id="prvTitularExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA / IBAN</label>
+            <input type="text" class="bnk-input" id="prvCuentaIban">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT / BIC</label>
+            <input type="text" class="bnk-input" id="prvSwiftBic">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ABA / ROUTING</label>
+            <input type="text" class="bnk-input" id="prvAbaRouting">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="prvBancoIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="prvSwiftIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">GASTOS BANCARIOS</label>
+            <select class="bnk-input" id="prvGastosBancarios">
+              <option value="">— Seleccionar —</option>
+              <option value="OUR">OUR (pagados por ordenante)</option>
+              <option value="SHA">SHA (compartidos)</option>
+              <option value="BEN">BEN (pagados por beneficiario)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 5: Servicios -->
+      <div class="modal-tab-content" id="prvTab5" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span class="bnk-section-label" style="margin:0;border:none">SERVICIOS Y COSTOS</span>
+          <button class="dash-btn dash-btn--accent" id="prvAddServicio">+ AGREGAR SERVICIO</button>
+        </div>
+        <table class="dash-table" id="prvServiciosTable">
+          <thead>
+            <tr>
+              <th>CATEGORÍA</th>
+              <th>SERVICIO</th>
+              <th>UNIDAD</th>
+              <th>COSTO UNITARIO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="prvServiciosBody"></tbody>
+        </table>
+        <div class="dash-empty" id="prvServiciosEmpty" style="display:none">
+          <div class="dash-empty-text">SIN SERVICIOS REGISTRADOS</div>
+        </div>
+      </div>
+    </div>
+    <div class="bnk-modal-footer">
+      <button class="dash-btn" id="prvCancel">CANCELAR</button>
+      <button class="dash-btn dash-btn--accent" id="prvGuardar">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/pages/clientes.js" defer></script>
+<script src="../js/pages/proveedores.js" defer></script>
 
 <script>
 (function () {
