@@ -32,11 +32,32 @@ var NOTIFY_EMAIL = 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.
 var SHEET_NAME = 'Cotizaciones';
 var DRIVE_FOLDER_ID = '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
 var SENDER_NAME = 'MUNET Cotizaciones · BUNKER'; // nombre visible del remitente (el email será el de la cuenta desplegadora)
+var SHEET_CLIENTES = 'Clientes';
+var SHEET_BNK = 'CotizacionesBNK';
+var SHEET_CATALOGO = 'CatalogoPrecio';
+
+// ── Utilidad: obtener o crear hoja con encabezados ──
+function getOrCreateSheet(ss, name, headers, colCount) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, colCount).setFontWeight('bold').setBackground('#050905').setFontColor('#00FF41');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
 
 // ── doPost: Recibir cotización ──
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+
+    // ── Branch: Cotización BNK ──
+    if (data.tipoCotizacion === 'BNK') {
+      return crearCotizacionBNK(data);
+    }
+
     var ss = SpreadsheetApp.openById(SHEET_ID);
 
     var fecha = new Date();
@@ -210,6 +231,434 @@ function doPost(e) {
   }
 }
 
+// ── Crear cotización BNK (servicios/producción) ──
+function crearCotizacionBNK(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var fecha = new Date();
+    var fechaStr = Utilities.formatDate(fecha, 'America/Mexico_City', 'dd/MM/yyyy HH:mm');
+    var folio = data.folio || 'SIN-FOLIO';
+    var empresa = data.empresa || '';
+
+    // ── Subir PDF a Google Drive ──
+    var driveLink = '';
+    var pdfBlob = null;
+    if (data.pdfBase64) {
+      var fileName = 'Cotizacion-BNK-' + folio + '.pdf';
+      var pdfBytes = Utilities.base64Decode(data.pdfBase64);
+      pdfBlob = Utilities.newBlob(pdfBytes, 'application/pdf', fileName);
+
+      var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+      var file = folder.createFile(pdfBlob);
+      driveLink = file.getUrl();
+
+      try {
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (shareErr) {}
+    }
+
+    // ── Guardar en hoja CotizacionesBNK ──
+    var headers = [
+      'Fecha', 'Folio BNK', 'Folio MNT', 'Cliente ID', 'Empresa', 'Contacto',
+      'Teléfono', 'Correo', 'Evento', 'Fecha Evento', 'Sede', 'Conceptos',
+      'Condiciones', 'Subtotal', 'IVA', 'Total', 'Link PDF', 'Estado'
+    ];
+    var sheet = getOrCreateSheet(ss, SHEET_BNK, headers, 18);
+
+    sheet.appendRow([
+      fechaStr,
+      folio,
+      data.folioMNT || '',
+      data.clienteId || '',
+      empresa,
+      data.contacto || '',
+      data.telefono || '',
+      data.correo || '',
+      data.evento || '',
+      data.fechaEvento || '',
+      data.sede || '',
+      data.conceptos || '',
+      data.condiciones || '',
+      data.subtotal || 0,
+      data.iva || 0,
+      data.total || 0,
+      driveLink,
+      'Nueva'
+    ]);
+
+    // ── Email al equipo BUNKER ──
+    var adminSubject = 'Nueva cotización BNK — ' + folio + ' — ' + empresa;
+    var adminBody = '🟢 Nueva cotización BNK (Servicios / Producción)\n\n'
+      + '══════════════════════════════\n'
+      + 'FOLIO: ' + folio + '\n'
+      + '══════════════════════════════\n\n'
+      + 'DATOS DEL CLIENTE\n'
+      + '─────────────────\n'
+      + 'Empresa: ' + (empresa || '—') + '\n'
+      + 'Contacto: ' + (data.contacto || '—') + '\n'
+      + 'Teléfono: ' + (data.telefono || '—') + '\n'
+      + 'Correo: ' + (data.correo || '—') + '\n\n'
+      + 'EVENTO\n'
+      + '──────\n'
+      + 'Evento: ' + (data.evento || '—') + '\n'
+      + 'Fecha evento: ' + (data.fechaEvento || '—') + '\n'
+      + 'Sede: ' + (data.sede || '—') + '\n\n'
+      + 'DESGLOSE\n'
+      + '────────\n'
+      + 'Subtotal: $' + formatNum(data.subtotal) + '\n'
+      + 'IVA:      $' + formatNum(data.iva) + '\n'
+      + 'TOTAL:    $' + formatNum(data.total) + '\n\n'
+      + (driveLink ? 'PDF: ' + driveLink + '\n\n' : '')
+      + '— BNK Cotizaciones · BUNKER';
+
+    var adminMailOptions = { name: SENDER_NAME };
+    if (pdfBlob) adminMailOptions.attachments = [pdfBlob];
+    MailApp.sendEmail(NOTIFY_EMAIL, adminSubject, adminBody, adminMailOptions);
+
+    return jsonResponse({ status: 'ok', folio: folio, driveLink: driveLink });
+
+  } catch (err) {
+    return jsonResponse({ status: 'error', message: err.toString() });
+  }
+}
+
+// ── Clientes ──
+function listClientes() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var headers = ['ID', 'Empresa', 'Contacto', 'Teléfono', 'Correo', 'Nota', 'Fecha Alta'];
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, headers, 7);
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
+  var clientes = values.map(function (row) {
+    var fechaVal = row[6];
+    if (fechaVal instanceof Date) {
+      fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy');
+    }
+    return {
+      id: row[0],
+      empresa: row[1],
+      contacto: row[2],
+      telefono: row[3],
+      correo: row[4],
+      nota: row[5],
+      fechaAlta: fechaVal
+    };
+  });
+  return jsonResponse({ status: 'ok', data: clientes });
+}
+
+function createCliente(params) {
+  if (!params.empresa) {
+    return jsonResponse({ status: 'error', message: 'El campo empresa es obligatorio' });
+  }
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var headers = ['ID', 'Empresa', 'Contacto', 'Teléfono', 'Correo', 'Nota', 'Fecha Alta'];
+  var sheet = getOrCreateSheet(ss, SHEET_CLIENTES, headers, 7);
+
+  // Generar ID auto-incremental CLI-0001
+  var lastRow = sheet.getLastRow();
+  var nextNum = 1;
+  if (lastRow >= 2) {
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    ids.forEach(function (r) {
+      var match = String(r[0]).match(/CLI-(\d+)/);
+      if (match) {
+        var n = parseInt(match[1], 10);
+        if (n >= nextNum) nextNum = n + 1;
+      }
+    });
+  }
+  var newId = 'CLI-' + ('0000' + nextNum).slice(-4);
+  var fechaAlta = Utilities.formatDate(new Date(), 'America/Mexico_City', 'dd/MM/yyyy');
+
+  sheet.appendRow([
+    newId,
+    params.empresa || '',
+    params.contacto || '',
+    params.telefono || '',
+    params.correo || '',
+    params.nota || '',
+    fechaAlta
+  ]);
+
+  return jsonResponse({ status: 'ok', id: newId });
+}
+
+// ── Catálogo de precios ──
+function listCatalogo() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var headers = ['ID', 'Categoría', 'Concepto', 'Unidad', 'Precio', 'Activo'];
+  var sheet = getOrCreateSheet(ss, SHEET_CATALOGO, headers, 6);
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+  var items = [];
+  values.forEach(function (row) {
+    if (String(row[5]).toLowerCase() !== 'no') {
+      items.push({
+        id: row[0],
+        categoria: row[1],
+        concepto: row[2],
+        unidad: row[3],
+        precio: row[4],
+        activo: row[5]
+      });
+    }
+  });
+  return jsonResponse({ status: 'ok', data: items });
+}
+
+function saveCatalogo(params) {
+  if (!params.concepto) {
+    return jsonResponse({ status: 'error', message: 'El campo concepto es obligatorio' });
+  }
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var headers = ['ID', 'Categoría', 'Concepto', 'Unidad', 'Precio', 'Activo'];
+  var sheet = getOrCreateSheet(ss, SHEET_CATALOGO, headers, 6);
+
+  var lastRow = sheet.getLastRow();
+  var nextNum = 1;
+  if (lastRow >= 2) {
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    ids.forEach(function (r) {
+      var match = String(r[0]).match(/CAT-(\d+)/);
+      if (match) {
+        var n = parseInt(match[1], 10);
+        if (n >= nextNum) nextNum = n + 1;
+      }
+    });
+  }
+  var newId = 'CAT-' + ('0000' + nextNum).slice(-4);
+
+  sheet.appendRow([
+    newId,
+    params.categoria || '',
+    params.concepto || '',
+    params.unidad || 'Evento',
+    params.precio || 0,
+    'Sí'
+  ]);
+
+  return jsonResponse({ status: 'ok', id: newId });
+}
+
+// ── Listar cotizaciones BNK ──
+function listBNK() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_BNK);
+  if (!sheet) return jsonResponse({ status: 'ok', data: [] });
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'ok', data: [] });
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 18).getValues();
+  var cotizaciones = values.map(function (row) {
+    var fechaVal = row[0];
+    if (fechaVal instanceof Date) {
+      fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy HH:mm');
+    }
+    return {
+      fecha: fechaVal,
+      folio: row[1],
+      folioMNT: row[2],
+      clienteId: row[3],
+      empresa: row[4],
+      contacto: row[5],
+      telefono: row[6],
+      correo: row[7],
+      evento: row[8],
+      fechaEvento: row[9],
+      sede: row[10],
+      conceptos: row[11],
+      condiciones: row[12],
+      subtotal: row[13],
+      iva: row[14],
+      total: row[15],
+      linkPdf: row[16],
+      estado: row[17],
+      fuente: 'BNK'
+    };
+  });
+  return jsonResponse({ status: 'ok', data: cotizaciones, total: cotizaciones.length });
+}
+
+// ── Listar TODAS las cotizaciones (MNT + BNK) ──
+function listAll() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var all = [];
+
+  // MNT
+  var sheetMNT = ss.getSheetByName(SHEET_NAME);
+  if (sheetMNT && sheetMNT.getLastRow() >= 2) {
+    var mntValues = sheetMNT.getRange(2, 1, sheetMNT.getLastRow() - 1, 22).getValues();
+    mntValues.forEach(function (row) {
+      var fechaVal = row[0];
+      if (fechaVal instanceof Date) {
+        fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy HH:mm');
+      }
+      var desgloseVenues = [];
+      try {
+        if (row[10]) desgloseVenues = JSON.parse(row[10]);
+      } catch (pe) {}
+      all.push({
+        fecha: fechaVal,
+        folio: row[1],
+        cliente: row[2],
+        agencia: row[3],
+        evento: row[4],
+        contacto: row[5],
+        telefono: row[6],
+        correo: row[7],
+        tipo: row[8],
+        fechas: row[9],
+        desgloseVenues: desgloseVenues,
+        diasTotal: row[11],
+        descripcion: row[12],
+        horario: row[13],
+        espacios: row[14],
+        rentaTotal: row[15],
+        montajeTotal: row[16],
+        subtotal: row[17],
+        iva: row[18],
+        total: row[19],
+        linkPdf: row[20],
+        estado: row[21],
+        fuente: 'MNT'
+      });
+    });
+  }
+
+  // BNK
+  var sheetBNK = ss.getSheetByName(SHEET_BNK);
+  if (sheetBNK && sheetBNK.getLastRow() >= 2) {
+    var bnkValues = sheetBNK.getRange(2, 1, sheetBNK.getLastRow() - 1, 18).getValues();
+    bnkValues.forEach(function (row) {
+      var fechaVal = row[0];
+      if (fechaVal instanceof Date) {
+        fechaVal = Utilities.formatDate(fechaVal, 'America/Mexico_City', 'dd/MM/yyyy HH:mm');
+      }
+      all.push({
+        fecha: fechaVal,
+        folio: row[1],
+        folioMNT: row[2],
+        clienteId: row[3],
+        empresa: row[4],
+        contacto: row[5],
+        telefono: row[6],
+        correo: row[7],
+        evento: row[8],
+        fechaEvento: row[9],
+        sede: row[10],
+        conceptos: row[11],
+        condiciones: row[12],
+        subtotal: row[13],
+        iva: row[14],
+        total: row[15],
+        linkPdf: row[16],
+        estado: row[17],
+        fuente: 'BNK'
+      });
+    });
+  }
+
+  return jsonResponse({ status: 'ok', data: all, total: all.length });
+}
+
+// ── Actualizar estado de cotización BNK ──
+function updateStatusBNK(folio, nuevoEstado) {
+  if (!folio || !nuevoEstado) {
+    return jsonResponse({ status: 'error', message: 'Faltan parámetros folio y estado' });
+  }
+
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_BNK);
+  if (!sheet) return jsonResponse({ status: 'error', message: 'Hoja CotizacionesBNK no encontrada' });
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return jsonResponse({ status: 'error', message: 'Folio no encontrado: ' + folio });
+
+  var folios = sheet.getRange(2, 2, lastRow - 1, 1).getValues(); // columna B = Folio BNK
+
+  for (var i = 0; i < folios.length; i++) {
+    if (folios[i][0] === folio) {
+      sheet.getRange(i + 2, 18).setValue(nuevoEstado); // columna R = Estado
+      return jsonResponse({ status: 'ok', folio: folio, estado: nuevoEstado });
+    }
+  }
+
+  return jsonResponse({ status: 'error', message: 'Folio no encontrado: ' + folio });
+}
+
+// ── Seed: Poblar catálogo con datos iniciales ──
+function seedCatalogo() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var headers = ['ID', 'Categoría', 'Concepto', 'Unidad', 'Precio', 'Activo'];
+  var sheet = getOrCreateSheet(ss, SHEET_CATALOGO, headers, 6);
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    return jsonResponse({ status: 'ok', message: 'Catálogo ya tiene datos, no se sobrescribe', items: lastRow - 1 });
+  }
+
+  var items = [
+    // Servicios Básicos
+    ['Servicios Básicos', 'Stage Manager', 'Evento', 3500],
+    ['Servicios Básicos', 'Crew Chief', 'Evento', 2500],
+    ['Servicios Básicos', 'Supervisor Seguridad 8hrs', 'Evento', 1500],
+    ['Servicios Básicos', 'Elemento Seguridad 8hrs', 'Evento', 1450],
+    ['Servicios Básicos', 'Supervisor Seguridad 12hrs', 'Evento', 2250],
+    ['Servicios Básicos', 'Elemento Seguridad 12hrs', 'Evento', 2175],
+    ['Servicios Básicos', 'Supervisor Limpieza', 'Evento', 1500],
+    ['Servicios Básicos', 'Elemento Limpieza', 'Evento', 1250],
+    ['Servicios Básicos', 'Ambulancia 8hrs', 'Evento', 6000],
+    ['Servicios Básicos', 'Ambulancia 12hrs', 'Evento', 9000],
+    ['Servicios Básicos', 'Paramédico 8hrs', 'Evento', 2250],
+    ['Servicios Básicos', 'Paramédico 12hrs', 'Evento', 2250],
+    ['Servicios Básicos', 'Stage Hands', 'Evento', 1100],
+    // Mobiliario
+    ['Mobiliario', 'Silla Bacará', 'Pieza', 170],
+    ['Mobiliario', 'Silla Ghost', 'Pieza', 170],
+    ['Mobiliario', 'Flete', 'Evento', 24000],
+    ['Mobiliario', 'Maniobras', 'Evento', 5000],
+    ['Mobiliario', 'Supervisión mobiliario', 'Evento', 4000],
+    // A&B
+    ['A&B', 'Canapés Bienvenida', 'Pax', 230],
+    ['A&B', 'Barra Libre Diamante', 'Pax', 1380],
+    ['A&B', 'Cena 3 Tiempos', 'Pax', 1150],
+    ['A&B', 'Coffee Break Staff', 'Pax', 145.20],
+    ['A&B', 'Catering VIP', 'Evento', 2420],
+    ['A&B', 'Box Lunch Cena', 'Pax', 181.50],
+    // Estructura
+    ['Estructura', 'Twin Pack 150kW', 'Evento', 45000],
+    ['Estructura', 'Generador 150kW', 'Evento', 12000],
+    ['Estructura', 'Doble tiro cableado', 'Evento', 19500],
+    // Contenido/Mapping
+    ['Contenido/Mapping', 'Servidor video', 'Evento', 20000],
+    ['Contenido/Mapping', 'Operación mappeo', 'Día', 10000],
+    ['Contenido/Mapping', 'Operador pruebas', 'Día', 12000],
+    ['Contenido/Mapping', 'Contenido por minuto', 'Minuto', 45000],
+    ['Contenido/Mapping', 'Videoproyector 45K', 'Evento', 54050],
+    ['Contenido/Mapping', 'Creatividad dirección', 'Evento', 40250],
+    // Suministros
+    ['Suministros', 'Papel higiénico', 'Paquete', 461.95],
+    ['Suministros', 'Toalla interdoblada', 'Paquete', 271.17],
+    ['Suministros', 'Jabón líquido', 'Pieza', 251.27],
+    ['Suministros', 'Tapete mingitorio', 'Pieza', 288.07]
+  ];
+
+  for (var i = 0; i < items.length; i++) {
+    var catId = 'CAT-' + ('0000' + (i + 1)).slice(-4);
+    sheet.appendRow([catId, items[i][0], items[i][1], items[i][2], items[i][3], 'Sí']);
+  }
+
+  return jsonResponse({ status: 'ok', message: 'Catálogo poblado con ' + items.length + ' items', items: items.length });
+}
+
 // ── doGet: Devolver cotizaciones para el dashboard ──
 function doGet(e) {
   try {
@@ -220,6 +669,16 @@ function doGet(e) {
     if (action === 'updateStatus') {
       return updateStatus(params.folio, params.estado);
     }
+
+    // ── Endpoints BNK ──
+    if (action === 'listClientes') return listClientes();
+    if (action === 'createCliente') return createCliente(params);
+    if (action === 'listCatalogo') return listCatalogo();
+    if (action === 'saveCatalogo') return saveCatalogo(params);
+    if (action === 'listBNK') return listBNK();
+    if (action === 'listAll') return listAll();
+    if (action === 'updateStatusBNK') return updateStatusBNK(params.folio, params.estado);
+    if (action === 'seedCatalogo') return seedCatalogo();
 
     // Listar cotizaciones
     var ss = SpreadsheetApp.openById(SHEET_ID);

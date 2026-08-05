@@ -13,10 +13,26 @@ El proyecto esta construido como un sitio estatico con HTML, CSS y JavaScript pu
 - `proyectos.html`: archivo de trayectoria y proyectos.
 - `munet.html`: subsistema MUNET.
 - `hub.html`: Hub Empresarial BUNKER.
-- `cotizador-munet/`: simulador de costos para renta de espacios MUNET.
+- `cotizador-munet/`: sistema de cotizaciones con dos modulos:
+  - **Cotizador MNT** (`index.html`): wizard para renta de espacios MUNET con calendario, tarifas automaticas y PDF neon.
+  - **Panel de Ventas** (`dashboard.html`): dashboard combinado MNT+BNK con indicadores, filtros, modal para cotizaciones de servicios/produccion integral, PDF estilo dorado, catalogo de precios y autocompletado de clientes.
 - `css/`: estilos globales, sistema visual y estilos por pagina.
 - `js/`: interacciones, navegacion, animaciones y logica por pagina.
 - `img/`: logos e imagenes del sitio.
+
+## Sistema de Cotizaciones
+
+El sistema maneja dos tipos de cotizaciones:
+
+| Tipo | Folio | Descripcion |
+|------|-------|-------------|
+| **MNT** | `MNT-AAMMDD-XXXX` | Renta de espacios/venues del MUNET (wizard publico) |
+| **BNK** | `BNK-AAMMDD-XXXX` | Servicios y produccion integral (modal en dashboard) |
+
+**Backend**: Google Apps Script con Google Sheets como base de datos y Google Drive para PDFs.
+**Hojas**: Cotizaciones (MNT), CotizacionesBNK, Clientes, CatalogoPrecio (37 conceptos precargados).
+
+Las cotizaciones BNK pueden vincularse a un folio MNT existente (boton "+" en la tabla del dashboard).
 
 ## Como verlo localmente
 
@@ -47,6 +63,7 @@ Rutas configuradas:
 - `/munet`
 - `/hub`
 - `/cotizador-munet`
+- `/cotizador-munet/dashboard.html` (Panel de Ventas)
 
 Para desplegar:
 

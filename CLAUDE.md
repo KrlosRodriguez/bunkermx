@@ -23,8 +23,8 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - **`proyectos.html`** — Archivo de trayectoria y proyectos.
 - **`munet.html`** — Subsistema MUNET (espacios, Pasatono).
 - **`hub.html`** — Hub Empresarial BUNKER.
-- **`cotizador-munet/index.html`** — Cotizador wizard para renta de espacios MUNET.
-- **`cotizador-munet/dashboard.html`** — Dashboard administrativo del cotizador.
+- **`cotizador-munet/index.html`** — Cotizador wizard para renta de espacios MUNET (folios MNT).
+- **`cotizador-munet/dashboard.html`** (~1277 lines) — Panel de Ventas: dashboard combinado MNT+BNK con tabla, indicadores, filtros por tipo/estado/fecha, modal para crear cotizaciones de servicios BNK, generación de PDF estilo dorado, y autocompletado de clientes.
 
 ### CSS
 
@@ -39,8 +39,28 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - **`js/main.js`** (~88 lines) — JS legacy del index original (se conserva).
 - **`js/login-gate.js`** (~82 lines) — gate de autenticación.
 - **`js/pages/*.js`** — lógica por página: dashboard.js, esencia.js, proyectos.js.
-- **`cotizador-munet/js/cotizador-munet.js`** (~1244 lines) — lógica del wizard cotizador (pasos, tarifas, PDF, envío a Google Sheets).
-- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script para el backend del cotizador.
+- **`cotizador-munet/js/cotizador-munet.js`** (~1244 lines) — lógica del wizard cotizador (pasos, tarifas, PDF neon, envío a Google Sheets).
+- **`cotizador-munet/js/logo-data.js`** — logos en base64 (BUNKER_LOGO_B64) para embeber en PDFs.
+- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + endpoints para Clientes, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo.
+
+### Backend (Google Apps Script)
+
+El backend vive en Google Apps Script y usa Google Sheets como base de datos y Google Drive para almacenar PDFs.
+
+- **Sheet ID**: `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk`
+- **Drive Folder ID**: `17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn`
+- **Hojas en el Sheet**: `Cotizaciones` (MNT), `CotizacionesBNK` (BNK), `Clientes`, `CatalogoPrecio`
+- **Folios**: `MNT-AAMMDD-XXXX` para venues, `BNK-AAMMDD-XXXX` para servicios/producción
+- **Endpoints GET**: `list`, `listAll`, `listClientes`, `listCatalogo`, `updateStatus`, `updateStatusBNK`, `seedCatalogo`
+- **Endpoints POST**: cotización MNT (wizard), cotización BNK (`tipoCotizacion: 'BNK'`)
+- **Email**: usa `MailApp.sendEmail` con `name: SENDER_NAME` (no GmailApp, no requiere alias)
+- **Deploy**: copiar `google-apps-script-munet.js` al editor de Apps Script → nueva implementación → actualizar URL si cambia
+
+### PDFs
+
+Dos estilos de PDF generados client-side con jsPDF 2.5.1:
+- **MNT (neon/verde)**: generado en `cotizador-munet.js`, colores del tema neon del dashboard
+- **BNK (dorado/terra)**: generado en `dashboard.html`, colores BUNKER corporativos (dorado `#C6A350`, fondo `#2C2419`)
 
 ### Deployment
 
@@ -61,3 +81,6 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - `bunker_v2.html` — previous single-page version of the site. Kept as reference.
 - `document_pdf*.pdf` — reference PDF documents (company materials).
 - `img/` — all image assets (logos, section illustrations).
+- `docs/superpowers/specs/` — design specs de features.
+- `docs/superpowers/plans/` — planes de implementación detallados.
+- `capturas/` — instrucciones de configuración y capturas de referencia (no se despliegan).
