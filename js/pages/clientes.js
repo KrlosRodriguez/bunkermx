@@ -1,0 +1,548 @@
+/* =========================================================
+   clientes.js — Módulo de Clientes para el Panel de Ventas
+   Namespace: window.BNKClientes
+   Requiere: window.DASH (expuesto desde el script inline de dashboard.html)
+   Sintaxis: ES5 (var, function declarations)
+   ========================================================= */
+
+(function () {
+  'use strict';
+
+  // Array local de clientes en este módulo
+  var _clientes = [];
+  var _cargado = false;
+
+  // ── Mapeo campo backend → id de elemento HTML ──
+  var CAMPO_ID = {
+    empresa:             'cliEmpresa',
+    marcas:              'cliMarcas',
+    tipoPersona:         'cliTipoPersona',
+    condicionesPago:     'cliCondicionesPago',
+    cuentaActiva:        'cliCuentaActiva',
+    fechaAlta:           'cliFechaAlta',
+    observaciones:       'cliObservaciones',
+    personaContacto:     'cliPersonaContacto',
+    puestoContacto:      'cliPuestoContacto',
+    correoContacto:      'cliCorreoContacto',
+    telefonoContacto:    'cliTelefonoContacto',
+    razonSocial:         'cliRazonSocial',
+    rfc:                 'cliRfc',
+    curp:                'cliCurp',
+    regimenFiscal:       'cliRegimenFiscal',
+    usoCfdi:             'cliUsoCfdi',
+    formaPago:           'cliFormaPago',
+    metodoPago:          'cliMetodoPago',
+    calle:               'cliCalle',
+    noExt:               'cliNoExt',
+    noInt:               'cliNoInt',
+    colonia:             'cliColonia',
+    cp:                  'cliCp',
+    alcaldia:            'cliAlcaldia',
+    estado:              'cliEstadoGeo',
+    pais:                'cliPais',
+    bancoMxn:            'cliBancoMxn',
+    sucursal:            'cliSucursal',
+    titularCuenta:       'cliTitularCuenta',
+    cuentaCorta:         'cliCuentaCorta',
+    clabe:               'cliClabe',
+    tipoCuenta:          'cliTipoCuenta',
+    bancoExtranjero:     'cliBancoExtranjero',
+    divisa:              'cliDivisa',
+    titularExtranjero:   'cliTitularExtranjero',
+    cuentaIban:          'cliCuentaIban',
+    swiftBic:            'cliSwiftBic',
+    abaRouting:          'cliAbaRouting',
+    bancoIntermediario:  'cliBancoIntermediario',
+    swiftIntermediario:  'cliSwiftIntermediario'
+  };
+
+  // Campos que se excluyen del cálculo de completitud
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true };
+
+  // ── Helpers internos ──
+  function _dash() {
+    return window.DASH || {};
+  }
+
+  function _url() {
+    return _dash().APPS_SCRIPT_URL || '';
+  }
+
+  function _escapeHTML(str) {
+    var fn = _dash().escapeHTML;
+    if (fn) return fn(str);
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function _getEl(id) {
+    return document.getElementById(id);
+  }
+
+  function _getVal(id) {
+    var el = _getEl(id);
+    if (!el) return '';
+    return el.value || '';
+  }
+
+  function _setVal(id, val) {
+    var el = _getEl(id);
+    if (!el) return;
+    el.value = (val !== undefined && val !== null) ? val : '';
+  }
+
+  // ── calcCompletitud ──
+  function calcCompletitud(obj) {
+    if (!obj) return 0;
+    var total = 0;
+    var llenos = 0;
+    Object.keys(obj).forEach(function (key) {
+      if (CAMPOS_EXCLUIDOS[key]) return;
+      total++;
+      var v = obj[key];
+      if (v !== undefined && v !== null && String(v).trim() !== '') llenos++;
+    });
+    if (total === 0) return 0;
+    return Math.round((llenos / total) * 100);
+  }
+
+  // ── updateIndicators ──
+  function updateIndicators() {
+    var total = _clientes.length;
+    var activos = _clientes.filter(function (c) { return String(c.cuentaActiva) === 'Sí'; }).length;
+    var inactivos = total - activos;
+    var sumPct = 0;
+    _clientes.forEach(function (c) { sumPct += calcCompletitud(c); });
+    var avgPct = total > 0 ? Math.round(sumPct / total) : 0;
+
+    var elTotal = _getEl('indCliTotal');
+    var elActivos = _getEl('indCliActivos');
+    var elInactivos = _getEl('indCliInactivos');
+    var elComp = _getEl('indCliCompletitud');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elActivos) elActivos.textContent = activos;
+    if (elInactivos) elInactivos.textContent = inactivos;
+    if (elComp) elComp.textContent = avgPct + '%';
+  }
+
+  // ── renderTable ──
+  function renderTable() {
+    var search = (_getEl('cliSearch') ? _getEl('cliSearch').value.trim().toLowerCase() : '');
+    var estadoFiltro = (_getEl('cliEstado') ? _getEl('cliEstado').value : '');
+
+    var filtered = _clientes.filter(function (c) {
+      if (search) {
+        var hay = [c.id, c.empresa, c.marcas, c.personaContacto].join(' ').toLowerCase();
+        if (hay.indexOf(search) === -1) return false;
+      }
+      if (estadoFiltro && String(c.cuentaActiva) !== estadoFiltro) return false;
+      return true;
+    });
+
+    var cliTable   = _getEl('cliTable');
+    var cliEmpty   = _getEl('cliEmpty');
+    var cliLoading = _getEl('cliLoading');
+    var cliBody    = _getEl('cliBody');
+
+    if (cliLoading) cliLoading.style.display = 'none';
+
+    if (!filtered.length) {
+      if (cliTable)  cliTable.style.display  = 'none';
+      if (cliEmpty)  cliEmpty.style.display  = 'block';
+      return;
+    }
+
+    if (cliTable)  cliTable.style.display  = 'table';
+    if (cliEmpty)  cliEmpty.style.display  = 'none';
+
+    var html = '';
+    filtered.forEach(function (c) {
+      var pct = calcCompletitud(c);
+      var pctClass = pct >= 70 ? 'status-pct--high' : pct >= 40 ? 'status-pct--mid' : 'status-pct--low';
+      var cuentaActiva = String(c.cuentaActiva) === 'Sí';
+      var cuentaClass  = cuentaActiva ? 'cuenta-badge--on' : 'cuenta-badge--off';
+      var cuentaLabel  = cuentaActiva ? 'ACTIVA' : 'INACTIVA';
+
+      var idSafe      = _escapeHTML(c.id || '');
+      var empresaSafe = _escapeHTML(c.empresa || '\u2014');
+      var marcasSafe  = _escapeHTML(c.marcas  || '\u2014');
+
+      html += '<tr>'
+        + '<td><span class="dash-table col-folio">' + idSafe + '</span></td>'
+        + '<td><span class="status-pct ' + pctClass + '">' + pct + '%</span></td>'
+        + '<td>' + empresaSafe + '</td>'
+        + '<td style="color:var(--tx);font-size:12px">' + marcasSafe + '</td>'
+        + '<td><span class="cuenta-badge ' + cuentaClass + '" title="' + cuentaLabel + '"></span></td>'
+        + '<td>'
+        +   '<button class="tbl-action tbl-action--edit" data-id="' + idSafe + '" title="Editar">&#9998;</button>'
+        +   '<button class="tbl-action tbl-action--view" data-id="' + idSafe + '" title="Ver">&#128065;</button>'
+        +   '<button class="tbl-action tbl-action--del" data-id="' + idSafe + '" title="Eliminar">&times;</button>'
+        + '</td>'
+        + '</tr>';
+    });
+
+    if (cliBody) cliBody.innerHTML = html;
+  }
+
+  // ── Actualizar círculo de completitud en el modal ──
+  function _actualizarCirculo(pct) {
+    var path = _getEl('cliCompletitudPath');
+    var text = _getEl('cliCompletitudText');
+    if (path) path.setAttribute('stroke-dasharray', pct + ', 100');
+    if (text) text.textContent = pct + '%';
+  }
+
+  // ── abrirModal ──
+  function abrirModal(clienteData, modo) {
+    var overlay = _getEl('cliOverlay');
+    var titulo  = _getEl('cliModalTitle');
+    if (!overlay) return;
+
+    // Limpiar siempre primero
+    _setVal('cliId', '');
+    Object.keys(CAMPO_ID).forEach(function (campo) {
+      _setVal(CAMPO_ID[campo], '');
+    });
+    // Valores por defecto para selects
+    _setVal('cliCuentaActiva', 'Sí');
+    _setVal('cliPais', 'México');
+
+    if (modo === 'crear') {
+      if (titulo) titulo.textContent = 'NUEVO CLIENTE';
+      _actualizarCirculo(0);
+    } else {
+      var esModo = (modo === 'editar') ? 'EDITAR CLIENTE' : 'VER CLIENTE';
+      if (titulo) titulo.textContent = esModo;
+
+      if (clienteData && clienteData.id) {
+        _setVal('cliId', clienteData.id);
+      }
+
+      // Popular todos los campos mapeados
+      Object.keys(CAMPO_ID).forEach(function (campo) {
+        if (clienteData && clienteData[campo] !== undefined) {
+          _setVal(CAMPO_ID[campo], clienteData[campo]);
+        }
+      });
+
+      // Modo ver: deshabilitar todos los campos
+      var esVer = (modo === 'ver');
+      var modal = overlay.querySelector('.bnk-modal');
+      if (modal) {
+        var inputs = modal.querySelectorAll('input, select, textarea');
+        inputs.forEach(function (el) {
+          if (el.id === 'cliId') return;
+          el.disabled = esVer;
+        });
+        var btnGuardar = _getEl('cliGuardar');
+        if (btnGuardar) btnGuardar.style.display = esVer ? 'none' : '';
+      }
+
+      var pct = calcCompletitud(clienteData);
+      _actualizarCirculo(pct);
+    }
+
+    // Mostrar primer tab
+    _activarTab('cliTab1');
+
+    // ── Cotizaciones vinculadas ──
+    var wrap = _getEl('cliCotizacionesWrap');
+    if (!wrap) {
+      // Inyectar contenedor si no existe en el HTML
+      wrap = document.createElement('div');
+      wrap.id = 'cliCotizacionesWrap';
+      wrap.style.marginTop = '16px';
+      var modalBody = overlay.querySelector('.bnk-modal-body');
+      if (modalBody) modalBody.appendChild(wrap);
+    }
+    var empresaNombre = (clienteData && clienteData.empresa) ? String(clienteData.empresa).toLowerCase() : '';
+    var allCots = (window.DASH && window.DASH.allData) ? window.DASH.allData : [];
+    var vinculadas = [];
+    if (empresaNombre) {
+      vinculadas = allCots.filter(function (cot) {
+        var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
+        return cotEmpresa === empresaNombre;
+      });
+    }
+    var cotHtml = '<div class="bnk-section-label" style="margin-top:16px">COTIZACIONES VINCULADAS: ' + vinculadas.length + '</div>';
+    cotHtml += '<div id="cliCotizaciones">';
+    if (vinculadas.length === 0) {
+      cotHtml += '<span style="color:var(--tx-muted);font-size:12px">Sin cotizaciones vinculadas</span>';
+    } else {
+      vinculadas.forEach(function (cot) {
+        var folio = _escapeHTML(cot.folio || '');
+        var estado = _escapeHTML(cot.estado || '');
+        var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
+        if (pdfUrl) {
+          cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
+        } else {
+          cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
+        }
+        if (estado) {
+          cotHtml += '<span style="font-size:11px;color:var(--tx-muted)">(' + estado + ')</span> ';
+        }
+      });
+    }
+    cotHtml += '</div>';
+    wrap.innerHTML = cotHtml;
+
+    // Hacer visible el overlay
+    overlay.classList.add('visible');
+  }
+
+  // ── cerrarModal ──
+  function cerrarModal() {
+    var overlay = _getEl('cliOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+
+    // Re-habilitar inputs por si venía de modo 'ver'
+    var inputs = overlay.querySelectorAll('input, select, textarea');
+    inputs.forEach(function (el) { el.disabled = false; });
+    var btnGuardar = _getEl('cliGuardar');
+    if (btnGuardar) btnGuardar.style.display = '';
+  }
+
+  // ── Activar tab en el modal ──
+  function _activarTab(tabId) {
+    var overlay = _getEl('cliOverlay');
+    if (!overlay) return;
+
+    // Desactivar todos los tabs
+    var tabs = overlay.querySelectorAll('.modal-tab');
+    tabs.forEach(function (t) { t.classList.remove('active'); });
+    var panels = overlay.querySelectorAll('.modal-tab-content');
+    panels.forEach(function (p) {
+      p.classList.remove('active');
+      p.style.display = 'none';
+    });
+
+    // Activar el solicitado
+    var panelTarget = _getEl(tabId);
+    if (panelTarget) {
+      panelTarget.classList.add('active');
+      panelTarget.style.display = 'block';
+    }
+
+    // Activar botón de tab correspondiente
+    var btn = overlay.querySelector('[data-target="' + tabId + '"]');
+    if (btn) btn.classList.add('active');
+  }
+
+  // ── guardarCliente ──
+  function guardarCliente() {
+    var empresa = _getVal('cliEmpresa').trim();
+    if (!empresa) {
+      alert('El nombre de la empresa es obligatorio.');
+      return;
+    }
+
+    var id = _getVal('cliId').trim();
+    var esNuevo = !id;
+
+    // Recopilar todos los campos
+    var payload = { tipoOperacion: esNuevo ? 'createCliente' : 'updateCliente' };
+    if (!esNuevo) payload.id = id;
+
+    Object.keys(CAMPO_ID).forEach(function (campo) {
+      payload[campo] = _getVal(CAMPO_ID[campo]).trim();
+    });
+
+    var url = _url();
+    if (!url) { alert('URL del backend no configurada.'); return; }
+
+    var btnGuardar = _getEl('cliGuardar');
+    if (btnGuardar) { btnGuardar.textContent = 'GUARDANDO...'; btnGuardar.disabled = true; }
+
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (result) {
+      if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
+      if (result.status === 'ok') {
+        cerrarModal();
+        load();
+      } else {
+        alert('Error: ' + (result.message || 'No se pudo guardar.'));
+      }
+    })
+    .catch(function (err) {
+      if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
+      alert('Error de conexión: ' + err.message);
+    });
+  }
+
+  // ── eliminarCliente ──
+  function eliminarCliente(id) {
+    if (!confirm('\xBFEliminar el cliente ' + id + '?\nEsta acción lo marcará como inactivo.')) return;
+    var url = _url();
+    if (!url) return;
+
+    fetch(url + '?action=deleteCliente&id=' + encodeURIComponent(id))
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (result.status === 'ok') {
+          load();
+        } else {
+          alert('Error: ' + (result.message || 'No se pudo eliminar.'));
+        }
+      })
+      .catch(function (err) {
+        alert('Error de conexión: ' + err.message);
+      });
+  }
+
+  // ── load ──
+  function load() {
+    var url = _url();
+    var cliLoading = _getEl('cliLoading');
+    var cliTable   = _getEl('cliTable');
+    var cliEmpty   = _getEl('cliEmpty');
+
+    if (cliLoading) cliLoading.style.display = 'block';
+    if (cliTable)   cliTable.style.display   = 'none';
+    if (cliEmpty)   cliEmpty.style.display   = 'none';
+
+    if (!url) {
+      if (cliLoading) cliLoading.style.display = 'none';
+      if (cliEmpty)   cliEmpty.style.display   = 'block';
+      _clientes = [];
+      updateIndicators();
+      return;
+    }
+
+    fetch(url + '?action=listClientes')
+      .then(function (res) { return res.json(); })
+      .then(function (result) {
+        if (cliLoading) cliLoading.style.display = 'none';
+        if (result.status === 'ok') {
+          _clientes = result.data || [];
+          // Sincronizar con window.DASH para que el autocompletado BNK tenga datos frescos
+          if (window.DASH) window.DASH.allClientes = _clientes;
+          _cargado = true;
+          renderTable();
+          updateIndicators();
+        } else {
+          _clientes = [];
+          if (cliEmpty) cliEmpty.style.display = 'block';
+          updateIndicators();
+        }
+      })
+      .catch(function () {
+        if (cliLoading) cliLoading.style.display = 'none';
+        _clientes = [];
+        if (cliEmpty) {
+          cliEmpty.style.display = 'block';
+          var txt = cliEmpty.querySelector('.dash-empty-text');
+          if (txt) txt.textContent = 'ERROR AL CARGAR CLIENTES';
+        }
+        updateIndicators();
+      });
+  }
+
+  // ── Event listeners de tabs internos del modal ──
+  function _setupModalTabs() {
+    var overlay = _getEl('cliOverlay');
+    if (!overlay) return;
+    overlay.addEventListener('click', function (e) {
+      var tab = e.target.closest('.modal-tab');
+      if (!tab) return;
+      var target = tab.getAttribute('data-target');
+      if (target) _activarTab(target);
+    });
+  }
+
+  // ── Event listeners de filtros ──
+  function _setupFiltros() {
+    var search = _getEl('cliSearch');
+    var estado = _getEl('cliEstado');
+    if (search) search.addEventListener('input', renderTable);
+    if (estado) estado.addEventListener('change', renderTable);
+  }
+
+  // ── Event delegation en la tabla ──
+  function _setupTablaAcciones() {
+    var cliBody = _getEl('cliBody');
+    if (!cliBody) return;
+
+    // Delegación de eventos en tbody
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.tbl-action');
+      if (!btn) return;
+
+      // Verificar que el botón está dentro de #cliBody
+      if (!btn.closest('#cliBody')) return;
+
+      var id = btn.getAttribute('data-id');
+      var cliente = null;
+      for (var i = 0; i < _clientes.length; i++) {
+        if (_clientes[i].id === id) { cliente = _clientes[i]; break; }
+      }
+
+      if (btn.classList.contains('tbl-action--edit')) {
+        if (cliente) abrirModal(cliente, 'editar');
+      } else if (btn.classList.contains('tbl-action--view')) {
+        if (cliente) abrirModal(cliente, 'ver');
+      } else if (btn.classList.contains('tbl-action--del')) {
+        eliminarCliente(id);
+      }
+    });
+  }
+
+  // ── Event listeners generales ──
+  function _setupEventos() {
+    var btnNuevo = _getEl('btnNuevoCliente');
+    if (btnNuevo) btnNuevo.addEventListener('click', function () { abrirModal({}, 'crear'); });
+
+    var btnGuardar = _getEl('cliGuardar');
+    if (btnGuardar) btnGuardar.addEventListener('click', guardarCliente);
+
+    var btnCancel = _getEl('cliCancel');
+    if (btnCancel) btnCancel.addEventListener('click', cerrarModal);
+
+    var btnClose = _getEl('cliClose');
+    if (btnClose) btnClose.addEventListener('click', cerrarModal);
+
+    // Cerrar al hacer click en el overlay (fuera del modal)
+    var overlay = _getEl('cliOverlay');
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) cerrarModal();
+      });
+    }
+
+    _setupModalTabs();
+    _setupFiltros();
+    _setupTablaAcciones();
+  }
+
+  // ── Inicializar ──
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', _setupEventos);
+    } else {
+      _setupEventos();
+    }
+  }
+
+  init();
+
+  // ── Namespace público ──
+  window.BNKClientes = {
+    load:              load,
+    renderTable:       renderTable,
+    updateIndicators:  updateIndicators,
+    calcCompletitud:   calcCompletitud,
+    abrirModal:        abrirModal,
+    cerrarModal:       cerrarModal,
+    guardarCliente:    guardarCliente,
+    eliminarCliente:   eliminarCliente
+  };
+
+})();

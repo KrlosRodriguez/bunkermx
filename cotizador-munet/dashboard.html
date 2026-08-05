@@ -186,6 +186,56 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .bnk-total-row{display:flex;justify-content:space-between;padding:4px 0;font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--tx)}
 .bnk-total-gran{font-size:20px;font-weight:700;color:var(--ylw);border-top:1px solid var(--ylw);padding-top:8px;margin-top:4px}
 
+/* ── DASH TABS ── */
+.dash-tabs{display:flex;gap:0;padding:0 30px;border-bottom:1px solid var(--bd);background:rgba(5,9,5,.95);position:sticky;top:54px;z-index:90}
+.dash-tab{padding:12px 24px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.dash-tab:hover{color:var(--wh)}
+.dash-tab.active{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── DASH SECTION ── */
+.dash-section{display:block}
+
+/* ── MODAL TABS ── */
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:20px}
+.modal-tab{padding:10px 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+.modal-tab:hover{color:var(--wh)}
+.modal-tab.active{color:var(--g);border-bottom-color:var(--g)}
+.modal-tab-content{display:block}
+.modal-tab-content[style*="display:none"]{display:none!important}
+
+/* ── COMPLETITUD CIRCLE ── */
+.completitud-circle{position:relative;width:40px;height:40px;flex-shrink:0}
+.completitud-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.completitud-bg{fill:none;stroke:var(--bd);stroke-width:3}
+.completitud-fg{fill:none;stroke:var(--g);stroke-width:3;stroke-linecap:round;transition:stroke-dasharray .4s}
+.completitud-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;color:var(--g)}
+
+/* ── STATUS BADGE (% completitud en tabla) ── */
+.status-pct{display:inline-block;padding:2px 8px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;border:1px solid;min-width:45px;text-align:center}
+.status-pct--low{color:var(--red);border-color:rgba(255,68,85,.3);background:rgba(255,68,85,.06)}
+.status-pct--mid{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
+.status-pct--high{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+
+/* ── TIPO PROVEEDOR BADGE ── */
+.tipo-prv-badge{display:inline-block;padding:2px 8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;border:1px solid}
+.tipo-Pool{color:var(--blu);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06)}
+.tipo-One-Shot{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
+
+/* ── CUENTA ACTIVA BADGE ── */
+.cuenta-badge{display:inline-block;width:10px;height:10px;border-radius:50%}
+.cuenta-badge--on{background:var(--g);box-shadow:0 0 6px rgba(0,255,65,.4)}
+.cuenta-badge--off{background:var(--red);box-shadow:0 0 6px rgba(255,68,85,.4)}
+
+/* ── ACTION BUTTONS IN TABLE ── */
+.tbl-action{background:none;border:1px solid var(--bd);color:var(--tx);padding:4px 8px;font-size:12px;cursor:pointer;transition:all .2s;margin-right:4px}
+.tbl-action:hover{color:var(--wh);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+.tbl-action--del{color:var(--red);border-color:rgba(255,68,85,.3)}
+.tbl-action--del:hover{background:rgba(255,68,85,.1);border-color:var(--red)}
+
+/* ── SERVICIO INLINE EDIT ROW ── */
+.srv-edit-row{display:grid;grid-template-columns:140px 1fr 80px 110px 36px;gap:6px;padding:8px 0;align-items:center;border-bottom:1px solid rgba(0,255,65,.06)}
+.srv-edit-row input,.srv-edit-row select{padding:6px 8px;background:var(--card);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif;font-size:12px;outline:none}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .dash-indicators{grid-template-columns:repeat(2,1fr)}
@@ -198,6 +248,11 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   .bnk-conceptos-header{display:none}
   .bnk-concepto-row{grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
   .bnk-concepto-row select,.bnk-concepto-row input{width:100%}
+  .dash-tabs{padding:0 16px;overflow-x:auto}
+  .dash-tab{padding:10px 16px;font-size:11px;white-space:nowrap}
+  .modal-tabs{overflow-x:auto}
+  .modal-tab{padding:8px 12px;font-size:10px;white-space:nowrap}
+  .srv-edit-row{grid-template-columns:100px 1fr 60px 80px 36px;gap:4px}
 }
 @media(max-width:600px){
   .dash-indicators{grid-template-columns:1fr}
@@ -206,6 +261,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   .bnk-concepto-row{grid-template-columns:1fr}
   .dash-nav-right{gap:6px}
   .dash-btn--bnk{padding:6px 10px;font-size:11px;letter-spacing:1px}
+  .dash-tab{padding:8px 10px;font-size:10px;letter-spacing:1px}
 }
 </style>
 </head>
@@ -226,6 +282,16 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     <a href="index.html" class="dash-btn">COTIZADOR</a>
   </div>
 </nav>
+
+<!-- TABS -->
+<div class="dash-tabs" id="dashTabs">
+  <button class="dash-tab active" data-tab="cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab" data-tab="clientes">CLIENTES</button>
+  <button class="dash-tab" data-tab="proveedores">PROVEEDORES</button>
+</div>
+
+<!-- SECCIÓN: COTIZACIONES -->
+<div class="dash-section active" id="secCotizaciones">
 
 <!-- INDICATORS -->
 <div class="dash-indicators">
@@ -299,6 +365,117 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 <!-- FOOTER -->
 <footer class="dash-footer">&copy; 2026 BUNKER CREATIVIDAD EMPRESARIAL SAPI SA DE CV</footer>
 
+</div><!-- /secCotizaciones -->
+
+<!-- SECCIÓN: CLIENTES -->
+<div class="dash-section" id="secClientes" style="display:none">
+  <div class="dash-indicators">
+    <div class="dash-card">
+      <div class="dash-card-label">TOTAL CLIENTES</div>
+      <div class="dash-card-value" id="indCliTotal">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">ACTIVOS</div>
+      <div class="dash-card-value" id="indCliActivos">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">INACTIVOS</div>
+      <div class="dash-card-value" id="indCliInactivos">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">% COMPLETITUD PROMEDIO</div>
+      <div class="dash-card-value" id="indCliCompletitud">—</div>
+    </div>
+  </div>
+  <div class="dash-filters">
+    <input type="text" class="dash-search" id="cliSearch" placeholder="Buscar por nombre, marca o ID...">
+    <select class="dash-select" id="cliEstado">
+      <option value="">TODOS</option>
+      <option value="Sí">ACTIVOS</option>
+      <option value="No">INACTIVOS</option>
+    </select>
+    <button class="dash-btn dash-btn--accent" id="btnNuevoCliente">+ NUEVO CLIENTE</button>
+  </div>
+  <div class="dash-table-wrap">
+    <div class="dash-loading" id="cliLoading" style="display:none">CARGANDO CLIENTES...</div>
+    <table class="dash-table" id="cliTable" style="display:none">
+      <thead>
+        <tr>
+          <th>NO. CLIENTE</th>
+          <th>STATUS %</th>
+          <th>EMPRESA</th>
+          <th>MARCAS</th>
+          <th>CUENTA</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody id="cliBody"></tbody>
+    </table>
+    <div class="dash-empty" id="cliEmpty" style="display:none">
+      <div class="dash-empty-icon">&#128100;</div>
+      <div class="dash-empty-text">NO HAY CLIENTES REGISTRADOS</div>
+    </div>
+  </div>
+</div><!-- /secClientes -->
+
+<!-- SECCIÓN: PROVEEDORES -->
+<div class="dash-section" id="secProveedores" style="display:none">
+  <div class="dash-indicators">
+    <div class="dash-card">
+      <div class="dash-card-label">TOTAL PROVEEDORES</div>
+      <div class="dash-card-value" id="indPrvTotal">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">POOL</div>
+      <div class="dash-card-value" id="indPrvPool">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">ONE SHOT</div>
+      <div class="dash-card-value" id="indPrvOneShot">—</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-label">% COMPLETITUD PROMEDIO</div>
+      <div class="dash-card-value" id="indPrvCompletitud">—</div>
+    </div>
+  </div>
+  <div class="dash-filters">
+    <input type="text" class="dash-search" id="prvSearch" placeholder="Buscar por nombre, razón social o ID...">
+    <select class="dash-select" id="prvTipo">
+      <option value="">TODOS LOS TIPOS</option>
+      <option value="Pool">POOL</option>
+      <option value="One Shot">ONE SHOT</option>
+    </select>
+    <select class="dash-select" id="prvEstado">
+      <option value="">TODOS</option>
+      <option value="Sí">ACTIVOS</option>
+      <option value="No">INACTIVOS</option>
+    </select>
+    <button class="dash-btn dash-btn--accent" id="btnNuevoProveedor">+ NUEVO PROVEEDOR</button>
+  </div>
+  <div class="dash-table-wrap">
+    <div class="dash-loading" id="prvLoading" style="display:none">CARGANDO PROVEEDORES...</div>
+    <table class="dash-table" id="prvTable" style="display:none">
+      <thead>
+        <tr>
+          <th>NO. PROVEEDOR</th>
+          <th>STATUS %</th>
+          <th>RAZÓN SOCIAL</th>
+          <th>NOMBRE COMERCIAL</th>
+          <th>TIPO</th>
+          <th>CUENTA</th>
+          <th>FECHA ALTA</th>
+          <th>ACCIONES</th>
+        </tr>
+      </thead>
+      <tbody id="prvBody"></tbody>
+    </table>
+    <div class="dash-empty" id="prvEmpty" style="display:none">
+      <div class="dash-empty-icon">&#128188;</div>
+      <div class="dash-empty-text">NO HAY PROVEEDORES REGISTRADOS</div>
+    </div>
+  </div>
+</div><!-- /secProveedores -->
+
 <!-- MODAL BNK -->
 <div class="bnk-overlay" id="bnkOverlay">
   <div class="bnk-modal" id="bnkModal">
@@ -315,6 +492,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
           <label class="bnk-label">EMPRESA</label>
           <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar o crear cliente..." autocomplete="off">
           <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
+          <input type="hidden" id="bnkClienteId">
         </div>
         <div class="bnk-form-group">
           <label class="bnk-label">CONTACTO</label>
@@ -347,6 +525,12 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         <div class="bnk-form-group bnk-form-full">
           <label class="bnk-label">NOTA INTERNA</label>
           <input type="text" class="bnk-input" id="bnkNota" placeholder="Nota opcional para el perfil del cliente">
+        </div>
+        <div class="bnk-form-group">
+          <label class="bnk-label">PROVEEDOR (OPCIONAL)</label>
+          <input type="text" class="bnk-input" id="bnkProveedor" placeholder="Buscar proveedor..." autocomplete="off">
+          <div class="bnk-autocomplete" id="bnkAutoProveedor"></div>
+          <input type="hidden" id="bnkProveedorId">
         </div>
       </div>
 
@@ -393,6 +577,536 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   </div>
 </div>
 
+<!-- MODAL CLIENTE -->
+<div class="bnk-overlay" id="cliOverlay">
+  <div class="bnk-modal" style="max-width:1060px">
+    <div class="bnk-modal-header">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="bnk-modal-title" id="cliModalTitle">NUEVO CLIENTE</span>
+        <div class="completitud-circle" id="cliCompletitud">
+          <svg viewBox="0 0 36 36" class="completitud-svg">
+            <path class="completitud-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="completitud-fg" id="cliCompletitudPath" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="completitud-text" id="cliCompletitudText">0%</span>
+        </div>
+      </div>
+      <button class="bnk-modal-close" id="cliClose">&times;</button>
+    </div>
+    <div class="bnk-modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-target="cliTab1">DATOS GENERALES</button>
+        <button class="modal-tab" data-target="cliTab2">CONTACTO</button>
+        <button class="modal-tab" data-target="cliTab3">FACTURACIÓN</button>
+        <button class="modal-tab" data-target="cliTab4">BANCARIOS</button>
+      </div>
+      <input type="hidden" id="cliId">
+      <!-- Tab 1: Datos Generales -->
+      <div class="modal-tab-content active" id="cliTab1">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">EMPRESA / NOMBRE *</label>
+            <input type="text" class="bnk-input" id="cliEmpresa" placeholder="Nombre de la empresa">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">MARCAS</label>
+            <input type="text" class="bnk-input" id="cliMarcas" placeholder="Separar con coma: Marca1, Marca2">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PERSONA</label>
+            <select class="bnk-input" id="cliTipoPersona">
+              <option value="">— Seleccionar —</option>
+              <option value="Persona moral">Persona moral</option>
+              <option value="Persona física">Persona física con actividad empresarial</option>
+              <option value="Residente en el extranjero">Residente en el extranjero</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CONDICIONES DE PAGO (DÍAS)</label>
+            <input type="text" class="bnk-input" id="cliCondicionesPago" placeholder="Ej: 30">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA ACTIVA</label>
+            <select class="bnk-input" id="cliCuentaActiva">
+              <option value="Sí">Sí</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE ALTA</label>
+            <input type="text" class="bnk-input" id="cliFechaAlta" readonly>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">OBSERVACIONES</label>
+            <textarea class="bnk-textarea" id="cliObservaciones" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 2: Datos de Contacto -->
+      <div class="modal-tab-content" id="cliTab2" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PERSONA DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="cliPersonaContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PUESTO / DESCRIPCIÓN</label>
+            <input type="text" class="bnk-input" id="cliPuestoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CORREO DE CONTACTO</label>
+            <input type="email" class="bnk-input" id="cliCorreoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TELÉFONO DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="cliTelefonoContacto">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 3: Datos de Facturación -->
+      <div class="modal-tab-content" id="cliTab3" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">RAZÓN SOCIAL</label>
+            <input type="text" class="bnk-input" id="cliRazonSocial">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RFC</label>
+            <input type="text" class="bnk-input" id="cliRfc">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CURP (PERSONA FÍSICA)</label>
+            <input type="text" class="bnk-input" id="cliCurp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RÉGIMEN FISCAL</label>
+            <input type="text" class="bnk-input" id="cliRegimenFiscal" placeholder="Clave y descripción">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">USO DE CFDI</label>
+            <input type="text" class="bnk-input" id="cliUsoCfdi">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FORMA DE PAGO</label>
+            <input type="text" class="bnk-input" id="cliFormaPago">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">MÉTODO DE PAGO</label>
+            <select class="bnk-input" id="cliMetodoPago">
+              <option value="">— Seleccionar —</option>
+              <option value="PUE">PUE</option>
+              <option value="PPD">PPD</option>
+            </select>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label" style="margin-top:12px;border-bottom:1px solid var(--bd);padding-bottom:6px">DIRECCIÓN FISCAL</label>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CALLE</label>
+            <input type="text" class="bnk-input" id="cliCalle">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. EXT</label>
+            <input type="text" class="bnk-input" id="cliNoExt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NO. INT</label>
+            <input type="text" class="bnk-input" id="cliNoInt">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">COLONIA</label>
+            <input type="text" class="bnk-input" id="cliColonia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CP</label>
+            <input type="text" class="bnk-input" id="cliCp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ALCALDÍA / MUNICIPIO</label>
+            <input type="text" class="bnk-input" id="cliAlcaldia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ESTADO</label>
+            <input type="text" class="bnk-input" id="cliEstadoGeo">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PAÍS</label>
+            <input type="text" class="bnk-input" id="cliPais" value="México">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 4: Datos Bancarios -->
+      <div class="modal-tab-content" id="cliTab4" style="display:none">
+        <div class="bnk-section-label">MONEDA NACIONAL (MXN)</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO</label>
+            <input type="text" class="bnk-input" id="cliBancoMxn">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SUCURSAL / PLAZA</label>
+            <input type="text" class="bnk-input" id="cliSucursal">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR DE LA CUENTA</label>
+            <input type="text" class="bnk-input" id="cliTitularCuenta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA CORTA</label>
+            <input type="text" class="bnk-input" id="cliCuentaCorta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CLABE (18 DÍGITOS)</label>
+            <input type="text" class="bnk-input" id="cliClabe" maxlength="18">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE CUENTA</label>
+            <select class="bnk-input" id="cliTipoCuenta">
+              <option value="">— Seleccionar —</option>
+              <option value="Cheques">Cheques</option>
+              <option value="Inversión">Inversión</option>
+            </select>
+          </div>
+        </div>
+        <div class="bnk-section-label" style="margin-top:20px">MONEDA EXTRANJERA</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO (NOMBRE Y PAÍS)</label>
+            <input type="text" class="bnk-input" id="cliBancoExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DIVISA</label>
+            <input type="text" class="bnk-input" id="cliDivisa" placeholder="USD, EUR, etc.">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR</label>
+            <input type="text" class="bnk-input" id="cliTitularExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA / IBAN</label>
+            <input type="text" class="bnk-input" id="cliCuentaIban">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT / BIC</label>
+            <input type="text" class="bnk-input" id="cliSwiftBic">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ABA / ROUTING</label>
+            <input type="text" class="bnk-input" id="cliAbaRouting">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="cliBancoIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="cliSwiftIntermediario">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bnk-modal-footer">
+      <button class="dash-btn" id="cliCancel">CANCELAR</button>
+      <button class="dash-btn dash-btn--accent" id="cliGuardar">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div class="bnk-overlay" id="prvOverlay">
+  <div class="bnk-modal" style="max-width:1060px">
+    <div class="bnk-modal-header">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span class="bnk-modal-title" id="prvModalTitle">NUEVO PROVEEDOR</span>
+        <div class="completitud-circle" id="prvCompletitud">
+          <svg viewBox="0 0 36 36" class="completitud-svg">
+            <path class="completitud-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="completitud-fg" id="prvCompletitudPath" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="completitud-text" id="prvCompletitudText">0%</span>
+        </div>
+      </div>
+      <button class="bnk-modal-close" id="prvClose">&times;</button>
+    </div>
+    <div class="bnk-modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-target="prvTab1">DATOS GENERALES</button>
+        <button class="modal-tab" data-target="prvTab2">CONTACTO</button>
+        <button class="modal-tab" data-target="prvTab3">FISCALES / FACTURACIÓN</button>
+        <button class="modal-tab" data-target="prvTab4">BANCARIOS</button>
+        <button class="modal-tab" data-target="prvTab5">SERVICIOS</button>
+      </div>
+      <input type="hidden" id="prvId">
+      <!-- Tab 1: Datos Generales -->
+      <div class="modal-tab-content active" id="prvTab1">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">RAZÓN SOCIAL *</label>
+            <input type="text" class="bnk-input" id="prvRazonSocial" placeholder="Razón social del proveedor">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">NOMBRE COMERCIAL</label>
+            <input type="text" class="bnk-input" id="prvNombreComercial" placeholder="Nombre comercial o marca">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PERSONA</label>
+            <select class="bnk-input" id="prvTipoPersona">
+              <option value="">— Seleccionar —</option>
+              <option value="Persona moral">Persona moral</option>
+              <option value="Persona física">Persona física con actividad empresarial</option>
+              <option value="Residente en el extranjero">Residente en el extranjero</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ACTIVIDAD PRINCIPAL</label>
+            <input type="text" class="bnk-input" id="prvActividadPrincipal" placeholder="Giro o actividad principal">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE CONSTITUCIÓN</label>
+            <input type="text" class="bnk-input" id="prvFechaConstitucion" placeholder="DD/MM/AAAA">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE PROVEEDOR</label>
+            <select class="bnk-input" id="prvTipoProveedor">
+              <option value="">— Seleccionar —</option>
+              <option value="Pool">Pool</option>
+              <option value="One Shot">One Shot</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA ACTIVA</label>
+            <select class="bnk-input" id="prvCuentaActiva">
+              <option value="Sí">Sí</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA DE ALTA</label>
+            <input type="text" class="bnk-input" id="prvFechaAlta" readonly>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">OBSERVACIONES</label>
+            <textarea class="bnk-textarea" id="prvObservaciones" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 2: Contacto -->
+      <div class="modal-tab-content" id="prvTab2" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PERSONA DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="prvNombreContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PUESTO / DESCRIPCIÓN</label>
+            <input type="text" class="bnk-input" id="prvPuestoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CORREO DE CONTACTO</label>
+            <input type="email" class="bnk-input" id="prvCorreoContacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TELÉFONO DE CONTACTO</label>
+            <input type="text" class="bnk-input" id="prvTelefonoContacto">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 3: Fiscales / Facturación -->
+      <div class="modal-tab-content" id="prvTab3" style="display:none">
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">RFC</label>
+            <input type="text" class="bnk-input" id="prvRfc">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CURP (PERSONA FÍSICA)</label>
+            <input type="text" class="bnk-input" id="prvCurp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">RÉGIMEN FISCAL</label>
+            <input type="text" class="bnk-input" id="prvRegimenFiscal" placeholder="Clave y descripción">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">USO DE CFDI</label>
+            <input type="text" class="bnk-input" id="prvUsoCfdi">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FORMA DE PAGO</label>
+            <input type="text" class="bnk-input" id="prvFormaPago">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">MÉTODO DE PAGO</label>
+            <select class="bnk-input" id="prvMetodoPago">
+              <option value="">— Seleccionar —</option>
+              <option value="PUE">PUE</option>
+              <option value="PPD">PPD</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DÍAS CRÉDITO</label>
+            <input type="text" class="bnk-input" id="prvDiasCredito" placeholder="Ej: 30">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">OPINIÓN 32-D</label>
+            <select class="bnk-input" id="prvOpinion32d">
+              <option value="">— Seleccionar —</option>
+              <option value="Positiva">Positiva</option>
+              <option value="Negativa">Negativa</option>
+              <option value="No aplica">No aplica</option>
+            </select>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA CONSTANCIA FISCAL</label>
+            <input type="text" class="bnk-input" id="prvFechaConstanciaFiscal" placeholder="DD/MM/AAAA">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label" style="margin-top:12px;border-bottom:1px solid var(--bd);padding-bottom:6px">DIRECCIÓN FISCAL</label>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CALLE</label>
+            <input type="text" class="bnk-input" id="prvCalle">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NÚMERO</label>
+            <input type="text" class="bnk-input" id="prvNumero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">COLONIA</label>
+            <input type="text" class="bnk-input" id="prvColonia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CP</label>
+            <input type="text" class="bnk-input" id="prvCp">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ALCALDÍA / MUNICIPIO</label>
+            <input type="text" class="bnk-input" id="prvAlcaldia">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ESTADO</label>
+            <input type="text" class="bnk-input" id="prvEntidad">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">PAÍS</label>
+            <input type="text" class="bnk-input" id="prvPais" value="México">
+          </div>
+        </div>
+      </div>
+      <!-- Tab 4: Bancarios -->
+      <div class="modal-tab-content" id="prvTab4" style="display:none">
+        <div class="bnk-section-label">MONEDA NACIONAL (MXN)</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO</label>
+            <input type="text" class="bnk-input" id="prvBancoMxn">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SUCURSAL / PLAZA</label>
+            <input type="text" class="bnk-input" id="prvSucursalPlaza">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR DE LA CUENTA</label>
+            <input type="text" class="bnk-input" id="prvTitularCuenta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA CORTA</label>
+            <input type="text" class="bnk-input" id="prvCuentaCorta">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CLABE (18 DÍGITOS)</label>
+            <input type="text" class="bnk-input" id="prvClabe" maxlength="18">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TIPO DE CUENTA</label>
+            <select class="bnk-input" id="prvTipoCuenta">
+              <option value="">— Seleccionar —</option>
+              <option value="Cheques">Cheques</option>
+              <option value="Inversión">Inversión</option>
+            </select>
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">DIRECCIÓN DEL BANCO</label>
+            <input type="text" class="bnk-input" id="prvDireccionBanco">
+          </div>
+        </div>
+        <div class="bnk-section-label" style="margin-top:20px">MONEDA EXTRANJERA</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO (NOMBRE Y PAÍS)</label>
+            <input type="text" class="bnk-input" id="prvBancoExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">DIVISA</label>
+            <input type="text" class="bnk-input" id="prvDivisa" placeholder="USD, EUR, etc.">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TITULAR</label>
+            <input type="text" class="bnk-input" id="prvTitularExtranjero">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CUENTA / IBAN</label>
+            <input type="text" class="bnk-input" id="prvCuentaIban">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT / BIC</label>
+            <input type="text" class="bnk-input" id="prvSwiftBic">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">ABA / ROUTING</label>
+            <input type="text" class="bnk-input" id="prvAbaRouting">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">BANCO INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="prvBancoIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SWIFT INTERMEDIARIO</label>
+            <input type="text" class="bnk-input" id="prvSwiftIntermediario">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">GASTOS BANCARIOS</label>
+            <select class="bnk-input" id="prvGastosBancarios">
+              <option value="">— Seleccionar —</option>
+              <option value="OUR">OUR (pagados por ordenante)</option>
+              <option value="SHA">SHA (compartidos)</option>
+              <option value="BEN">BEN (pagados por beneficiario)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Tab 5: Servicios -->
+      <div class="modal-tab-content" id="prvTab5" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span class="bnk-section-label" style="margin:0;border:none">SERVICIOS Y COSTOS</span>
+          <button class="dash-btn dash-btn--accent" id="prvAddServicio">+ AGREGAR SERVICIO</button>
+        </div>
+        <table class="dash-table" id="prvServiciosTable">
+          <thead>
+            <tr>
+              <th>CATEGORÍA</th>
+              <th>SERVICIO</th>
+              <th>UNIDAD</th>
+              <th>COSTO UNITARIO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="prvServiciosBody"></tbody>
+        </table>
+        <div class="dash-empty" id="prvServiciosEmpty" style="display:none">
+          <div class="dash-empty-text">SIN SERVICIOS REGISTRADOS</div>
+        </div>
+      </div>
+    </div>
+    <div class="bnk-modal-footer">
+      <button class="dash-btn" id="prvCancel">CANCELAR</button>
+      <button class="dash-btn dash-btn--accent" id="prvGuardar">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/pages/clientes.js" defer></script>
+<script src="../js/pages/proveedores.js" defer></script>
+
 <script>
 (function () {
   'use strict';
@@ -405,6 +1119,17 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   var allData = [];
   var allClientes = [];
   var allCatalogo = [];
+
+  // ── EXPONER PARA MÓDULOS EXTERNOS (clientes.js, proveedores.js) ──
+  window.DASH = {
+    APPS_SCRIPT_URL: APPS_SCRIPT_URL,
+    allData: allData,
+    allClientes: allClientes,
+    escapeHTML: escapeHTML,
+    formatMXN: formatMXN,
+    parseFecha: parseFecha,
+    formatFechaDisplay: formatFechaDisplay
+  };
 
   // ── UTILIDADES ──
   function formatMXN(n) {
@@ -510,6 +1235,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         loading.style.display = 'none';
         if (result.status === 'ok') {
           allData = result.data || [];
+          window.DASH.allData = allData;
           renderTable();
           updateIndicators(allData);
           document.getElementById('dashLastUpdate').textContent = 'ACT: ' + new Date().toLocaleTimeString('es-MX');
@@ -520,6 +1246,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
           ]).then(function(results) {
             allClientes = (results[0].status === 'ok') ? results[0].data : [];
             allCatalogo = (results[1].status === 'ok') ? results[1].data : [];
+            // Sincronizar referencia en window.DASH para módulos externos
+            if (window.DASH) window.DASH.allClientes = allClientes;
           }).catch(function(){});
         } else {
           empty.style.display = 'block';
@@ -715,6 +1443,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     document.getElementById('bnkFechaEvento').value = '';
     document.getElementById('bnkSede').value = 'MUNET';
     document.getElementById('bnkNota').value = '';
+    document.getElementById('bnkClienteId').value = '';
+    document.getElementById('bnkProveedor').value = '';
+    document.getElementById('bnkProveedorId').value = '';
 
     document.getElementById('bnkPlantilla').value = 'estandar';
     document.getElementById('bnkCondiciones').value = PLANTILLAS.estandar;
@@ -736,6 +1467,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
     input.addEventListener('input', function () {
       var val = input.value.trim().toLowerCase();
+      // Limpiar clienteId cuando el usuario escribe manualmente
+      document.getElementById('bnkClienteId').value = '';
       if (val.length < 2) { dropdown.classList.remove('visible'); return; }
 
       var matches = allClientes.filter(function (c) {
@@ -744,7 +1477,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
       var html = '';
       matches.forEach(function (c) {
-        html += '<div class="bnk-ac-item" data-id="' + c.id + '" data-empresa="' + escapeHTML(c.empresa) + '" data-contacto="' + escapeHTML(c.contacto) + '" data-telefono="' + escapeHTML(c.telefono) + '" data-correo="' + escapeHTML(c.correo) + '">' + escapeHTML(c.empresa) + '</div>';
+        html += '<div class="bnk-ac-item" data-id="' + escapeHTML(c.id || '') + '" data-empresa="' + escapeHTML(c.empresa) + '" data-contacto="' + escapeHTML(c.contacto) + '" data-telefono="' + escapeHTML(c.telefono) + '" data-correo="' + escapeHTML(c.correo) + '">' + escapeHTML(c.empresa) + '</div>';
       });
 
       if (matches.length === 0) {
@@ -768,11 +1501,58 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       document.getElementById('bnkContacto').value = item.getAttribute('data-contacto') || '';
       document.getElementById('bnkTelefono').value = item.getAttribute('data-telefono') || '';
       document.getElementById('bnkCorreo').value = item.getAttribute('data-correo') || '';
+      document.getElementById('bnkClienteId').value = item.getAttribute('data-id') || '';
       dropdown.classList.remove('visible');
     });
 
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.bnk-form-group')) dropdown.classList.remove('visible');
+    });
+
+    // ── AUTOCOMPLETADO DE PROVEEDORES ──
+    var prvInput    = document.getElementById('bnkProveedor');
+    var prvDropdown = document.getElementById('bnkAutoProveedor');
+
+    prvInput.addEventListener('input', function () {
+      var val = prvInput.value.trim().toLowerCase();
+      document.getElementById('bnkProveedorId').value = '';
+      if (val.length < 2) { prvDropdown.classList.remove('visible'); return; }
+
+      var lista = (window.BNKProveedores && window.BNKProveedores.getAll) ? window.BNKProveedores.getAll() : [];
+      // Fallback: intentar obtener desde window.DASH si existe
+      if (!lista.length && window.DASH && window.DASH.allProveedores) {
+        lista = window.DASH.allProveedores;
+      }
+
+      var matches = lista.filter(function (p) {
+        var haystack = ((p.nombreComercial || '') + ' ' + (p.razonSocial || '')).toLowerCase();
+        return haystack.indexOf(val) !== -1;
+      });
+
+      var html = '';
+      matches.slice(0, 10).forEach(function (p) {
+        var nombre = p.nombreComercial || p.razonSocial || '';
+        html += '<div class="bnk-ac-item" data-id="' + escapeHTML(p.id || '') + '" data-nombre="' + escapeHTML(nombre) + '">' + escapeHTML(nombre) + '</div>';
+      });
+
+      if (matches.length === 0) {
+        html = '<div class="bnk-ac-item" style="opacity:0.5;cursor:default">Sin coincidencias</div>';
+      }
+
+      prvDropdown.innerHTML = html;
+      prvDropdown.classList.add('visible');
+    });
+
+    prvDropdown.addEventListener('click', function (e) {
+      var item = e.target.closest('.bnk-ac-item');
+      if (!item || item.style.cursor === 'default') return;
+      document.getElementById('bnkProveedor').value = item.getAttribute('data-nombre') || '';
+      document.getElementById('bnkProveedorId').value = item.getAttribute('data-id') || '';
+      prvDropdown.classList.remove('visible');
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.bnk-form-group')) prvDropdown.classList.remove('visible');
     });
   }
 
@@ -1160,7 +1940,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       tipoCotizacion: 'BNK',
       folio: folio,
       folioMNT: document.getElementById('bnkFolioMNT').value.trim(),
-      clienteId: '',
+      clienteId: document.getElementById('bnkClienteId').value.trim(),
+      proveedorId: document.getElementById('bnkProveedorId').value.trim(),
       empresa: empresa,
       contacto: contacto,
       telefono: document.getElementById('bnkTelefono').value.trim(),
@@ -1205,6 +1986,32 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   // ── EVENT LISTENERS ──
   document.addEventListener('DOMContentLoaded', function () {
     loadData();
+
+    // ── NAVEGACIÓN DE TABS ──
+    document.querySelectorAll('.dash-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var target = this.getAttribute('data-tab');
+
+        document.querySelectorAll('.dash-tab').forEach(function (t) { t.classList.remove('active'); });
+        document.querySelectorAll('.dash-section').forEach(function (s) {
+          s.classList.remove('active');
+          s.style.display = 'none';
+        });
+
+        this.classList.add('active');
+        var secId = target === 'cotizaciones' ? 'secCotizaciones'
+                  : target === 'clientes'     ? 'secClientes'
+                  :                             'secProveedores';
+        var sec = document.getElementById(secId);
+        if (sec) { sec.classList.add('active'); sec.style.display = 'block'; }
+
+        if (target === 'clientes'    && window.BNKClientes)    window.BNKClientes.load();
+        if (target === 'proveedores' && window.BNKProveedores) window.BNKProveedores.load();
+
+        var btnBNK = document.getElementById('btnNuevaBNK');
+        if (btnBNK) btnBNK.style.display = (target === 'cotizaciones') ? '' : 'none';
+      });
+    });
 
     document.getElementById('dashRefresh').addEventListener('click', loadData);
     document.getElementById('dashSearch').addEventListener('input', renderTable);

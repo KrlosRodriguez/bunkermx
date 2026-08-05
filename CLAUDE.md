@@ -24,7 +24,7 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - **`munet.html`** — Subsistema MUNET (espacios, Pasatono).
 - **`hub.html`** — Hub Empresarial BUNKER.
 - **`cotizador-munet/index.html`** — Cotizador wizard para renta de espacios MUNET (folios MNT).
-- **`cotizador-munet/dashboard.html`** (~1277 lines) — Panel de Ventas: dashboard combinado MNT+BNK con tabla, indicadores, filtros por tipo/estado/fecha, modal para crear cotizaciones de servicios BNK, generación de PDF estilo dorado, y autocompletado de clientes.
+- **`cotizador-munet/dashboard.html`** (~1950 lines) — Panel de Ventas: dashboard combinado MNT+BNK con tabla, indicadores, filtros por tipo/estado/fecha, modal para crear cotizaciones de servicios BNK, generación de PDF estilo dorado, autocompletado de clientes. Incluye tabs de navegación (Cotizaciones | Clientes | Proveedores) con secciones, modales de detalle/edición, y vinculación con cotizaciones BNK.
 
 ### CSS
 
@@ -38,10 +38,12 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - **`js/system.js`** (~537 lines) — JS core compartido: cursor, nav, typing, counters, glitch, reveal, page transitions.
 - **`js/main.js`** (~88 lines) — JS legacy del index original (se conserva).
 - **`js/login-gate.js`** (~82 lines) — gate de autenticación.
-- **`js/pages/*.js`** — lógica por página: dashboard.js, esencia.js, proyectos.js.
+- **`js/pages/*.js`** — lógica por página: dashboard.js, esencia.js, proyectos.js, clientes.js, proveedores.js.
+- **`js/pages/clientes.js`** (~507 lines) — módulo Clientes (IIFE `window.BNKClientes`): CRUD, tabla con filtros, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud, cotizaciones vinculadas.
+- **`js/pages/proveedores.js`** (~859 lines) — módulo Proveedores (IIFE `window.BNKProveedores`): CRUD, tabla con filtros, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor.
 - **`cotizador-munet/js/cotizador-munet.js`** (~1244 lines) — lógica del wizard cotizador (pasos, tarifas, PDF neon, envío a Google Sheets).
 - **`cotizador-munet/js/logo-data.js`** — logos en base64 (BUNKER_LOGO_B64) para embeber en PDFs.
-- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + endpoints para Clientes, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo.
+- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + CRUD completo para Clientes, Proveedores, ServiciosProveedor, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo.
 
 ### Backend (Google Apps Script)
 
@@ -49,10 +51,10 @@ El backend vive en Google Apps Script y usa Google Sheets como base de datos y G
 
 - **Sheet ID**: `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk`
 - **Drive Folder ID**: `17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn`
-- **Hojas en el Sheet**: `Cotizaciones` (MNT), `CotizacionesBNK` (BNK), `Clientes`, `CatalogoPrecio`
-- **Folios**: `MNT-AAMMDD-XXXX` para venues, `BNK-AAMMDD-XXXX` para servicios/producción
-- **Endpoints GET**: `list`, `listAll`, `listClientes`, `listCatalogo`, `updateStatus`, `updateStatusBNK`, `seedCatalogo`
-- **Endpoints POST**: cotización MNT (wizard), cotización BNK (`tipoCotizacion: 'BNK'`)
+- **Hojas en el Sheet**: `Cotizaciones` (MNT), `CotizacionesBNK` (BNK), `Clientes` (42 cols), `CatalogoPrecio`, `Proveedores` (47 cols), `ServiciosProveedor` (7 cols)
+- **Folios**: `MNT-AAMMDD-XXXX` para venues, `BNK-AAMMDD-XXXX` para servicios/producción, `CLI-XXXX` para clientes, `PRV-XXXX` para proveedores, `SRV-XXXX` para servicios
+- **Endpoints GET**: `list`, `listAll`, `listClientes`, `listCatalogo`, `updateStatus`, `updateStatusBNK`, `seedCatalogo`, `listProveedores`, `deleteCliente`, `deleteProveedor`, `listServicios`, `deleteServicio`
+- **Endpoints POST**: cotización MNT (wizard), cotización BNK (`tipoCotizacion: 'BNK'`), CRUD Clientes (`tipoOperacion: 'createCliente'/'updateCliente'`), CRUD Proveedores (`tipoOperacion: 'createProveedor'/'updateProveedor'`), CRUD Servicios (`tipoOperacion: 'createServicio'/'updateServicio'`)
 - **Email**: usa `MailApp.sendEmail` con `name: SENDER_NAME` (no GmailApp, no requiere alias)
 - **Deploy**: copiar `google-apps-script-munet.js` al editor de Apps Script → nueva implementación → actualizar URL si cambia
 
@@ -83,4 +85,4 @@ Dos estilos de PDF generados client-side con jsPDF 2.5.1:
 - `img/` — all image assets (logos, section illustrations).
 - `docs/superpowers/specs/` — design specs de features.
 - `docs/superpowers/plans/` — planes de implementación detallados.
-- `capturas/` — instrucciones de configuración y capturas de referencia (no se despliegan).
+- `capturas/` — carpeta local para capturas y notas de trabajo (en .gitignore, no se despliega).
