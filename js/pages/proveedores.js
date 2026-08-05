@@ -73,7 +73,7 @@
   };
 
   // Campos que se excluyen del cálculo de completitud
-  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true };
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true };
 
   // ── Helpers internos ──
   function _dash() {
@@ -563,7 +563,7 @@
     var prvTable   = _getEl('prvTable');
     var prvEmpty   = _getEl('prvEmpty');
 
-    if (prvLoading) prvLoading.style.display = 'block';
+    if (prvLoading) prvLoading.style.display = '';
     if (prvTable)   prvTable.style.display   = 'none';
     if (prvEmpty)   prvEmpty.style.display   = 'none';
 

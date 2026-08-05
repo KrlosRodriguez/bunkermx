@@ -124,8 +124,12 @@
 
   var BNKConfirm = {
     show: function (mensaje) {
+      var overlay = _getOverlay();
+      // Si ya hay un confirm visible, rechazar la segunda llamada
+      if (overlay.classList.contains('bnk-confirm--visible')) {
+        return Promise.resolve(false);
+      }
       return new Promise(function (resolve) {
-        var overlay = _getOverlay();
         var msgEl   = overlay.querySelector('.bnk-confirm-msg');
         var btnOk   = overlay.querySelector('.bnk-confirm-btn--ok');
         var btnCan  = overlay.querySelector('.bnk-confirm-btn--cancel');
@@ -141,8 +145,13 @@
           _confirmTrapCleanup = BNKAccessibility.trapFocus(overlay, function () { _cerrar(false); });
         }
 
+        var _cerrado = false;
+        var _clickFondo; // declarada aquí, asignada después
         function _cerrar(resultado) {
+          if (_cerrado) return;
+          _cerrado = true;
           if (_confirmTrapCleanup) { _confirmTrapCleanup(); _confirmTrapCleanup = null; }
+          overlay.removeEventListener('click', _clickFondo);
           overlay.classList.remove('bnk-confirm--visible');
           // Clonar para quitar listeners previos
           var nuevoOk  = btnOk.cloneNode(true);
@@ -156,12 +165,10 @@
         btnCan.addEventListener('click', function () { _cerrar(false); }, { once: true });
 
         // Cerrar al hacer click en el fondo
-        overlay.addEventListener('click', function _clickFondo(e) {
-          if (e.target === overlay) {
-            overlay.removeEventListener('click', _clickFondo);
-            _cerrar(false);
-          }
-        });
+        _clickFondo = function (e) {
+          if (e.target === overlay) _cerrar(false);
+        };
+        overlay.addEventListener('click', _clickFondo);
       });
     }
   };
@@ -273,7 +280,7 @@
 
   function _csvEscape(val) {
     var s = (val === null || val === undefined) ? '' : String(val);
-    if (s.indexOf(',') > -1 || s.indexOf('"') > -1 || s.indexOf('\n') > -1) {
+    if (s.indexOf(',') > -1 || s.indexOf('"') > -1 || s.indexOf('\n') > -1 || s.indexOf('\r') > -1) {
       return '"' + s.replace(/"/g, '""') + '"';
     }
     return s;

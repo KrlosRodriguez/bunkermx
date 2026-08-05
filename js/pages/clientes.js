@@ -65,7 +65,7 @@
   };
 
   // Campos que se excluyen del cálculo de completitud
-  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true };
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true };
 
   // ── Helpers internos ──
   function _dash() {
@@ -521,7 +521,7 @@
     var cliTable   = _getEl('cliTable');
     var cliEmpty   = _getEl('cliEmpty');
 
-    if (cliLoading) cliLoading.style.display = 'block';
+    if (cliLoading) cliLoading.style.display = '';
     if (cliTable)   cliTable.style.display   = 'none';
     if (cliEmpty)   cliEmpty.style.display   = 'none';
 
@@ -530,10 +530,10 @@
       if (cliEmpty)   cliEmpty.style.display   = 'block';
       _clientes = [];
       updateIndicators();
-      return;
+      return Promise.resolve();
     }
 
-    fetch(url + '?action=listClientes')
+    return fetch(url + '?action=listClientes')
       .then(function (res) { return res.json(); })
       .then(function (result) {
         if (cliLoading) cliLoading.style.display = 'none';

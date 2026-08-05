@@ -1245,7 +1245,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     var table = document.getElementById('dashTable');
     var empty = document.getElementById('dashEmpty');
 
-    loading.style.display = 'block';
+    loading.style.display = '';
     table.style.display = 'none';
     empty.style.display = 'none';
 
@@ -2219,9 +2219,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       }
 
       if (clientes.length === 0) {
-        // Cargar primero y luego buscar
-        BNKClientes.load();
-        setTimeout(_buscarYAbrir, 1500);
+        // Cargar primero y luego buscar cuando termine
+        var p = BNKClientes.load();
+        if (p && p.then) { p.then(_buscarYAbrir); } else { _buscarYAbrir(); }
       } else {
         _buscarYAbrir();
       }
