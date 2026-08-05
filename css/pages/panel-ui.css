@@ -1,0 +1,195 @@
+/* =========================================================
+   panel-ui.css — Toasts y modal de confirmación para el Panel de Ventas
+   Usado por: cotizador-munet/dashboard.html
+   Tokens: --bk, --g, --ylw, --card, --bd, --tx, --wh, --dk (definidos en dashboard.html :root)
+   ========================================================= */
+
+/* ── TOAST CONTAINER ── */
+#bnkToastContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* ── TOAST BASE ── */
+.bnk-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  min-width: 260px;
+  max-width: 360px;
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--g);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--tx);
+  pointer-events: all;
+  transform: translateX(120%);
+  opacity: 1;
+  transition: transform 250ms ease-out, opacity 200ms ease-in;
+}
+
+.bnk-toast.bnk-toast--visible {
+  transform: translateX(0);
+}
+
+.bnk-toast.bnk-toast--hiding {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 200ms ease-in, transform 200ms ease-in;
+}
+
+/* ── VARIANTES ── */
+.bnk-toast--ok {
+  border-left-color: var(--g);
+}
+
+.bnk-toast--error {
+  border-left-color: #ff4444;
+}
+
+.bnk-toast--warn {
+  border-left-color: var(--ylw);
+}
+
+/* ── ICONO ── */
+.bnk-toast-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.bnk-toast--ok .bnk-toast-icon {
+  color: var(--g);
+}
+
+.bnk-toast--error .bnk-toast-icon {
+  color: #ff4444;
+}
+
+.bnk-toast--warn .bnk-toast-icon {
+  color: var(--ylw);
+}
+
+/* ── TEXTO ── */
+.bnk-toast-text {
+  flex: 1;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* ── BOTÓN CERRAR ── */
+.bnk-toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--tx);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 0 0 4px;
+  opacity: 0.6;
+  font-family: 'Space Mono', monospace;
+  transition: opacity 150ms;
+}
+
+.bnk-toast-close:hover {
+  opacity: 1;
+}
+
+/* ── CONFIRM OVERLAY ── */
+.bnk-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 9, 5, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.bnk-confirm-overlay.bnk-confirm--visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── CONFIRM BOX ── */
+.bnk-confirm-box {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  padding: 32px 28px 24px;
+  max-width: 380px;
+  width: calc(100% - 40px);
+  text-align: center;
+  transform: translateY(-16px) scale(0.97);
+  transition: transform 200ms ease, opacity 200ms ease;
+  opacity: 0;
+}
+
+.bnk-confirm-overlay.bnk-confirm--visible .bnk-confirm-box {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* ── CONFIRM ICONO ── */
+.bnk-confirm-icon {
+  font-size: 36px;
+  color: var(--ylw);
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+/* ── CONFIRM MENSAJE ── */
+.bnk-confirm-msg {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--tx);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  white-space: pre-line;
+}
+
+/* ── CONFIRM BOTONES ── */
+.bnk-confirm-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.bnk-confirm-btn {
+  flex: 1;
+  max-width: 140px;
+  padding: 10px 16px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: opacity 150ms;
+}
+
+.bnk-confirm-btn:hover {
+  opacity: 0.85;
+}
+
+.bnk-confirm-btn--cancel {
+  background: rgba(200, 236, 200, 0.08);
+  color: var(--tx);
+  border: 1px solid var(--bd);
+}
+
+.bnk-confirm-btn--ok {
+  background: #ff4444;
+  color: #fff;
+}

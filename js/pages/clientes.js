@@ -332,13 +332,27 @@
     if (btn) btn.classList.add('active');
   }
 
+  // ── Validar email ──
+  var _EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function _validarEmail(valor, nombreCampo) {
+    if (valor && !_EMAIL_RE.test(valor)) {
+      BNKToast.warn('Email no válido: ' + nombreCampo);
+      return false;
+    }
+    return true;
+  }
+
   // ── guardarCliente ──
   function guardarCliente() {
     var empresa = _getVal('cliEmpresa').trim();
     if (!empresa) {
-      alert('El nombre de la empresa es obligatorio.');
+      BNKToast.warn('El nombre de la empresa es obligatorio.');
       return;
     }
+
+    // Validación de email
+    var correo = _getVal('cliCorreoContacto').trim();
+    if (!_validarEmail(correo, 'Correo de contacto')) return;
 
     var id = _getVal('cliId').trim();
     var esNuevo = !id;
@@ -352,7 +366,7 @@
     });
 
     var url = _url();
-    if (!url) { alert('URL del backend no configurada.'); return; }
+    if (!url) { BNKToast.warn('URL del backend no configurada.'); return; }
 
     var btnGuardar = _getEl('cliGuardar');
     if (btnGuardar) { btnGuardar.textContent = 'GUARDANDO...'; btnGuardar.disabled = true; }
@@ -366,35 +380,40 @@
     .then(function (result) {
       if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
       if (result.status === 'ok') {
+        BNKToast.ok('Cliente guardado correctamente.');
         cerrarModal();
         load();
       } else {
-        alert('Error: ' + (result.message || 'No se pudo guardar.'));
+        BNKToast.error('Error: ' + (result.message || 'No se pudo guardar.'));
       }
     })
     .catch(function (err) {
       if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
-      alert('Error de conexión: ' + err.message);
+      BNKToast.error('Error de conexión: ' + err.message);
     });
   }
 
   // ── eliminarCliente ──
   function eliminarCliente(id) {
-    if (!confirm('\xBFEliminar el cliente ' + id + '?\nEsta acción lo marcará como inactivo.')) return;
-    var url = _url();
-    if (!url) return;
+    BNKConfirm.show('\xBFEliminar el cliente ' + id + '?\nEsta acci\xF3n lo marcar\xE1 como inactivo.')
+      .then(function (confirmado) {
+        if (!confirmado) return;
+        var url = _url();
+        if (!url) return;
 
-    fetch(url + '?action=deleteCliente&id=' + encodeURIComponent(id))
-      .then(function (res) { return res.json(); })
-      .then(function (result) {
-        if (result.status === 'ok') {
-          load();
-        } else {
-          alert('Error: ' + (result.message || 'No se pudo eliminar.'));
-        }
-      })
-      .catch(function (err) {
-        alert('Error de conexión: ' + err.message);
+        fetch(url + '?action=deleteCliente&id=' + encodeURIComponent(id))
+          .then(function (res) { return res.json(); })
+          .then(function (result) {
+            if (result.status === 'ok') {
+              BNKToast.ok('Cliente eliminado.');
+              load();
+            } else {
+              BNKToast.error('Error: ' + (result.message || 'No se pudo eliminar.'));
+            }
+          })
+          .catch(function (err) {
+            BNKToast.error('Error de conexión: ' + err.message);
+          });
       });
   }
 
