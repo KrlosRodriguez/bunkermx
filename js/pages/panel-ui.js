@@ -135,7 +135,14 @@
         // Mostrar overlay
         overlay.classList.add('bnk-confirm--visible');
 
+        // Focus trap para el confirm
+        var _confirmTrapCleanup = null;
+        if (BNKAccessibility) {
+          _confirmTrapCleanup = BNKAccessibility.trapFocus(overlay, function () { _cerrar(false); });
+        }
+
         function _cerrar(resultado) {
+          if (_confirmTrapCleanup) { _confirmTrapCleanup(); _confirmTrapCleanup = null; }
           overlay.classList.remove('bnk-confirm--visible');
           // Clonar para quitar listeners previos
           var nuevoOk  = btnOk.cloneNode(true);
@@ -409,6 +416,58 @@
   };
 
 
+  // ══════════════════════════════════════════════════════════
+  // BNKAccessibility — focus trap para modales
+  // ══════════════════════════════════════════════════════════
+
+  var FOCUSABLE_SELECTOR = 'input:not(:disabled), select:not(:disabled), button:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+  var BNKAccessibility = {
+    trapFocus: function (overlayElement, onEscape) {
+      if (!overlayElement) return function () {};
+
+      function _handler(e) {
+        if (e.key === 'Escape') {
+          if (onEscape) onEscape();
+          return;
+        }
+        if (e.key !== 'Tab') return;
+
+        var focusables = overlayElement.querySelectorAll(FOCUSABLE_SELECTOR);
+        if (!focusables.length) return;
+
+        var first = focusables[0];
+        var last  = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+
+      overlayElement.addEventListener('keydown', _handler);
+
+      // Focus primer elemento focuseable
+      requestAnimationFrame(function () {
+        var first = overlayElement.querySelector(FOCUSABLE_SELECTOR);
+        if (first) first.focus();
+      });
+
+      // Retorna función cleanup
+      return function () {
+        overlayElement.removeEventListener('keydown', _handler);
+      };
+    }
+  };
+
+
   // ── Exponer globalmente ──
   window.BNKToast      = BNKToast;
   window.BNKConfirm    = BNKConfirm;
@@ -416,6 +475,7 @@
   window.BNKPagination = BNKPagination;
   window.BNKExport     = BNKExport;
   window.BNKAnimate    = BNKAnimate;
+  window.BNKAccessibility = BNKAccessibility;
   window.BNKHelpers    = {
     updateResultCount: _updateResultCount,
     hasActiveFilters:  _hasActiveFilters,

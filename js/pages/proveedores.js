@@ -20,6 +20,9 @@
   var _sortDir = 'asc';
   var _page = 1;
 
+  // Focus trap cleanup
+  var _focusTrapCleanup = null;
+
   // ── Mapeo campo backend → id de elemento HTML ──
   var CAMPO_ID = {
     razonSocial:          'prvRazonSocial',
@@ -244,7 +247,7 @@
         + '<td>' + razonSocialSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + nombreComSafe + '</td>'
         + '<td>' + (tipo ? '<span class="tipo-badge ' + tipoClass + '">' + _escapeHTML(tipo) + '</span>' : '\u2014') + '</td>'
-        + '<td><span class="cuenta-badge ' + cuentaClass + '" title="' + cuentaLabel + '"></span></td>'
+        + '<td><span class="cuenta-badge-wrap"><span class="cuenta-badge ' + cuentaClass + '"></span><span class="cuenta-badge-label--' + (cuentaActiva ? 'on' : 'off') + '">' + cuentaLabel + '</span></span></td>'
         + '<td style="color:var(--tx);font-size:12px">' + fechaAltaSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + fechaEdSafe + '</td>'
         + '<td>'
@@ -386,6 +389,12 @@
 
     // Hacer visible el overlay
     overlay.classList.add('visible');
+
+    // Focus trap
+    if (_focusTrapCleanup) _focusTrapCleanup();
+    if (window.BNKAccessibility) {
+      _focusTrapCleanup = BNKAccessibility.trapFocus(overlay, cerrarModal);
+    }
   }
 
   // ── cerrarModal ──
@@ -394,6 +403,9 @@
     if (!overlay) return;
     overlay.classList.remove('visible');
     _proveedorActivoId = null;
+
+    // Cleanup focus trap
+    if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
 
     // Re-habilitar inputs por si venía de modo 'ver'
     var inputs = overlay.querySelectorAll('input, select, textarea');

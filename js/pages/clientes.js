@@ -17,6 +17,9 @@
   var _sortDir = 'asc';
   var _page = 1;
 
+  // Focus trap cleanup
+  var _focusTrapCleanup = null;
+
   // ── Mapeo campo backend → id de elemento HTML ──
   var CAMPO_ID = {
     empresa:             'cliEmpresa',
@@ -223,7 +226,7 @@
         + '<td><span class="status-pct ' + pctClass + '">' + pct + '%</span></td>'
         + '<td>' + empresaSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + marcasSafe + '</td>'
-        + '<td><span class="cuenta-badge ' + cuentaClass + '" title="' + cuentaLabel + '"></span></td>'
+        + '<td><span class="cuenta-badge-wrap"><span class="cuenta-badge ' + cuentaClass + '"></span><span class="cuenta-badge-label--' + (cuentaActiva ? 'on' : 'off') + '">' + cuentaLabel + '</span></span></td>'
         + '<td style="color:var(--tx);font-size:12px">' + fechaEdSafe + '</td>'
         + '<td>'
         +   '<button class="tbl-action tbl-action--edit" data-id="' + idSafe + '" title="Editar">&#9998;</button>'
@@ -353,6 +356,12 @@
 
     // Hacer visible el overlay
     overlay.classList.add('visible');
+
+    // Focus trap
+    if (_focusTrapCleanup) _focusTrapCleanup();
+    if (window.BNKAccessibility) {
+      _focusTrapCleanup = BNKAccessibility.trapFocus(overlay, cerrarModal);
+    }
   }
 
   // ── cerrarModal ──
@@ -360,6 +369,9 @@
     var overlay = _getEl('cliOverlay');
     if (!overlay) return;
     overlay.classList.remove('visible');
+
+    // Cleanup focus trap
+    if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
 
     // Re-habilitar inputs por si venía de modo 'ver'
     var inputs = overlay.querySelectorAll('input, select, textarea');
@@ -689,7 +701,15 @@
     abrirModal:        abrirModal,
     cerrarModal:       cerrarModal,
     guardarCliente:    guardarCliente,
-    eliminarCliente:   eliminarCliente
+    eliminarCliente:   eliminarCliente,
+    getData:           function () { return _clientes; },
+    openDetail:        function (clienteId) {
+      var cliente = null;
+      for (var i = 0; i < _clientes.length; i++) {
+        if (_clientes[i].id === clienteId) { cliente = _clientes[i]; break; }
+      }
+      if (cliente) abrirModal(cliente, 'ver');
+    }
   };
 
 })();

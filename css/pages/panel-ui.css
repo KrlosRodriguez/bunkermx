@@ -360,6 +360,43 @@
   height: 12px;
 }
 
+/* ══════════════════════════════════════════════════════════
+   BLOQUE 4: Conectividad y accesibilidad
+   ══════════════════════════════════════════════════════════ */
+
+/* ── CLIENT LINK ── */
+.client-link {
+  color: var(--g);
+  cursor: pointer;
+  transition: text-decoration 0.15s;
+}
+
+.client-link:hover {
+  text-decoration: underline;
+}
+
+/* ── CUENTA BADGE CON TEXTO ── */
+.cuenta-badge-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.cuenta-badge-wrap .cuenta-badge {
+  flex-shrink: 0;
+}
+
+.cuenta-badge-label--on {
+  color: var(--g);
+}
+
+.cuenta-badge-label--off {
+  color: var(--red);
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .pag-controls { padding: 12px 16px 16px; }

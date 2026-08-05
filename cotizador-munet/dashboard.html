@@ -1443,14 +1443,14 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         + '<td>' + (isMNT ? '<button class="btn-add-bnk" data-folio="' + escapeHTML(d.folio) + '" data-cliente="' + escapeHTML(d.cliente) + '" data-contacto="' + escapeHTML(d.contacto || '') + '" data-telefono="' + escapeHTML(d.telefono || '') + '" data-correo="' + escapeHTML(d.correo || '') + '" data-evento="' + escapeHTML(d.evento || '') + '">+</button>' : '') + '</td>'
         + '<td class="col-folio"' + (d.linkPdf ? ' onclick="window.open(\'' + escapeHTML(d.linkPdf) + '\',\'_blank\')"' : '') + '>' + escapeHTML(d.folio) + '</td>'
         + '<td>' + formatFechaDisplay(d.fecha) + '</td>'
-        + '<td>' + escapeHTML(d.cliente) + '</td>'
+        + '<td><span class="client-link" data-cliente="' + escapeHTML(d.cliente) + '">' + escapeHTML(d.cliente) + '</span></td>'
         + '<td>' + escapeHTML(d.evento || '\u2014') + '</td>'
         + '<td><span class="tipo-badge ' + tipoClass + '">' + (d.fuente || 'MNT') + '</span></td>'
         + '<td class="col-espacios">' + detalleText + '</td>'
         + '<td class="col-total">' + formatMXN(d.total) + '</td>'
         + '<td>'
         +   '<div class="estado-dropdown">'
-        +     '<span class="estado-badge ' + estadoClass + '" data-folio="' + escapeHTML(d.folio) + '" data-fuente="' + (d.fuente || 'MNT') + '">' + escapeHTML(d.estado || 'Nueva') + '</span>'
+        +     '<span class="estado-badge ' + estadoClass + '" data-folio="' + escapeHTML(d.folio) + '" data-fuente="' + (d.fuente || 'MNT') + '">' + _estadoIcon(d.estado) + escapeHTML(d.estado || 'Nueva') + '</span>'
         +     '<div class="estado-options">'
         +       '<div class="estado-option" data-val="Nueva">NUEVA</div>'
         +       '<div class="estado-option" data-val="Contactada">CONTACTADA</div>'
@@ -1465,6 +1465,12 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
     tbody.innerHTML = html;
     updateIndicators(allData);
+  }
+
+  // Helper para prefijos de accesibilidad en badges de estado
+  function _estadoIcon(estado) {
+    var iconos = { Nueva: '\u25F7 ', Contactada: '\u25F7 ', Cerrada: '\u2713 ', Cancelada: '\u2715 ' };
+    return iconos[estado] || '\u25F7 ';
   }
 
   // Helper para actualizar clases de sort en headers
@@ -1512,11 +1518,18 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   ];
 
   var conceptoCounter = 0;
+  var _bnkFocusTrapCleanup = null;
 
   // ── MODAL BNK — ABRIR/CERRAR ──
   function abrirModalBNK(prefill) {
     var overlay = document.getElementById('bnkOverlay');
     overlay.classList.add('visible');
+
+    // Focus trap
+    if (_bnkFocusTrapCleanup) _bnkFocusTrapCleanup();
+    if (window.BNKAccessibility) {
+      _bnkFocusTrapCleanup = BNKAccessibility.trapFocus(overlay, cerrarModalBNK);
+    }
 
     document.getElementById('bnkEmpresa').value = prefill.empresa || '';
     document.getElementById('bnkContacto').value = prefill.contacto || '';
@@ -1542,6 +1555,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
   function cerrarModalBNK() {
     document.getElementById('bnkOverlay').classList.remove('visible');
+    if (_bnkFocusTrapCleanup) { _bnkFocusTrapCleanup(); _bnkFocusTrapCleanup = null; }
   }
 
   // ── AUTOCOMPLETADO DE CLIENTES ──
@@ -2174,6 +2188,43 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
     // Clear filters cotizaciones
     document.getElementById('cotClear').addEventListener('click', function () {
       if (window.BNKHelpers) BNKHelpers.clearFilters('cotFilters', renderTable);
+    });
+
+    // Client link — click en nombre de cliente abre su ficha en tab Clientes
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('.client-link');
+      if (!link) return;
+      var clienteName = (link.getAttribute('data-cliente') || '').trim().toLowerCase();
+      if (!clienteName || !window.BNKClientes) return;
+
+      // Asegurar que los datos de clientes estén cargados
+      var clientes = BNKClientes.getData();
+      function _buscarYAbrir() {
+        var data = BNKClientes.getData();
+        var found = null;
+        for (var i = 0; i < data.length; i++) {
+          if (String(data[i].empresa || '').trim().toLowerCase() === clienteName) {
+            found = data[i]; break;
+          }
+        }
+        if (found) {
+          // Cambiar al tab de clientes
+          var tabCli = document.querySelector('.dash-tab[data-tab="clientes"]');
+          if (tabCli) tabCli.click();
+          // Abrir modal con delay para que termine la transición
+          setTimeout(function () { BNKClientes.openDetail(found.id); }, 250);
+        } else {
+          BNKToast.warn('Cliente no registrado en el CRM');
+        }
+      }
+
+      if (clientes.length === 0) {
+        // Cargar primero y luego buscar
+        BNKClientes.load();
+        setTimeout(_buscarYAbrir, 1500);
+      } else {
+        _buscarYAbrir();
+      }
     });
 
     // Modal BNK
