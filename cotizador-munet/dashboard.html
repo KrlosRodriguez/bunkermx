@@ -520,7 +520,8 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         </div>
         <div class="bnk-form-group">
           <label class="bnk-label">VINCULAR A FOLIO MNT</label>
-          <input type="text" class="bnk-input" id="bnkFolioMNT" placeholder="Opcional — ej: MNT-260729-4129" readonly>
+          <input type="text" class="bnk-input" id="bnkFolioMNT" placeholder="Opcional — ej: MNT-260729-4129" list="foliosMNTList" autocomplete="off">
+          <datalist id="foliosMNTList"></datalist>
         </div>
         <div class="bnk-form-group bnk-form-full">
           <label class="bnk-label">NOTA INTERNA</label>
@@ -1236,6 +1237,17 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
         if (result.status === 'ok') {
           allData = result.data || [];
           window.DASH.allData = allData;
+          // Poblar datalist de folios MNT para vincular
+          var dlMNT = document.getElementById('foliosMNTList');
+          dlMNT.innerHTML = '';
+          allData.forEach(function(d) {
+            if ((d.fuente || 'MNT') === 'MNT' && d.folio) {
+              var opt = document.createElement('option');
+              opt.value = d.folio;
+              opt.label = d.folio + ' — ' + (d.cliente || '');
+              dlMNT.appendChild(opt);
+            }
+          });
           renderTable();
           updateIndicators(allData);
           document.getElementById('dashLastUpdate').textContent = 'ACT: ' + new Date().toLocaleTimeString('es-MX');
@@ -1928,9 +1940,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
       var nota = document.getElementById('bnkNota').value.trim();
       fetch(APPS_SCRIPT_URL + '?action=createCliente'
         + '&empresa=' + encodeURIComponent(empresa)
-        + '&contacto=' + encodeURIComponent(contacto)
-        + '&telefono=' + encodeURIComponent(document.getElementById('bnkTelefono').value.trim())
-        + '&correo=' + encodeURIComponent(document.getElementById('bnkCorreo').value.trim())
+        + '&personaContacto=' + encodeURIComponent(contacto)
+        + '&telefonoContacto=' + encodeURIComponent(document.getElementById('bnkTelefono').value.trim())
+        + '&correoContacto=' + encodeURIComponent(document.getElementById('bnkCorreo').value.trim())
         + '&nota=' + encodeURIComponent(nota)
       ).catch(function(){});
     }
