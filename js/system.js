@@ -35,14 +35,49 @@ document.addEventListener('DOMContentLoaded', () => {
   const ham = document.getElementById('ham');
   const mob = document.getElementById('mob');
   if (ham && mob) {
+    const closeDrawer = () => {
+      ham.classList.remove('open');
+      mob.classList.remove('open');
+      ham.focus();
+    };
+    const openDrawer = () => {
+      ham.classList.add('open');
+      mob.classList.add('open');
+      const firstLink = mob.querySelector('.mob-link');
+      if (firstLink) firstLink.focus();
+    };
+
     ham.addEventListener('click', () => {
-      ham.classList.toggle('open');
-      mob.classList.toggle('open');
+      mob.classList.contains('open') ? closeDrawer() : openDrawer();
     });
+
+    // Close on outside click
     document.addEventListener('click', e => {
       if (!ham.contains(e.target) && !mob.contains(e.target)) {
         ham.classList.remove('open');
         mob.classList.remove('open');
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && mob.classList.contains('open')) {
+        closeDrawer();
+      }
+    });
+
+    // Focus trap inside drawer
+    mob.addEventListener('keydown', e => {
+      if (e.key !== 'Tab' || !mob.classList.contains('open')) return;
+      const focusable = mob.querySelectorAll('a, button');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     });
   }
@@ -167,24 +202,52 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bootEl) {
     const lines = bootEl.querySelectorAll('.boot-line');
     let delay = 100;
+    let bootSkipped = false;
+    const bootTimers = [];
+
+    const skipBoot = () => {
+      if (bootSkipped) return;
+      bootSkipped = true;
+      bootTimers.forEach(t => clearTimeout(t));
+      lines.forEach(line => {
+        const text = line.dataset.text || line.textContent;
+        line.textContent = text;
+        line.style.opacity = '1';
+        line.classList.add('boot-done');
+      });
+      bootEl.classList.add('boot-complete');
+      document.getElementById('main-content')?.classList.add('loaded');
+      document.removeEventListener('click', skipBoot);
+      document.removeEventListener('keydown', skipBoot);
+      document.removeEventListener('touchstart', skipBoot);
+    };
+
+    document.addEventListener('click', skipBoot, { once: true });
+    document.addEventListener('keydown', skipBoot, { once: true });
+    document.addEventListener('touchstart', skipBoot, { once: true });
+
     lines.forEach((line, i) => {
       const text = line.dataset.text || line.textContent;
       line.textContent = '';
       line.style.opacity = '0';
 
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        if (bootSkipped) return;
         line.style.opacity = '1';
         typeText(line, text, 7, () => {
           line.classList.add('boot-done');
           if (i === lines.length - 1) {
             // Boot complete — reveal content
-            setTimeout(() => {
+            const revealTimer = setTimeout(() => {
+              if (bootSkipped) return;
               bootEl.classList.add('boot-complete');
               document.getElementById('main-content')?.classList.add('loaded');
             }, 200);
+            bootTimers.push(revealTimer);
           }
         });
       }, delay);
+      bootTimers.push(timer);
 
       delay += text.length * 7 + 70;
     });

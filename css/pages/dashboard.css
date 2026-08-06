@@ -779,9 +779,10 @@
 }
 .metric-item:last-child::after{display:none}
 .metric-num{
-  font-family:'Space Mono',monospace;
+  font-family:'Space Mono','Courier New',Courier,monospace;
   font-size:clamp(36px,5vw,56px);
   font-weight:700;
+  font-variant-numeric:tabular-nums;
   color:var(--gold);
   line-height:1;
   text-shadow:var(--glow-text);
@@ -868,6 +869,10 @@
 }
 .cc-email a{
   color:var(--gold);
+  display:inline-block;
+  padding:8px 0;
+  min-height:44px;
+  line-height:28px;
   transition:text-shadow var(--dur-fast);
 }
 .cc-email a:hover{text-shadow:var(--glow-text)}
@@ -921,6 +926,14 @@
   .metrics-grid{grid-template-columns:repeat(2,1fr)}
   .contact-cards{grid-template-columns:1fr}
   .contact-form{grid-template-columns:1fr}
+}
+
+/* Tablet portrait */
+@media(max-width:768px){
+  .hero-stats{grid-template-columns:repeat(2,1fr);gap:16px}
+  .modules-grid{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;gap:8px}
+  .hero-actions .hud-btn{width:100%;justify-content:space-between}
 }
 
 @media(max-width:640px){

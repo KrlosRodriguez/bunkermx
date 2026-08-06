@@ -16,6 +16,9 @@
 </head>
 <body>
 
+<!-- Skip link -->
+<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
 <!-- Grid background -->
 <div class="sys-grid-bg"></div>
 
@@ -37,7 +40,7 @@
      ══════════════════════════════════════ -->
 <nav class="sys-nav" role="navigation" aria-label="Navegación principal">
   <div class="nav-brand">
-    <a href="/"><img src="img/logo-bunker.png" alt="BUNKER Creatividad Empresarial" loading="eager"></a>
+    <a href="/"><img src="img/logo-bunker.png" alt="BUNKER Creatividad Empresarial" loading="eager" width="800" height="300"></a>
     <span class="sys-tag">SYS V2.0</span>
   </div>
   <div class="nav-status">
@@ -86,9 +89,9 @@
     <div class="hero sys-inner">
       <div class="hero-left">
         <div class="hero-eyebrow rev">Entertainment &middot; Gran Formato &middot; Internacional</div>
-        <div class="hero-logo rev">
-          <img src="img/logo-bunker-full.png" alt="BUNKER Creatividad Empresarial" loading="eager">
-        </div>
+        <h1 class="hero-logo rev">
+          <img src="img/logo-bunker-full.png" alt="BUNKER Creatividad Empresarial" loading="eager" width="900" height="328">
+        </h1>
         <p class="hero-claim rev">
           Producimos los espectáculos más grandes del continente.<br>
           <em>Donde el arte y la estrategia crean momentos que no se olvidan.</em>
@@ -338,20 +341,22 @@
 
     <form id="contact-form" class="contact-form rev">
       <div class="form-group">
-        <label class="hud-label">Nombre</label>
-        <input type="text" name="nombre" required class="hud-input" placeholder="Tu nombre">
+        <label class="hud-label" for="cf-nombre">Nombre <span aria-hidden="true">*</span></label>
+        <input type="text" id="cf-nombre" name="nombre" required autocomplete="name" class="hud-input" placeholder="Tu nombre" aria-describedby="cf-nombre-err">
+        <div class="hud-error" id="cf-nombre-err" role="alert">Ingresa tu nombre</div>
       </div>
       <div class="form-group">
-        <label class="hud-label">Empresa</label>
-        <input type="text" name="empresa" class="hud-input" placeholder="Tu empresa">
+        <label class="hud-label" for="cf-empresa">Empresa</label>
+        <input type="text" id="cf-empresa" name="empresa" autocomplete="organization" class="hud-input" placeholder="Tu empresa">
       </div>
       <div class="form-group">
-        <label class="hud-label">Email</label>
-        <input type="email" name="email" required class="hud-input" placeholder="correo@ejemplo.com">
+        <label class="hud-label" for="cf-email">Email <span aria-hidden="true">*</span></label>
+        <input type="email" id="cf-email" name="email" required autocomplete="email" class="hud-input" placeholder="correo@ejemplo.com" aria-describedby="cf-email-err">
+        <div class="hud-error" id="cf-email-err" role="alert">Ingresa un email válido</div>
       </div>
       <div class="form-group">
-        <label class="hud-label">Tipo de servicio</label>
-        <select name="servicio" class="hud-select">
+        <label class="hud-label" for="cf-servicio">Tipo de servicio</label>
+        <select id="cf-servicio" name="servicio" class="hud-select">
           <option value="">Seleccionar...</option>
           <option value="espectáculos">Producción de Espectáculos</option>
           <option value="giras">Giras Internacionales</option>
@@ -363,8 +368,9 @@
         </select>
       </div>
       <div class="form-group form-group--full">
-        <label class="hud-label">Mensaje</label>
-        <textarea name="mensaje" rows="4" required class="hud-input" placeholder="Describe tu proyecto..."></textarea>
+        <label class="hud-label" for="cf-mensaje">Mensaje <span aria-hidden="true">*</span></label>
+        <textarea id="cf-mensaje" name="mensaje" rows="4" required class="hud-input" placeholder="Describe tu proyecto..." aria-describedby="cf-mensaje-err"></textarea>
+        <div class="hud-error" id="cf-mensaje-err" role="alert">Ingresa tu mensaje</div>
       </div>
       <div class="form-group form-group--full form-submit">
         <button type="submit" class="hud-btn hud-btn--primary">
@@ -384,7 +390,7 @@
 <footer class="sys-footer">
   <div class="sys-inner">
     <div class="foot-brand">
-      <a href="/"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy"></a>
+      <a href="/"><img src="img/logo-bunker.png" alt="BUNKER" loading="lazy" width="800" height="300"></a>
       <span class="foot-version">BNK-SYS V2.0 // 2026</span>
     </div>
     <div class="foot-center">

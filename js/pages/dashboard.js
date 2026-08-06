@@ -50,8 +50,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.getElementById('form-status');
 
   if (form) {
+    // Inline validation on blur
+    form.querySelectorAll('.hud-input[required]').forEach(input => {
+      input.addEventListener('blur', () => {
+        const err = document.getElementById(input.id + '-err');
+        const invalid = !input.value.trim() || (input.type === 'email' && !input.validity.valid);
+        input.classList.toggle('error', invalid);
+        if (err) err.classList.toggle('visible', invalid);
+      });
+      input.addEventListener('input', () => {
+        if (input.classList.contains('error')) {
+          const valid = input.value.trim() && (input.type !== 'email' || input.validity.valid);
+          if (valid) {
+            input.classList.remove('error');
+            const err = document.getElementById(input.id + '-err');
+            if (err) err.classList.remove('visible');
+          }
+        }
+      });
+    });
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+
+      // Validate all required fields
+      let firstInvalid = null;
+      form.querySelectorAll('.hud-input[required]').forEach(input => {
+        const err = document.getElementById(input.id + '-err');
+        const invalid = !input.value.trim() || (input.type === 'email' && !input.validity.valid);
+        input.classList.toggle('error', invalid);
+        if (err) err.classList.toggle('visible', invalid);
+        if (invalid && !firstInvalid) firstInvalid = input;
+      });
+      if (firstInvalid) { firstInvalid.focus(); return; }
+
       const btn = this.querySelector('button[type="submit"]');
       const originalHTML = btn.innerHTML;
 
