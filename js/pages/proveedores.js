@@ -75,6 +75,40 @@
   // Campos que se excluyen del cálculo de completitud
   var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true };
 
+  // Campos de tipo fecha (usan input type="date", formato YYYY-MM-DD)
+  var CAMPOS_FECHA = { fechaConstitucion: true, fechaAlta: true, fechaConstanciaFiscal: true };
+
+  // Convierte fecha del backend (DD/MM/YYYY, DDMMYYYY, ISO) a YYYY-MM-DD para input[type=date]
+  function _toDateInput(val) {
+    if (!val) return '';
+    val = String(val).trim();
+    // ISO: 2026-08-03 o 2026-08-03T...
+    if (/^\d{4}-\d{2}-\d{2}/.test(val)) return val.substring(0, 10);
+    // DD/MM/YYYY
+    var parts = val.split('/');
+    if (parts.length === 3) {
+      var y = parts[2], m = parts[1].padStart(2, '0'), d = parts[0].padStart(2, '0');
+      if (y.length === 2) y = '20' + y;
+      return y + '-' + m + '-' + d;
+    }
+    // DDMMYYYY (8 dígitos sin separador)
+    if (/^\d{8}$/.test(val)) {
+      return val.substring(4, 8) + '-' + val.substring(2, 4) + '-' + val.substring(0, 2);
+    }
+    return val;
+  }
+
+  // Convierte YYYY-MM-DD a DD/MM/YYYY para enviar al backend
+  function _fromDateInput(val) {
+    if (!val) return '';
+    val = String(val).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      var p = val.split('-');
+      return p[2] + '/' + p[1] + '/' + p[0];
+    }
+    return val;
+  }
+
   // ── Helpers internos ──
   function _dash() {
     return window.DASH || {};
@@ -318,7 +352,9 @@
       // Popular todos los campos mapeados
       Object.keys(CAMPO_ID).forEach(function (campo) {
         if (proveedorData && proveedorData[campo] !== undefined) {
-          _setVal(CAMPO_ID[campo], proveedorData[campo]);
+          var valor = proveedorData[campo];
+          if (CAMPOS_FECHA[campo]) valor = _toDateInput(valor);
+          _setVal(CAMPO_ID[campo], valor);
         }
       });
 
@@ -501,7 +537,9 @@
     if (!esNuevo) payload.id = id;
 
     Object.keys(CAMPO_ID).forEach(function (campo) {
-      payload[campo] = _getVal(CAMPO_ID[campo]).trim();
+      var val = _getVal(CAMPO_ID[campo]).trim();
+      if (CAMPOS_FECHA[campo]) val = _fromDateInput(val);
+      payload[campo] = val;
     });
 
     var url = _url();
