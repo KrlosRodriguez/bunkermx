@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrar el proyecto Firebase de `bunkermx-51834` (jc@bijbani.mx) a `bunker-panel-3a352` (admin@vanguardiaysoluciones), con Firebase Hosting sirviendo exclusivamente el panel.
+**Goal:** Migrar el proyecto Firebase de `bunkermx-51834` (jc@bijbani.mx) a `bunker-panel` (admin@vanguardiaysoluciones), con Firebase Hosting sirviendo exclusivamente el panel.
 
 **Architecture:** Firebase Hosting sirve solo `/panel/` como app independiente. El sitio público sigue en cPanel (no se toca). Firebase provee Auth + Firestore + Cloud Functions como backend del panel. La doble escritura desde Apps Script se actualiza para apuntar al proyecto nuevo.
 
@@ -12,7 +12,7 @@
 
 - Todo texto de UI en español
 - Sin frameworks JS — vanilla ES5/ES6
-- Firebase project ID: `bunker-panel-3a352` (display name: bunker-panel)
+- Firebase project ID: `bunker-panel` (display name: bunker-panel)
 - Cuenta Firebase: admin@vanguardiaysoluciones
 - CLI logueada con: admin@vanguardiaysoluciones
 - Plan actual: Spark (Blaze pendiente por verificación bancaria de Google)
@@ -20,7 +20,7 @@
 - NUNCA tocar cPanel — el sitio público se actualiza solo por GitHub
 - Google Sheet ID: `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk`
 - Las reglas de Firestore se publican MANUALMENTE en la consola (no por CLI)
-- Deploy de hosting: `firebase deploy --only hosting --project bunker-panel-3a352`
+- Deploy de hosting: `firebase deploy --only hosting --project bunker-panel`
 
 ---
 
@@ -28,16 +28,16 @@
 
 ### Task 1: Pasos manuales en Firebase Console — COMPLETADA
 
-- [x] Proyecto `bunker-panel-3a352` creado en admin@vanguardiaysoluciones
+- [x] Proyecto `bunker-panel` creado en admin@vanguardiaysoluciones
 - [x] Authentication (Email/Password) habilitado
 - [x] Firestore Database creado (us-central1, production mode)
-- [x] Web app registrada por CLI (`firebase apps:create web "Panel BUNKER" --project bunker-panel-3a352`)
+- [x] Web app registrada por CLI (`firebase apps:create web "Panel BUNKER" --project bunker-panel`)
 - [x] firebaseConfig obtenido:
   ```
   apiKey: "AIzaSyB5l2OPtDIo2tiaUqeVWsUady_OyIAHPVY"
-  authDomain: "bunker-panel-3a352.firebaseapp.com"
-  projectId: "bunker-panel-3a352"
-  storageBucket: "bunker-panel-3a352.firebasestorage.app"
+  authDomain: "bunker-panel.firebaseapp.com"
+  projectId: "bunker-panel"
+  storageBucket: "bunker-panel.firebasestorage.app"
   messagingSenderId: "503014259933"
   appId: "1:503014259933:web:5fb4866112bcce0fa4af34"
   ```
@@ -46,9 +46,9 @@
 
 ### Task 2: Actualizar configuración Firebase en el código — COMPLETADA
 
-- [x] `panel/js/firebase-config.js` actualizado con credenciales de `bunker-panel-3a352`
+- [x] `panel/js/firebase-config.js` actualizado con credenciales de `bunker-panel`
 - [x] `firebase.json` reescrito (hosting apunta solo a `panel/`)
-- [x] `.firebaserc` apunta a `bunker-panel-3a352`
+- [x] `.firebaserc` apunta a `bunker-panel`
 - [x] Verificado: no quedan referencias a `bunkermx-51834` en código (solo en Apps Script, que es Task 5)
 
 ---
@@ -69,22 +69,13 @@
 - [x] `npm install` en `functions/`
 - [x] Reglas Firestore publicadas manualmente en consola
 - [ ] ~~Deploy Cloud Functions~~ — **BLOQUEADO: requiere Blaze, verificación bancaria pendiente**
-- [x] Deploy Hosting exitoso: https://bunker-panel-3a352.web.app
+- [x] Deploy Hosting exitoso: https://bunker-panel.web.app
 
-#### BUG PENDIENTE: Login falla con error 400
+#### BUG RESUELTO: Login error 400
 
-Al intentar login en `bunker-panel-3a352.web.app`, el servidor responde `400 Bad Request`.
+**Causa:** La CLI estaba logueada con krloro92@gmail.com, deployando al proyecto equivocado. Se resolvió haciendo login con admin@vanguardiaysoluciones.com.mx y deployando al proyecto correcto `bunker-panel`.
 
-**Diagnóstico probable:** El dominio `bunker-panel-3a352.web.app` puede no estar en la lista de dominios autorizados de Authentication.
-
-**Acción para resolver:**
-1. Ir a https://console.firebase.google.com/project/bunker-panel-3a352/authentication/settings
-2. Pestaña **"Authorized domains"**
-3. Verificar que `bunker-panel-3a352.web.app` esté en la lista
-4. Si no está, agregarlo
-5. Probar login de nuevo en incógnito
-
-Si eso no lo resuelve, abrir la consola del navegador (F12) y copiar la URL completa del request que falla con 400 para diagnosticar mejor.
+**Login confirmado:** krloro92@gmail.com funciona correctamente (2026-08-10).
 
 ---
 
@@ -103,7 +94,7 @@ En `cotizador-munet/google-apps-script-munet.js`, línea 67:
 var FIREBASE_PROJECT = 'bunkermx-51834';
 
 // DESPUÉS:
-var FIREBASE_PROJECT = 'bunker-panel-3a352';
+var FIREBASE_PROJECT = 'bunker-panel';
 ```
 
 - [ ] **Step 2: Actualizar comentario en script de migración**
@@ -115,14 +106,14 @@ En `scripts/migrate-sheets-to-firestore.js`, línea 8:
  * - Firebase y Firestore habilitados en bunkermx-51834
 
 // DESPUÉS:
- * - Firebase y Firestore habilitados en bunker-panel-3a352
+ * - Firebase y Firestore habilitados en bunker-panel
 ```
 
 - [ ] **Step 3: Commit**
 
 ```bash
 git add cotizador-munet/google-apps-script-munet.js scripts/migrate-sheets-to-firestore.js
-git commit -m "chore: apuntar doble escritura Apps Script a bunker-panel-3a352"
+git commit -m "chore: apuntar doble escritura Apps Script a bunker-panel"
 ```
 
 - [ ] **Step 4: Re-deploy Apps Script (manual)**
@@ -159,7 +150,7 @@ Migración completa
 
 - [ ] **Step 3: Verificar datos en Firebase Console**
 
-Ir a https://console.firebase.google.com/project/bunker-panel-3a352/firestore
+Ir a https://console.firebase.google.com/project/bunker-panel/firestore
 
 Verificar que existen las colecciones con documentos:
 - `cotizaciones` — documentos con folios MNT-* y BNK-*
@@ -177,7 +168,7 @@ En el editor de Apps Script, borrar la función `migrateAllToFirestore` y `_migr
 
 - [ ] **Step 1: Verificar panel en Firebase Hosting**
 
-Abrir `https://bunker-panel-3a352.web.app`:
+Abrir `https://bunker-panel.web.app`:
 1. Login con krloro92@gmail.com → debe redirigir a dashboard
 2. Tab Cotizaciones → debe listar cotizaciones MNT y BNK migradas
 3. Tab Clientes → debe mostrar clientes migrados
@@ -213,13 +204,13 @@ En Firebase Console → cambiar a la cuenta `jc@bijbani.mx`:
 ```
 [RESOLVER BUG] Login error 400 → verificar Authorized domains
   ↓
-Task 5 (código + manual: Apps Script → bunker-panel-3a352)
+Task 5 (código + manual: Apps Script → bunker-panel)
   ↓
 Task 6 (manual: migración datos Sheets → Firestore)
   ↓
 Task 7 (manual: verificación + limpieza)
 
 [CUANDO BLAZE SE ACTIVE]
-  → Deploy Cloud Functions: firebase deploy --only functions --project bunker-panel-3a352
+  → Deploy Cloud Functions: firebase deploy --only functions --project bunker-panel
   → Ya no se crean usuarios manualmente — se usa el panel
 ```

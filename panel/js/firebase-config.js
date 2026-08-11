@@ -3,12 +3,12 @@
   'use strict';
 
   var firebaseConfig = {
-    apiKey: "AIzaSyB5l2OPtDIo2tiaUqeVWsUady_OyIAHPVY",
-    authDomain: "bunker-panel-3a352.firebaseapp.com",
-    projectId: "bunker-panel-3a352",
-    storageBucket: "bunker-panel-3a352.firebasestorage.app",
-    messagingSenderId: "503014259933",
-    appId: "1:503014259933:web:5fb4866112bcce0fa4af34"
+    apiKey: "AIzaSyC3AyQM53esGmybpge5lEub-Ezd7f74jdE",
+    authDomain: "bunker-panel.firebaseapp.com",
+    projectId: "bunker-panel",
+    storageBucket: "bunker-panel.firebasestorage.app",
+    messagingSenderId: "1053003957611",
+    appId: "1:1053003957611:web:a918a8fa3f7a10e2e6782e"
   };
 
   // Inicializar Firebase

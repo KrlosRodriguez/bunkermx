@@ -1,6 +1,6 @@
 # Migración Firebase — Nueva Cuenta admin@vanguardiaysoluciones
 
-> Migrar el proyecto Firebase de `bunkermx-51834` (jc@bijbani.mx) a un proyecto nuevo `bunker-panel-3a352` en admin@vanguardiaysoluciones. Firebase Hosting sirve exclusivamente el panel — el sitio público sigue en cPanel sin tocarse.
+> Migrar el proyecto Firebase de `bunkermx-51834` (jc@bijbani.mx) a un proyecto nuevo `bunker-panel` en admin@vanguardiaysoluciones. Firebase Hosting sirve exclusivamente el panel — el sitio público sigue en cPanel sin tocarse.
 
 **Fecha:** 2026-08-10
 
@@ -18,7 +18,7 @@
 ### Separación cPanel / Firebase
 
 - **cPanel** → sitio público (index, esencia, servicios, talento, proyectos, munet, hub, cotizador) — no se toca
-- **Firebase Hosting** → sirve solo el panel (`/panel/`) — accesible en `bunker-panel-3a352.web.app`
+- **Firebase Hosting** → sirve solo el panel (`/panel/`) — accesible en `bunker-panel.web.app`
 - **Firebase backend** → Auth + Firestore + Cloud Functions
 
 Esta separación garantiza que nunca se toca cPanel para nada del panel, y nunca se toca Firebase para nada del sitio público.
@@ -41,8 +41,8 @@ Esta separación garantiza que nunca se toca cPanel para nada del panel, y nunca
 ```
 
 El panel se accede en:
-- `bunker-panel-3a352.web.app` → login (`panel/index.html`)
-- `bunker-panel-3a352.web.app/dashboard` → dashboard (`panel/dashboard.html`)
+- `bunker-panel.web.app` → login (`panel/index.html`)
+- `bunker-panel.web.app/dashboard` → dashboard (`panel/dashboard.html`)
 
 Opcionalmente después se puede configurar un dominio custom (ej. `panel.bunker.mx`) desde Firebase sin tocar cPanel.
 
@@ -50,35 +50,35 @@ Opcionalmente después se puede configurar un dominio custom (ej. `panel.bunker.
 
 ```bash
 # Solo reglas Firestore
-firebase deploy --only firestore:rules --project bunker-panel-3a352
+firebase deploy --only firestore:rules --project bunker-panel
 
 # Solo Cloud Functions
-firebase deploy --only functions --project bunker-panel-3a352
+firebase deploy --only functions --project bunker-panel
 
 # Solo el panel (hosting)
-firebase deploy --only hosting --project bunker-panel-3a352
+firebase deploy --only hosting --project bunker-panel
 
 # Todo junto
-firebase deploy --project bunker-panel-3a352
+firebase deploy --project bunker-panel
 ```
 
 ## Configuración del proyecto nuevo
 
 | Atributo | Valor |
 |----------|-------|
-| Project ID | `bunker-panel-3a352` |
+| Project ID | `bunker-panel` |
 | Cuenta Google | admin@vanguardiaysoluciones |
 | Plan | Blaze (pay-as-you-go) |
 | Auth provider | Email/Password |
 | Firestore region | us-central1 |
 | Firestore mode | Production |
 | Admin inicial | krloro92@gmail.com (temporal) |
-| URL panel | `bunker-panel-3a352.web.app` |
+| URL panel | `bunker-panel.web.app` |
 
 ## Archivos a modificar
 
 ### `panel/js/firebase-config.js`
-Actualizar `firebaseConfig` con las credenciales del proyecto `bunker-panel-3a352` (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).
+Actualizar `firebaseConfig` con las credenciales del proyecto `bunker-panel` (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).
 
 ### `firebase.json`
 Reescribir para apuntar hosting solo a `/panel/`:
@@ -110,7 +110,7 @@ Apuntar al proyecto nuevo:
 ```json
 {
   "projects": {
-    "default": "bunker-panel-3a352"
+    "default": "bunker-panel"
   }
 }
 ```
@@ -118,7 +118,7 @@ Apuntar al proyecto nuevo:
 ## Plan de ejecución
 
 ### Ya completados (HaDeZ manual)
-- [x] Crear proyecto `bunker-panel-3a352` en Firebase Console
+- [x] Crear proyecto `bunker-panel` en Firebase Console
 - [x] Activar plan Blaze
 - [x] Habilitar Authentication (Email/Password)
 
@@ -131,20 +131,20 @@ Apuntar al proyecto nuevo:
 ### Cambios en código (Claude)
 - [ ] Actualizar `panel/js/firebase-config.js` con credenciales nuevas
 - [ ] Reescribir `firebase.json` (hosting apunta solo a panel)
-- [ ] Crear/actualizar `.firebaserc` con project ID `bunker-panel-3a352`
+- [ ] Crear/actualizar `.firebaserc` con project ID `bunker-panel`
 
 ### Deploy (CLI)
 - [ ] `npm install` en `functions/`
-- [ ] `firebase deploy --only firestore:rules --project bunker-panel-3a352`
-- [ ] `firebase deploy --only functions --project bunker-panel-3a352`
-- [ ] `firebase deploy --only hosting --project bunker-panel-3a352`
+- [ ] `firebase deploy --only firestore:rules --project bunker-panel`
+- [ ] `firebase deploy --only functions --project bunker-panel`
+- [ ] `firebase deploy --only hosting --project bunker-panel`
 
 ### Migración de datos
 - [ ] Ejecutar migración Sheets → Firestore (script de una sola vez)
 - [ ] Re-deploy Apps Script con doble escritura activada
 
 ### Verificación
-- [ ] Abrir `bunker-panel-3a352.web.app` → login con krloro92@gmail.com
+- [ ] Abrir `bunker-panel.web.app` → login con krloro92@gmail.com
 - [ ] Verificar tabs: Cotizaciones, Pipeline, Clientes, Proveedores, Calendario, Reportes, Catálogo, Usuarios
 - [ ] Verificar que wizard público en cPanel sigue funcionando
 - [ ] Verificar que datos nuevos del wizard llegan a Firestore (doble escritura)

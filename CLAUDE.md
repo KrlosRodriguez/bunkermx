@@ -7,12 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 BUNKER Creatividad Empresarial corporate website + panel operativo interno.
 
 - **Sitio público**: multi-page, Spanish-language marketing site. Vanilla HTML/CSS/JS, sin build step. Deployed via **cPanel** (actualizado por GitHub). **NUNCA tocar cPanel** — la última vez rompió los correos.
-- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore. Deployed via **Firebase Hosting** como app independiente en `bunker-panel-3a352.web.app`. Solo sirve archivos de `/panel/`.
+- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`.
 
 ## How to Run
 
 - **Sitio público**: Open `index.html` directly in a browser, or serve it with any static file server (e.g. `python -m http.server 5500` or VS Code Live Server). There is no build, lint, or test command.
-- **Panel**: `firebase deploy --only hosting --project bunker-panel-3a352` (solo despliega `/panel/`). Las reglas de Firestore se publican **manualmente** en la consola de Firebase (no por CLI).
+- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican **manualmente** en la consola de Firebase (no por CLI).
 
 ## Architecture
 
@@ -73,7 +73,7 @@ Dos estilos de PDF generados client-side con jsPDF 2.5.1:
 App interna Firebase con Auth + Firestore. Archivos:
 - **`panel/index.html`** — login page
 - **`panel/dashboard.html`** — dashboard principal con tabs
-- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel-3a352`)
+- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** — autenticación + roles
 - **`panel/js/guard.js`** — guard de sesión
 - **`panel/js/firestore.js`** — abstracción Firestore
@@ -86,12 +86,12 @@ App interna Firebase con Auth + Firestore. Archivos:
 ### Deployment
 
 - **Sitio público**: se actualiza por GitHub → cPanel automático. **No tocar cPanel nunca.**
-- **Panel**: `firebase deploy --only hosting --project bunker-panel-3a352`
+- **Panel**: `firebase deploy --only hosting --project bunker-panel`
 - **Reglas Firestore**: publicar manualmente en Firebase Console → Firestore → Reglas → pegar `firestore.rules` → Publicar
-- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel-3a352` (requiere plan Blaze)
+- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
 - **`firebase.json`** — hosting con `public: "panel"`, solo sirve archivos del panel
-- **`.firebaserc`** — proyecto default: `bunker-panel-3a352`
-- **Firebase project ID**: `bunker-panel-3a352` (cuenta: admin@vanguardiaysoluciones)
+- **`.firebaserc`** — proyecto default: `bunker-panel`
+- **Firebase project ID**: `bunker-panel` (cuenta: admin@vanguardiaysoluciones)
 
 ## Key Conventions
 
