@@ -1,7 +1,5 @@
 {
   "projects": {
-    "Bunker1": "bunkermx-51834"
-  },
-  "targets": {},
-  "etags": {}
+    "default": "bunker-panel-3a352"
+  }
 }

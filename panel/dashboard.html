@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUNKER — Panel Operativo</title>
+<link rel="icon" type="image/webp" href="img/logo-bunker.webp">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+<!-- Firebase SDKs (compat mode for vanilla JS) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/guard.js"></script>
+<script src="js/firestore.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="panel-header">
+  <div class="panel-brand">
+    <img src="img/logo-bunker.webp" alt="BUNKER" class="panel-logo">
+    <span class="panel-title">PANEL OPERATIVO</span>
+  </div>
+  <div class="panel-user">
+    <span id="panelUserName"></span>
+    <span id="panelUserRole" class="panel-role-badge"></span>
+    <button id="panelLogout" class="panel-logout-btn" title="Cerrar sesión">SALIR</button>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<nav class="panel-tabs">
+  <button class="dash-tab active" data-tab="cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas">PIPELINE</button>
+  <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura">CLIENTES</button>
+  <button class="dash-tab" data-tab="proveedores">PROVEEDORES</button>
+  <button class="dash-tab" data-tab="calendario">CALENDARIO</button>
+  <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas">REPORTES</button>
+  <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas">CATÁLOGO</button>
+  <button class="dash-tab" data-tab="usuarios" data-require-role="admin">USUARIOS</button>
+</nav>
+
+<!-- ── SECCIONES ── -->
+<main class="panel-main">
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- COTIZACIONES (Task 7) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-cotizaciones" class="panel-section active">
+    <!-- KPIs -->
+    <div class="dash-indicators">
+      <div class="dash-card">
+        <div class="dash-card-label">PIPELINE ACTIVAS</div>
+        <div class="dash-card-value" id="kpiPipeline">0</div>
+        <div class="dash-card-sub">cotizaciones en proceso</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">COTIZADO</div>
+        <div class="dash-card-value" id="kpiCotizado">$0</div>
+        <div class="dash-card-sub">monto total activo</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">CERRADO</div>
+        <div class="dash-card-value" id="kpiCerrado">$0</div>
+        <div class="dash-card-sub">monto confirmado</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">TASA DE CIERRE</div>
+        <div class="dash-card-value" id="kpiTasa">0%</div>
+        <div class="dash-card-sub">conversión general</div>
+      </div>
+      <div class="dash-card dash-card--warn">
+        <div class="dash-card-label">REGISTROS</div>
+        <div class="dash-card-value" id="kpiTotal">0</div>
+        <div class="dash-card-sub">total cotizaciones</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="dash-filters">
+      <input type="text" id="cotSearch2" class="dash-search" placeholder="Buscar folio, cliente, evento...">
+      <select id="cotEstado2" class="dash-select">
+        <option value="">Todos los estados</option>
+        <option value="Recorrido">Recorrido</option>
+        <option value="Cotizada">Cotizada</option>
+        <option value="Negociación">Negociación</option>
+        <option value="Cerrada">Cerrada</option>
+        <option value="En Producción">En Producción</option>
+        <option value="Ejecutado">Ejecutado</option>
+        <option value="Cancelada">Cancelada</option>
+        <option value="Perdida">Perdida</option>
+      </select>
+      <select id="cotTipo2" class="dash-select">
+        <option value="">Todos los tipos</option>
+        <option value="MNT">MNT — Venues</option>
+        <option value="BNK">BNK — Servicios</option>
+      </select>
+      <input type="date" id="cotDesde2" class="dash-date" title="Desde">
+      <input type="date" id="cotHasta2" class="dash-date" title="Hasta">
+    </div>
+
+    <!-- Tabla -->
+    <div class="dash-table-wrap">
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>FOLIO</th>
+            <th>FECHA</th>
+            <th>CLIENTE</th>
+            <th>EVENTO</th>
+            <th>TIPO</th>
+            <th>DETALLE</th>
+            <th>TOTAL</th>
+            <th>ESTADO</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody id="cotBody2"></tbody>
+      </table>
+      <div id="cotPagination2" style="text-align:center;padding:16px;color:var(--tx);font-family:'Space Mono',monospace;font-size:11px"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- PIPELINE (Task 10) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-pipeline" class="panel-section">
+    <link rel="stylesheet" href="css/pipeline.css">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">PIPELINE DE SEGUIMIENTO</h2>
+      <div class="pipeline-legend">
+        <span class="legend-item legend-cold">Fría (&gt;3d)</span>
+        <span class="legend-item legend-stale">Estancada (&gt;5d)</span>
+      </div>
+    </div>
+
+    <div class="pipeline-board" id="pipelineBoard"></div>
+
+    <!-- Modal detalle con timeline -->
+    <div class="bnk-overlay" id="pipeDetailOverlay">
+      <div class="bnk-modal" style="max-width:700px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="pipeDetailTitle">DETALLE</span>
+          <button class="bnk-modal-close" id="pipeDetailClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div id="pipeDetailInfo"></div>
+          <div class="pipe-timeline-header">HISTORIAL DE ACTIVIDAD</div>
+          <div id="pipeTimeline" class="pipe-timeline"></div>
+          <div class="pipe-note-box">
+            <textarea id="pipeNoteInput" class="bnk-textarea" rows="2" placeholder="Agregar nota de seguimiento..."></textarea>
+            <button id="pipeNoteBtn" class="panel-btn-primary" style="margin-top:8px">AGREGAR NOTA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- CLIENTES (Task 8) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-clientes" class="panel-section">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">CLIENTES</h2>
+      <input type="text" id="cliSearch" class="dash-search" placeholder="Buscar cliente..." style="max-width:300px">
+      <button id="btnNuevoCliente" class="panel-btn-primary">+ NUEVO CLIENTE</button>
+    </div>
+
+    <div class="dash-table-wrap">
+      <table class="dash-table" id="cliTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>EMPRESA</th>
+            <th>CONTACTO</th>
+            <th>CORREO</th>
+            <th>TELÉFONO</th>
+            <th>CUENTA</th>
+            <th>% DATOS</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="cliBody"></tbody>
+      </table>
+      <div id="cliEmpty" class="dash-empty" style="display:none">
+        <div class="dash-empty-icon">&#128100;</div>
+        <div class="dash-empty-text">Sin clientes registrados</div>
+      </div>
+    </div>
+
+    <!-- Modal cliente -->
+    <div class="bnk-overlay" id="cliOverlay">
+      <div class="bnk-modal" style="max-width:800px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="cliModalTitle">NUEVO CLIENTE</span>
+          <button class="bnk-modal-close" id="cliClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <input type="hidden" id="cliId">
+          <!-- Tabs del modal -->
+          <div class="modal-tabs">
+            <button class="modal-tab active" data-cli-tab="general">GENERAL</button>
+            <button class="modal-tab" data-cli-tab="contacto">CONTACTO</button>
+            <button class="modal-tab" data-cli-tab="facturacion">FACTURACIÓN</button>
+            <button class="modal-tab" data-cli-tab="bancarios">BANCARIOS</button>
+          </div>
+
+          <!-- Tab General -->
+          <div class="modal-tab-content" id="cliTabGeneral">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">EMPRESA</label><input type="text" class="bnk-input" id="cliEmpresa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">MARCAS</label><input type="text" class="bnk-input" id="cliMarcas"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
+                <select class="bnk-input" id="cliTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
+              </div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA ACTIVA</label>
+                <select class="bnk-input" id="cliCuentaActiva"><option value="Sí">Sí</option><option value="No">No</option></select>
+              </div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">CONDICIONES DE PAGO</label><input type="text" class="bnk-input" id="cliCondicionesPago"></div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">OBSERVACIONES</label><textarea class="bnk-textarea" id="cliObservaciones" rows="2"></textarea></div>
+            </div>
+          </div>
+
+          <!-- Tab Contacto -->
+          <div class="modal-tab-content" id="cliTabContacto" style="display:none">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">PERSONA CONTACTO</label><input type="text" class="bnk-input" id="cliPersonaContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">PUESTO</label><input type="text" class="bnk-input" id="cliPuestoContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CORREO</label><input type="email" class="bnk-input" id="cliCorreoContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TELÉFONO</label><input type="tel" class="bnk-input" id="cliTelefonoContacto"></div>
+            </div>
+          </div>
+
+          <!-- Tab Facturación -->
+          <div class="modal-tab-content" id="cliTabFacturacion" style="display:none">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">RAZÓN SOCIAL</label><input type="text" class="bnk-input" id="cliRazonSocial"></div>
+              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="cliRFC"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="cliCURP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">RÉGIMEN FISCAL</label><input type="text" class="bnk-input" id="cliRegimenFiscal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="cliUsoCFDI"></div>
+              <div class="bnk-form-group"><label class="bnk-label">FORMA PAGO</label><input type="text" class="bnk-input" id="cliFormaPago"></div>
+              <div class="bnk-form-group"><label class="bnk-label">MÉTODO PAGO</label><input type="text" class="bnk-input" id="cliMetodoPago"></div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">CALLE</label><input type="text" class="bnk-input" id="cliCalle"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NO. EXT</label><input type="text" class="bnk-input" id="cliNoExt"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NO. INT</label><input type="text" class="bnk-input" id="cliNoInt"></div>
+              <div class="bnk-form-group"><label class="bnk-label">COLONIA</label><input type="text" class="bnk-input" id="cliColonia"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CP</label><input type="text" class="bnk-input" id="cliCP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ALCALDÍA/MUNICIPIO</label><input type="text" class="bnk-input" id="cliAlcaldia"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ESTADO</label><input type="text" class="bnk-input" id="cliEstado"></div>
+              <div class="bnk-form-group"><label class="bnk-label">PAÍS</label><input type="text" class="bnk-input" id="cliPais" value="México"></div>
+            </div>
+          </div>
+
+          <!-- Tab Bancarios -->
+          <div class="modal-tab-content" id="cliTabBancarios" style="display:none">
+            <div class="bnk-section-label">CUENTA MXN</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoMXN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SUCURSAL</label><input type="text" class="bnk-input" id="cliSucursal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="cliTitularCuenta"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA CORTA</label><input type="text" class="bnk-input" id="cliCuentaCorta"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="cliCLABE"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="cliTipoCuenta"></div>
+            </div>
+            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoExtranjero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="cliDivisa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="cliTitularExtranjero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="cliCuentaIBAN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="cliSWIFT"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="cliABA"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="cliCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="cliGuardar">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- PROVEEDORES (Task 8) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-proveedores" class="panel-section">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">PROVEEDORES</h2>
+      <input type="text" id="prvSearch" class="dash-search" placeholder="Buscar proveedor..." style="max-width:300px">
+      <button id="btnNuevoProveedor" class="panel-btn-primary">+ NUEVO PROVEEDOR</button>
+    </div>
+
+    <div class="dash-table-wrap">
+      <table class="dash-table" id="prvTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>EMPRESA</th>
+            <th>TIPO</th>
+            <th>CONTACTO</th>
+            <th>CORREO</th>
+            <th>TELÉFONO</th>
+            <th>SERVICIOS</th>
+            <th>% DATOS</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="prvBody"></tbody>
+      </table>
+      <div id="prvEmpty" class="dash-empty" style="display:none">
+        <div class="dash-empty-icon">&#128666;</div>
+        <div class="dash-empty-text">Sin proveedores registrados</div>
+      </div>
+    </div>
+
+    <!-- Modal proveedor -->
+    <div class="bnk-overlay" id="prvOverlay">
+      <div class="bnk-modal" style="max-width:900px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="prvModalTitle">NUEVO PROVEEDOR</span>
+          <button class="bnk-modal-close" id="prvClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <input type="hidden" id="prvId">
+          <div class="modal-tabs">
+            <button class="modal-tab active" data-prv-tab="general">GENERAL</button>
+            <button class="modal-tab" data-prv-tab="contacto">CONTACTO</button>
+            <button class="modal-tab" data-prv-tab="fiscales">FISCALES</button>
+            <button class="modal-tab" data-prv-tab="bancarios">BANCARIOS</button>
+            <button class="modal-tab" data-prv-tab="servicios">SERVICIOS</button>
+          </div>
+
+          <!-- Tab General -->
+          <div class="modal-tab-content" id="prvTabGeneral">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">EMPRESA / RAZÓN SOCIAL</label><input type="text" class="bnk-input" id="prvEmpresa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO</label>
+                <select class="bnk-input" id="prvTipo"><option value="Pool">Pool</option><option value="One-Shot">One-Shot</option></select>
+              </div>
+              <div class="bnk-form-group"><label class="bnk-label">GIRO</label><input type="text" class="bnk-input" id="prvGiro"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA ACTIVA</label>
+                <select class="bnk-input" id="prvCuentaActiva"><option value="Sí">Sí</option><option value="No">No</option></select>
+              </div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">OBSERVACIONES</label><textarea class="bnk-textarea" id="prvObservaciones" rows="2"></textarea></div>
+            </div>
+          </div>
+
+          <!-- Tab Contacto -->
+          <div class="modal-tab-content" id="prvTabContacto" style="display:none">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">PERSONA CONTACTO</label><input type="text" class="bnk-input" id="prvPersonaContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">PUESTO</label><input type="text" class="bnk-input" id="prvPuestoContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CORREO</label><input type="email" class="bnk-input" id="prvCorreoContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TELÉFONO</label><input type="tel" class="bnk-input" id="prvTelefonoContacto"></div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">DIRECCIÓN</label><input type="text" class="bnk-input" id="prvDireccion"></div>
+            </div>
+          </div>
+
+          <!-- Tab Fiscales -->
+          <div class="modal-tab-content" id="prvTabFiscales" style="display:none">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="prvRFC"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="prvCURP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">RÉGIMEN FISCAL</label><input type="text" class="bnk-input" id="prvRegimenFiscal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
+                <select class="bnk-input" id="prvTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
+              </div>
+              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="prvUsoCFDI"></div>
+              <div class="bnk-form-group"><label class="bnk-label">FORMA PAGO</label><input type="text" class="bnk-input" id="prvFormaPago"></div>
+              <div class="bnk-form-group"><label class="bnk-label">MÉTODO PAGO</label><input type="text" class="bnk-input" id="prvMetodoPago"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CONDICIONES PAGO</label><input type="text" class="bnk-input" id="prvCondicionesPago"></div>
+            </div>
+          </div>
+
+          <!-- Tab Bancarios -->
+          <div class="modal-tab-content" id="prvTabBancarios" style="display:none">
+            <div class="bnk-section-label">CUENTA MXN</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoMXN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SUCURSAL</label><input type="text" class="bnk-input" id="prvSucursal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="prvTitularCuenta"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA CORTA</label><input type="text" class="bnk-input" id="prvCuentaCorta"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="prvCLABE"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="prvTipoCuenta"></div>
+            </div>
+            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoExtranjero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="prvDivisa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="prvTitularExtranjero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="prvCuentaIBAN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="prvSWIFT"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="prvABA"></div>
+            </div>
+          </div>
+
+          <!-- Tab Servicios -->
+          <div class="modal-tab-content" id="prvTabServicios" style="display:none">
+            <div class="bnk-section-label">CATÁLOGO DE SERVICIOS DEL PROVEEDOR</div>
+            <div id="prvServiciosContainer"></div>
+            <button class="bnk-add-row" id="btnAddServicio">+ AGREGAR SERVICIO</button>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="prvCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="prvGuardar">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- CALENDARIO (Task 13) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-calendario" class="panel-section">
+    <link rel="stylesheet" href="css/calendario.css">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">CALENDARIO DE EVENTOS</h2>
+      <div class="cal-nav">
+        <button id="calPrev" class="panel-btn-icon">&larr;</button>
+        <span id="calMesAnio" class="cal-mes-label"></span>
+        <button id="calNext" class="panel-btn-icon">&rarr;</button>
+      </div>
+    </div>
+    <div class="cal-filtros" id="calFiltros">
+      <button class="cal-filtro active" data-espacio="todos">TODOS</button>
+      <button class="cal-filtro" data-espacio="FORO">FORO</button>
+      <button class="cal-filtro" data-espacio="JARDÍN SOCIAL">JARDÍN</button>
+      <button class="cal-filtro" data-espacio="AUDITORIO">AUDITORIO</button>
+      <button class="cal-filtro" data-espacio="BLACK BOX">BLACK BOX</button>
+      <button class="cal-filtro" data-espacio="LOBBY">LOBBY</button>
+    </div>
+    <div class="cal-legend">
+      <span class="cal-legend-item cal-legend--cotizado">Cotizado</span>
+      <span class="cal-legend-item cal-legend--confirmado">Confirmado</span>
+      <span class="cal-legend-item cal-legend--bloqueado">Bloqueado</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- REPORTES (Task 11) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-reportes" class="panel-section">
+    <link rel="stylesheet" href="css/reportes.css">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">REPORTES</h2>
+      <div class="reportes-periodo">
+        <select id="repPeriodo" class="bnk-input" style="max-width:200px">
+          <option value="mes">Este mes</option>
+          <option value="trimestre">Último trimestre</option>
+          <option value="anio">Este año</option>
+          <option value="todo">Todo</option>
+        </select>
+      </div>
+    </div>
+    <div class="reportes-grid">
+      <div class="reporte-card" id="repFunnel"></div>
+      <div class="reporte-card" id="repMensual"></div>
+      <div class="reporte-card" id="repTopClientes"></div>
+      <div class="reporte-card" id="repRendimiento"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- CATÁLOGO (Task 14) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-catalogo" class="panel-section">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">CATÁLOGO DE PRECIOS</h2>
+      <input type="text" id="catSearch" class="dash-search" placeholder="Buscar concepto..." style="max-width:300px">
+      <button id="btnNuevoConcepto" class="panel-btn-primary">+ NUEVO CONCEPTO</button>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table" id="catTable">
+        <thead>
+          <tr>
+            <th>CATEGORÍA</th>
+            <th>CONCEPTO</th>
+            <th>UNIDAD</th>
+            <th>PRECIO</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="catBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Modal concepto -->
+    <div class="bnk-overlay" id="catOverlay">
+      <div class="bnk-modal" style="max-width:500px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="catModalTitle">NUEVO CONCEPTO</span>
+          <button class="bnk-modal-close" id="catClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <input type="hidden" id="catId">
+          <div class="bnk-form-grid">
+            <div class="bnk-form-group">
+              <label class="bnk-label">CATEGORÍA</label>
+              <select class="bnk-input" id="catCategoria">
+                <option value="Audio">Audio</option>
+                <option value="Iluminación">Iluminación</option>
+                <option value="Video">Video</option>
+                <option value="Escenografía">Escenografía</option>
+                <option value="Venue">Venue</option>
+                <option value="Streaming">Streaming</option>
+                <option value="Personal">Personal</option>
+                <option value="Catering">Catering</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">CONCEPTO</label>
+              <input type="text" class="bnk-input" id="catConcepto" placeholder="Nombre del servicio">
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">UNIDAD</label>
+              <input type="text" class="bnk-input" id="catUnidad" placeholder="evento, jornada, pieza...">
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">PRECIO</label>
+              <input type="number" class="bnk-input" id="catPrecio" placeholder="0" min="0" step="0.01">
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="catCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="catGuardar">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- USUARIOS (Task 6) -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-usuarios" class="panel-section">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">GESTIÓN DE USUARIOS</h2>
+      <button id="btnNuevoUsuario" class="panel-btn-primary">+ NUEVO USUARIO</button>
+    </div>
+    <div class="dash-table-wrap">
+      <table class="dash-table" id="usrTable">
+        <thead>
+          <tr>
+            <th>NOMBRE</th>
+            <th>EMAIL</th>
+            <th>ROL</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="usrBody"></tbody>
+      </table>
+      <div id="usrEmpty" class="dash-empty" style="display:none">No hay usuarios registrados</div>
+    </div>
+
+    <!-- Modal usuario -->
+    <div class="bnk-overlay" id="usrOverlay">
+      <div class="bnk-modal" style="max-width:500px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="usrModalTitle">NUEVO USUARIO</span>
+          <button class="bnk-modal-close" id="usrClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-form-grid">
+            <div class="bnk-form-group">
+              <label class="bnk-label">NOMBRE</label>
+              <input type="text" class="bnk-input" id="usrNombre" placeholder="Nombre completo">
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">EMAIL</label>
+              <input type="email" class="bnk-input" id="usrEmail" placeholder="correo@bunkermx.com">
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">ROL</label>
+              <select class="bnk-input" id="usrRol">
+                <option value="admin">Admin</option>
+                <option value="ventas">Ventas</option>
+                <option value="produccion">Producción</option>
+                <option value="lectura">Lectura</option>
+              </select>
+            </div>
+            <div class="bnk-form-group" id="usrPassGroup">
+              <label class="bnk-label">CONTRASEÑA TEMPORAL</label>
+              <input type="text" class="bnk-input" id="usrPass" placeholder="Mínimo 6 caracteres">
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="usrCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="usrGuardar">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- EVENTOS / PRODUCCIÓN (Task 12) — sub-vista dentro de pipeline -->
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- Nota: Los eventos se acceden desde Pipeline al cerrar una cotización.
+       El contenedor se renderiza dinámicamente por eventos.js -->
+
+  <!-- Modal selector de plantilla (Task 12) -->
+  <div class="bnk-overlay" id="evtPlantillaOverlay">
+    <div class="bnk-modal" style="max-width:500px">
+      <div class="bnk-modal-header">
+        <span class="bnk-modal-title">SELECCIONAR PLANTILLA</span>
+        <button class="bnk-modal-close" id="evtPlantillaClose">&times;</button>
+      </div>
+      <div class="bnk-modal-body">
+        <p style="color:var(--tx);font-size:13px;margin-bottom:16px">Selecciona una plantilla de checklist para este evento:</p>
+        <div class="plantilla-list" id="evtPlantillaList"></div>
+      </div>
+      <div class="bnk-modal-footer">
+        <button class="panel-btn-primary" id="evtPlantillaConfirm">CREAR EVENTO</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── TOAST NOTIFICATIONS ── -->
+<div class="bnk-toast" id="bnkToast"></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- JS CORE + MÓDULOS -->
+<!-- ══════════════════════════════════════════════ -->
+<script>
+// ── Tab switching ──
+(function () {
+  'use strict';
+
+  var tabs = document.querySelectorAll('.dash-tab');
+  var sections = document.querySelectorAll('.panel-section');
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = this.getAttribute('data-tab');
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+      sections.forEach(function (s) { s.classList.remove('active'); });
+      this.classList.add('active');
+      var sec = document.getElementById('sec-' + target);
+      if (sec) sec.classList.add('active');
+    });
+  });
+
+  // Modal tab switching (clientes)
+  document.querySelectorAll('[data-cli-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = this.getAttribute('data-cli-tab');
+      document.querySelectorAll('[data-cli-tab]').forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      ['general', 'contacto', 'facturacion', 'bancarios'].forEach(function (t) {
+        var el = document.getElementById('cliTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (el) el.style.display = t === target ? '' : 'none';
+      });
+    });
+  });
+
+  // Modal tab switching (proveedores)
+  document.querySelectorAll('[data-prv-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = this.getAttribute('data-prv-tab');
+      document.querySelectorAll('[data-prv-tab]').forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      ['general', 'contacto', 'fiscales', 'bancarios', 'servicios'].forEach(function (t) {
+        var el = document.getElementById('prvTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (el) el.style.display = t === target ? '' : 'none';
+      });
+    });
+  });
+
+  // Logout
+  document.getElementById('panelLogout').addEventListener('click', function () {
+    BNK_AUTH.logout();
+  });
+
+  // Toast system
+  window.BNKToast = {
+    _show: function (msg, type) {
+      var el = document.getElementById('bnkToast');
+      el.textContent = msg;
+      el.className = 'bnk-toast bnk-toast--' + type + ' visible';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function () {
+        el.classList.remove('visible');
+      }, 3000);
+    },
+    ok: function (msg) { this._show(msg, 'ok'); },
+    warn: function (msg) { this._show(msg, 'warn'); },
+    error: function (msg) { this._show(msg, 'error'); }
+  };
+})();
+</script>
+
+<!-- Módulos de página -->
+<script src="js/pages/cotizaciones.js"></script>
+<script src="js/pages/pipeline.js"></script>
+<script src="js/pages/clientes.js"></script>
+<script src="js/pages/proveedores.js"></script>
+<script src="js/pages/calendario.js"></script>
+<script src="js/pages/reportes.js"></script>
+<script src="js/pages/catalogo.js"></script>
+<script src="js/pages/usuarios.js"></script>
+<script src="js/pages/eventos.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+/* calendario.css — Grid mensual con estados de reserva */
+
+.cal-nav{display:flex;align-items:center;gap:12px}
+.cal-mes-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:3px;color:var(--g);min-width:200px;text-align:center}
+
+.cal-filtros{display:flex;gap:8px;padding:0 30px 12px;flex-wrap:wrap}
+.cal-filtro{padding:6px 16px;background:transparent;border:1px solid var(--bd);color:var(--tx);
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.cal-filtro:hover{color:var(--wh);border-color:rgba(0,255,65,.3)}
+.cal-filtro.active{color:var(--g);border-color:var(--g);background:rgba(0,255,65,.06)}
+
+.cal-legend{display:flex;gap:16px;padding:0 30px 16px}
+.cal-legend-item{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 12px;border:1px solid}
+.cal-legend--cotizado{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
+.cal-legend--confirmado{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
+.cal-legend--bloqueado{color:var(--red);border-color:rgba(255,68,85,.3);background:rgba(255,68,85,.06)}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:0 30px 30px;background:var(--bd)}
+.cal-header{background:var(--dk);padding:10px;text-align:center;font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;letter-spacing:2px;color:var(--g)}
+.cal-cell{background:var(--bk);padding:8px;min-height:100px;position:relative}
+.cal-cell--empty{background:rgba(5,9,5,.5)}
+.cal-day{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx);margin-bottom:4px;display:block}
+
+.cal-bloque{padding:3px 6px;margin-bottom:2px;font-size:10px;font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
+.cal-bloque--cotizado{background:rgba(240,192,64,.15);color:var(--ylw);border-left:2px solid var(--ylw)}
+.cal-bloque--confirmado{background:rgba(0,255,65,.1);color:var(--g);border-left:2px solid var(--g)}
+.cal-bloque--bloqueado{background:rgba(255,68,85,.1);color:var(--red);border-left:2px solid var(--red)}
+
+@media(max-width:900px){
+  .cal-grid{padding:0 16px 16px}
+  .cal-cell{min-height:70px;padding:4px}
+  .cal-day{font-size:9px}
+  .cal-bloque{font-size:8px}
+  .cal-filtros{padding:0 16px 12px}
+  .cal-legend{padding:0 16px 12px;flex-wrap:wrap}
+}
+@media(max-width:600px){
+  .cal-grid{grid-template-columns:repeat(7,1fr)}
+  .cal-cell{min-height:50px}
+}

@@ -1,0 +1,41 @@
+/* eventos.css — Estilos del checklist de producción */
+
+.eventos-list{padding:0 30px 30px}
+.evento-card{background:var(--card);border:1px solid var(--bd);padding:20px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+.evento-card:hover{border-color:rgba(0,255,65,.3)}
+.evento-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.evento-card-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--wh)}
+.evento-card-date{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx)}
+.evento-card-info{display:flex;gap:20px;font-size:12px;color:var(--tx);margin-bottom:12px}
+
+/* Progress bar */
+.evento-progress{height:6px;background:rgba(255,255,255,.05);position:relative;overflow:hidden}
+.evento-progress-fill{height:100%;background:var(--g);transition:width .4s ease}
+.evento-progress-text{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-top:4px;text-align:right}
+
+/* Checklist */
+.checklist{padding:0 30px 30px}
+.checklist-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bd);transition:all .2s}
+.checklist-item:hover{background:rgba(0,255,65,.02)}
+.checklist-item.completed{opacity:.6}
+.checklist-item.completed .checklist-desc{text-decoration:line-through}
+
+.checklist-check{width:20px;height:20px;border:1px solid var(--bd);background:transparent;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;color:transparent;font-size:14px}
+.checklist-check.checked{border-color:var(--g);background:rgba(0,255,65,.1);color:var(--g)}
+
+.checklist-desc{flex:1;font-size:14px;color:var(--wh)}
+.checklist-responsable{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);width:120px}
+.checklist-fecha{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);width:100px}
+
+/* Plantilla selector modal */
+.plantilla-list{display:flex;flex-direction:column;gap:8px}
+.plantilla-option{padding:16px;border:1px solid var(--bd);cursor:pointer;transition:all .2s}
+.plantilla-option:hover{border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.02)}
+.plantilla-option.selected{border-color:var(--g);background:rgba(0,255,65,.06)}
+.plantilla-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--g)}
+.plantilla-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-top:4px}
+
+@media(max-width:900px){
+  .eventos-list,.checklist{padding:0 16px 16px}
+}
