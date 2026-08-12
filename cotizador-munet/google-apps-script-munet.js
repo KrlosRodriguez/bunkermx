@@ -63,6 +63,49 @@ var PROVEEDORES_HEADERS = [
 
 var SERVICIOS_HEADERS = ['ID','Proveedor ID','Categoría','Servicio','Unidad','Costo Unitario','Activo'];
 
+// ── Doble escritura a Firestore (transitorio) ──
+var FIREBASE_PROJECT = 'bunker-panel';
+var FIRESTORE_BASE = 'https://firestore.googleapis.com/v1/projects/' + FIREBASE_PROJECT + '/databases/(default)/documents';
+
+function writeToFirestore(collection, docId, data) {
+  try {
+    var token = ScriptApp.getOAuthToken();
+    var url = FIRESTORE_BASE + '/' + collection + '/' + docId;
+    var fields = {};
+
+    Object.keys(data).forEach(function (key) {
+      var val = data[key];
+      if (val === null || val === undefined || val === '') {
+        fields[key] = { stringValue: '' };
+      } else if (typeof val === 'number') {
+        fields[key] = { doubleValue: val };
+      } else if (typeof val === 'boolean') {
+        fields[key] = { booleanValue: val };
+      } else if (Array.isArray(val)) {
+        fields[key] = {
+          arrayValue: {
+            values: val.map(function (v) { return { stringValue: String(v) }; })
+          }
+        };
+      } else {
+        fields[key] = { stringValue: String(val) };
+      }
+    });
+
+    var payload = { fields: fields };
+
+    UrlFetchApp.fetch(url, {
+      method: 'PATCH',
+      contentType: 'application/json',
+      headers: { 'Authorization': 'Bearer ' + token },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+  } catch (e) {
+    Logger.log('Firestore write error (' + collection + '/' + docId + '): ' + e.message);
+  }
+}
+
 // ── Utilidad: obtener o crear hoja con encabezados ──
 function getOrCreateSheet(ss, name, headers, colCount) {
   var sheet = ss.getSheetByName(name);
@@ -193,6 +236,33 @@ function doPost(e) {
       driveLink,
       'Nueva'
     ]);
+
+    // ── Doble escritura a Firestore ──
+    writeToFirestore('cotizaciones', folio, {
+      fuente: 'MNT',
+      fecha: fechaStr,
+      folio: folio,
+      cliente: data.cliente || '',
+      agencia: data.agencia || '',
+      evento: data.evento || '',
+      contacto: data.contacto || '',
+      telefono: data.telefono || '',
+      correo: data.correo || '',
+      tipo: data.tipoEvento === 'publico' ? 'Público' : 'Privado',
+      fechas: fechasResumen,
+      desgloseVenues: desgloseVenues,
+      diasTotal: data.diasTotal || 0,
+      descripcion: data.descripcion || '',
+      horario: horario,
+      espacios: espaciosNombres,
+      rentaTotal: data.rentaTotal || 0,
+      montajeTotal: data.montajeTotal || 0,
+      subtotal: data.subtotal || 0,
+      iva: data.iva || 0,
+      total: data.total || 0,
+      linkPdf: driveLink,
+      estado: 'Nueva'
+    });
 
     // ── Email al equipo BUNKER ──
     var adminSubject = 'Nueva cotización MUNET — ' + folio + ' — ' + (data.cliente || 'Sin nombre');
@@ -325,6 +395,29 @@ function crearCotizacionBNK(data) {
       'Nueva'
     ]);
 
+    // ── Doble escritura a Firestore ──
+    writeToFirestore('cotizaciones', folio, {
+      fuente: 'BNK',
+      fecha: fechaStr,
+      folio: folio,
+      folioMNT: data.folioMNT || '',
+      clienteId: data.clienteId || '',
+      empresa: empresa,
+      contacto: data.contacto || '',
+      telefono: data.telefono || '',
+      correo: data.correo || '',
+      evento: data.evento || '',
+      fechaEvento: data.fechaEvento || '',
+      sede: data.sede || '',
+      conceptos: data.conceptos || '',
+      condiciones: data.condiciones || '',
+      subtotal: data.subtotal || 0,
+      iva: data.iva || 0,
+      total: data.total || 0,
+      linkPdf: driveLink,
+      estado: 'Nueva'
+    });
+
     // ── Email al equipo BUNKER ──
     var adminSubject = 'Nueva cotización BNK — ' + folio + ' — ' + empresa;
     var adminBody = '🟢 Nueva cotización BNK (Servicios / Producción)\n\n'
@@ -430,6 +523,10 @@ function createCliente(data) {
   ];
 
   sheet.appendRow(row);
+
+  // ── Doble escritura a Firestore ──
+  writeToFirestore('clientes', newId, data);
+
   return jsonResponse({ status: 'ok', id: newId });
 }
 
@@ -465,6 +562,10 @@ function updateCliente(data) {
   });
 
   sheet.getRange(rowIndex, 1, 1, CLIENTES_HEADERS.length).setValues([updatedRow]);
+
+  // ── Doble escritura a Firestore ──
+  writeToFirestore('clientes', data.id, data);
+
   return jsonResponse({ status: 'ok' });
 }
 
@@ -563,6 +664,10 @@ function createProveedor(data) {
   ];
 
   sheet.appendRow(row);
+
+  // ── Doble escritura a Firestore ──
+  writeToFirestore('proveedores', newId, data);
+
   return jsonResponse({ status: 'ok', id: newId });
 }
 
@@ -601,6 +706,10 @@ function updateProveedor(data) {
   });
 
   sheet.getRange(rowIndex, 1, 1, PROVEEDORES_HEADERS.length).setValues([updatedRow]);
+
+  // ── Doble escritura a Firestore ──
+  writeToFirestore('proveedores', data.id, data);
+
   return jsonResponse({ status: 'ok' });
 }
 

@@ -41,6 +41,7 @@
   <button class="dash-tab" data-tab="calendario">CALENDARIO</button>
   <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas">REPORTES</button>
   <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas">CATÁLOGO</button>
+  <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion">EVENTOS</button>
   <button class="dash-tab" data-tab="usuarios" data-require-role="admin">USUARIOS</button>
 </nav>
 
@@ -604,10 +605,15 @@
   </section>
 
   <!-- ══════════════════════════════════════════════ -->
-  <!-- EVENTOS / PRODUCCIÓN (Task 12) — sub-vista dentro de pipeline -->
+  <!-- EVENTOS / PRODUCCIÓN (Task 12) -->
   <!-- ══════════════════════════════════════════════ -->
-  <!-- Nota: Los eventos se acceden desde Pipeline al cerrar una cotización.
-       El contenedor se renderiza dinámicamente por eventos.js -->
+  <section id="sec-eventos" class="panel-section">
+    <link rel="stylesheet" href="css/eventos.css">
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">EVENTOS / PRODUCCIÓN</h2>
+    </div>
+    <div class="eventos-list" id="eventosListContainer"></div>
+  </section>
 
   <!-- Modal selector de plantilla (Task 12) -->
   <div class="bnk-overlay" id="evtPlantillaOverlay">
