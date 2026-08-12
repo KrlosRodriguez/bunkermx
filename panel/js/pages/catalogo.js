@@ -45,7 +45,9 @@
         + '<td><span class="tipo-badge">' + _esc(d.categoria || '') + '</span></td>'
         + '<td>' + _esc(d.concepto || '') + '</td>'
         + '<td style="color:var(--tx)">' + _esc(d.unidad || '') + '</td>'
-        + '<td class="col-total">' + _formatMXN(d.precio) + '</td>'
+        + '<td class="col-total">' + _formatMXN(d.precio)
+          + (d.categoria === 'Venues' && d.precioWeekend ? '<br><span style="font-size:10px;color:var(--tx)">WKD: ' + _formatMXN(d.precioWeekend) + ' · MTJ: ' + _formatMXN(d.precioMontaje) + '</span>' : '')
+          + '</td>'
         + '<td><span class="estado-badge ' + estadoClass + '">' + (activo ? 'Activo' : 'Inactivo') + '</span></td>'
         + '<td>'
         + '<button class="tbl-action tbl-action--edit" data-cid="' + d.id + '" title="Editar">&#9998;</button>'
@@ -70,6 +72,7 @@
       if (e.target === this) _closeModal();
     });
     document.getElementById('catGuardar').addEventListener('click', _save);
+    document.getElementById('catCategoria').addEventListener('change', _toggleVenueFields);
 
     document.getElementById('catBody').addEventListener('click', function (e) {
       var editBtn = e.target.closest('.tbl-action--edit');
@@ -88,12 +91,20 @@
     });
   }
 
+  function _toggleVenueFields() {
+    var isVenues = document.getElementById('catCategoria').value === 'Venues';
+    document.getElementById('catWeekendGroup').style.display = isVenues ? '' : 'none';
+    document.getElementById('catMontajeGroup').style.display = isVenues ? '' : 'none';
+  }
+
   function _openModal(modo, item) {
     _editingId = null;
     document.getElementById('catCategoria').value = 'Audio';
     document.getElementById('catConcepto').value = '';
     document.getElementById('catUnidad').value = '';
     document.getElementById('catPrecio').value = '';
+    document.getElementById('catPrecioWeekend').value = '';
+    document.getElementById('catPrecioMontaje').value = '';
 
     if (modo === 'editar' && item) {
       _editingId = item.id;
@@ -102,10 +113,13 @@
       document.getElementById('catConcepto').value = item.concepto || '';
       document.getElementById('catUnidad').value = item.unidad || '';
       document.getElementById('catPrecio').value = item.precio || '';
+      document.getElementById('catPrecioWeekend').value = item.precioWeekend || '';
+      document.getElementById('catPrecioMontaje').value = item.precioMontaje || '';
     } else {
       document.getElementById('catModalTitle').textContent = 'NUEVO CONCEPTO';
     }
 
+    _toggleVenueFields();
     document.getElementById('catOverlay').classList.add('visible');
   }
 
@@ -118,6 +132,8 @@
     var concepto = document.getElementById('catConcepto').value.trim();
     var unidad = document.getElementById('catUnidad').value.trim();
     var precio = parseFloat(document.getElementById('catPrecio').value) || 0;
+    var precioWeekend = parseFloat(document.getElementById('catPrecioWeekend').value) || 0;
+    var precioMontaje = parseFloat(document.getElementById('catPrecioMontaje').value) || 0;
 
     if (!concepto) {
       if (window.BNKToast) BNKToast.warn('El concepto es requerido.');
@@ -129,6 +145,10 @@
     btn.textContent = 'GUARDANDO...';
 
     var data = { categoria: categoria, concepto: concepto, unidad: unidad, precio: precio, activo: true };
+    if (categoria === 'Venues') {
+      data.precioWeekend = precioWeekend;
+      data.precioMontaje = precioMontaje;
+    }
 
     var promise = _editingId
       ? BNK_DB.catalogo.update(_editingId, data)
