@@ -16,6 +16,8 @@
 <script src="js/auth.js"></script>
 <script src="js/guard.js"></script>
 <script src="js/firestore.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="js/logo-data.js" defer></script>
 </head>
 <body>
 
@@ -35,6 +37,8 @@
 <!-- ── TABS ── -->
 <nav class="panel-tabs">
   <button class="dash-tab active" data-tab="cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab" data-tab="cotizar-mnt" data-require-role="admin,ventas">COTIZAR MNT</button>
+  <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas">COTIZAR BNK</button>
   <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas">PIPELINE</button>
   <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura">CLIENTES</button>
   <button class="dash-tab" data-tab="proveedores">PROVEEDORES</button>
@@ -124,6 +128,20 @@
       </table>
       <div id="cotPagination2" style="text-align:center;padding:16px;color:var(--tx);font-family:'Space Mono',monospace;font-size:11px"></div>
     </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- COTIZAR MNT -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-cotizar-mnt" class="panel-section">
+    <div id="mntWizardContainer"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- COTIZAR BNK -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-cotizar-bnk" class="panel-section">
+    <div id="bnkFormContainer"></div>
   </section>
 
   <!-- ══════════════════════════════════════════════ -->
@@ -718,6 +736,8 @@
 <script src="js/pages/catalogo.js"></script>
 <script src="js/pages/usuarios.js"></script>
 <script src="js/pages/eventos.js"></script>
+<script src="js/pages/cotizar-mnt.js"></script>
+<script src="js/pages/cotizar-bnk.js"></script>
 
 </body>
 </html>
