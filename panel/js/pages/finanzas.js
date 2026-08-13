@@ -15,6 +15,7 @@
     _loadData();
     _bindPartnerEvents();
     _bindCuentasEvents();
+    _bindDispersionesEvents();
   }
 
   function _checkAdmin() {
@@ -575,9 +576,206 @@
   }
 
   // ══════════════════════════════════════
-  // DISPERSIONES (placeholder — Task 6)
+  // DISPERSIONES
   // ══════════════════════════════════════
-  function _renderDispersiones() { /* Task 5/6 */ }
+  function _renderDispersiones() {
+    // Build list of cotizaciones that have partners assigned
+    var cotIds = {};
+    _cotPartners.forEach(function (cp) {
+      if (!cotIds[cp.cotizacionId]) cotIds[cp.cotizacionId] = [];
+      cotIds[cp.cotizacionId].push(cp);
+    });
+
+    var rows = [];
+    Object.keys(cotIds).forEach(function (cotId) {
+      var cot = _cotizaciones.find(function (c) { return c.id === cotId; });
+      if (!cot) return;
+      var cps = cotIds[cotId];
+      var partnerNames = cps.map(function (cp) { return cp.partnerNombre; }).join(', ');
+
+      var isLiquidada = cot.estado === 'Cerrada' || cot.estado === 'Ejecutado';
+      var allCerradas = cps.every(function (cp) { return cp.cerrada; });
+      var estadoDisp;
+      if (!isLiquidada) estadoDisp = 'Pendiente';
+      else if (allCerradas) estadoDisp = 'Dispersado';
+      else estadoDisp = 'PorDispersar';
+
+      rows.push({
+        cotizacionId: cotId,
+        folio: cot.folio,
+        cliente: cot.cliente || cot.empresa || '',
+        evento: cot.evento || '',
+        estadoCot: cot.estado || '',
+        partners: partnerNames,
+        estadoDisp: estadoDisp
+      });
+    });
+
+    var body = document.getElementById('finDispersionesBody');
+    var empty = document.getElementById('finDispersionesEmpty');
+    if (!body) return;
+
+    if (rows.length === 0) {
+      body.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    var dispLabels = { Pendiente: 'Pendiente', PorDispersar: 'Por dispersar', Dispersado: 'Dispersado' };
+    var html = '';
+    rows.forEach(function (r) {
+      html += '<tr data-disp-cot="' + r.cotizacionId + '">'
+        + '<td class="col-folio">' + _esc(r.folio) + '</td>'
+        + '<td>' + _esc(r.cliente) + '</td>'
+        + '<td>' + _esc(r.evento) + '</td>'
+        + '<td><span class="estado-badge estado-' + r.estadoCot.replace(/\s/g, '') + '">' + _esc(r.estadoCot) + '</span></td>'
+        + '<td>' + _esc(r.partners) + '</td>'
+        + '<td><span class="estado-badge estado-' + r.estadoDisp + '">' + _esc(dispLabels[r.estadoDisp]) + '</span></td>'
+        + '<td><button class="tbl-action" data-disp-ver="1" title="Ver detalle">&#128269;</button></td>'
+        + '</tr>';
+    });
+    body.innerHTML = html;
+  }
+
+  function _openAsignarModal(prefillCotId) {
+    document.getElementById('finAsignarCot').value = '';
+    document.getElementById('finAsignarCotId').value = prefillCotId || '';
+
+    if (prefillCotId) {
+      var cot = _cotizaciones.find(function (c) { return c.id === prefillCotId; });
+      if (cot) document.getElementById('finAsignarCot').value = cot.folio;
+    }
+
+    // Render partner checkboxes
+    var container = document.getElementById('finAsignarPartnersList');
+    var existingPartnerIds = _cotPartners.filter(function (cp) { return cp.cotizacionId === prefillCotId; }).map(function (cp) { return cp.partnerId; });
+
+    var html = '';
+    _partners.forEach(function (p) {
+      if (p.cuentaActiva === 'No') return;
+      var checked = existingPartnerIds.indexOf(p.id) >= 0 ? ' checked disabled' : '';
+      html += '<label class="fin-partner-check">'
+        + '<input type="checkbox" value="' + p.id + '" data-nombre="' + _esc(p.nombre) + '"' + checked + '>'
+        + _esc(p.nombre) + (checked ? ' (ya asignado)' : '')
+        + '</label>';
+    });
+    container.innerHTML = html || '<div style="color:var(--tx);font-size:13px;padding:12px">No hay partners activos. Crea uno primero.</div>';
+
+    _modal('finAsignarOverlay', true);
+  }
+
+  function _saveAsignacion() {
+    var cotId = document.getElementById('finAsignarCotId').value;
+    if (!cotId) { BNKToast.warn('Selecciona una cotización.'); return; }
+
+    var cot = _cotizaciones.find(function (c) { return c.id === cotId; });
+    var cotFolio = cot ? cot.folio : '';
+
+    var checkboxes = document.querySelectorAll('#finAsignarPartnersList input[type="checkbox"]:checked:not(:disabled)');
+    if (checkboxes.length === 0) { BNKToast.warn('Selecciona al menos un partner nuevo.'); return; }
+
+    var promises = [];
+    checkboxes.forEach(function (cb) {
+      promises.push(BNK_DB.cotizacionPartners.create({
+        cotizacionId: cotId,
+        cotizacionFolio: cotFolio,
+        partnerId: cb.value,
+        partnerNombre: cb.getAttribute('data-nombre') || '',
+        cerrada: false
+      }));
+    });
+
+    Promise.all(promises).then(function () {
+      BNKToast.ok(checkboxes.length + ' partner(s) asignado(s).');
+      _modal('finAsignarOverlay', false);
+      _loadData();
+    }).catch(function (err) {
+      BNKToast.error('Error: ' + err.message);
+    });
+  }
+
+  function _openDispDetalleModal(cotizacionId) {
+    var cot = _cotizaciones.find(function (c) { return c.id === cotizacionId; });
+    document.getElementById('finDispDetalleTitle').textContent = 'DISPERSIÓN — ' + (cot ? cot.folio : '');
+
+    var cps = _cotPartners.filter(function (cp) { return cp.cotizacionId === cotizacionId; });
+
+    var html = '<div class="fin-info-grid">'
+      + '<div class="fin-info-item"><div class="fin-info-label">FOLIO</div><div class="fin-info-value">' + _esc(cot ? cot.folio : '') + '</div></div>'
+      + '<div class="fin-info-item"><div class="fin-info-label">CLIENTE</div><div class="fin-info-value">' + _esc(cot ? (cot.cliente || cot.empresa || '') : '') + '</div></div>'
+      + '<div class="fin-info-item"><div class="fin-info-label">EVENTO</div><div class="fin-info-value">' + _esc(cot ? cot.evento : '') + '</div></div>'
+      + '<div class="fin-info-item"><div class="fin-info-label">ESTADO</div><div class="fin-info-value">' + _esc(cot ? cot.estado : '') + '</div></div>'
+      + '</div>';
+
+    html += '<div class="bnk-section-label" style="margin-top:16px">PARTNERS ASIGNADOS</div>';
+
+    if (cps.length === 0) {
+      html += '<div style="color:var(--tx);font-size:13px;padding:12px">Sin partners asignados.</div>';
+    } else {
+      cps.forEach(function (cp) {
+        var pagosPartner = _pagos.filter(function (p) { return p.destinatarioId === cp.partnerId && p.cotizacionId === cotizacionId; });
+        var totalPagado = pagosPartner.reduce(function (s, p) { return s + (p.monto || 0); }, 0);
+        var estado = cp.cerrada ? 'Cerrada' : (totalPagado > 0 ? 'Parcial' : 'Pendiente');
+
+        html += '<div class="fin-disp-partner">'
+          + '<div>'
+          + '<div class="fin-disp-partner-name">' + _esc(cp.partnerNombre) + '</div>'
+          + '<div style="font-size:12px;color:var(--tx)">' + _formatMXN(totalPagado) + ' pagado</div>'
+          + '</div>'
+          + '<div class="fin-disp-partner-actions">'
+          + '<span class="estado-badge estado-' + estado + '">' + estado + '</span>';
+
+        // Quitar partner solo si no tiene pagos
+        if (pagosPartner.length === 0 && _isAdmin) {
+          html += ' <button class="tbl-action tbl-action--del fin-admin-only" data-quitar-cp="' + cp.id + '" title="Quitar partner">&times;</button>';
+        }
+
+        html += '</div></div>';
+      });
+    }
+
+    document.getElementById('finDispDetalleBody').innerHTML = html;
+
+    // Bind quitar buttons
+    document.getElementById('finDispDetalleBody').querySelectorAll('[data-quitar-cp]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var cpId = this.getAttribute('data-quitar-cp');
+        if (!confirm('¿Quitar este partner de la cotización?')) return;
+        BNK_DB.cotizacionPartners.delete(cpId).then(function () {
+          BNKToast.ok('Partner removido.');
+          _modal('finDispDetalleOverlay', false);
+          _loadData();
+        });
+      });
+    });
+
+    // Asignar más
+    document.getElementById('finDispAsignarMas').onclick = function () {
+      _modal('finDispDetalleOverlay', false);
+      _openAsignarModal(cotizacionId);
+    };
+
+    _modal('finDispDetalleOverlay', true);
+  }
+
+  function _bindDispersionesEvents() {
+    _setupCotAutocomplete('finAsignarCot', 'finAsignarCotAuto', 'finAsignarCotId');
+
+    document.getElementById('finBtnAsignarPartner').addEventListener('click', function () { _openAsignarModal(''); });
+    document.getElementById('finAsignarGuardar').addEventListener('click', _saveAsignacion);
+    document.getElementById('finAsignarCancel').addEventListener('click', function () { _modal('finAsignarOverlay', false); });
+    document.getElementById('finAsignarClose').addEventListener('click', function () { _modal('finAsignarOverlay', false); });
+    document.getElementById('finDispDetalleClose').addEventListener('click', function () { _modal('finDispDetalleOverlay', false); });
+
+    document.getElementById('finDispersionesBody').addEventListener('click', function (e) {
+      var tr = e.target.closest('tr');
+      if (!tr) return;
+      if (e.target.closest('[data-disp-ver]')) {
+        _openDispDetalleModal(tr.getAttribute('data-disp-cot'));
+      }
+    });
+  }
 
   // ── Init ──
   BNK_AUTH.onReady(function (user) {
