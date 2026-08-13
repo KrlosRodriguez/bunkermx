@@ -76,12 +76,12 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 **Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~957 lines) — dashboard principal con 11 tabs
+- **`panel/dashboard.html`** (~957 lines) — dashboard principal con 12 tabs
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones, clientes, proveedores, catalogo, pipeline, calendario, eventos, usuarios
+- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones, clientes, proveedores, catalogo, pipeline, calendario, eventos, usuarios, partners, pagos, cotizacionPartners
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
 
 **Módulos por tab (`panel/js/pages/`):**
@@ -96,6 +96,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
 - **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
 - **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
+- **`finanzas.js`** (~800 lines) — módulo FINANZAS con 3 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas)
 
 **CSS:**
 - **`panel/css/panel.css`** (~368 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, cards `.ctz-card`, progress bar, calendar, responsive
@@ -104,6 +105,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`panel/css/reportes.css`** — estilos de reportes/gráficos
 - **`panel/css/eventos.css`** — estilos de eventos/producción
 - **`panel/css/calendario.css`** — estilos del calendario mensual
+- **`panel/css/finanzas.css`** — estilos de finanzas: sub-tabs, partner checks, info grid, dispersión rows
 
 **Infraestructura:**
 - **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
