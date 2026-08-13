@@ -247,16 +247,24 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
 .mnt-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid var(--bd)}
 
+/* ── SPACE COUNT ── */
+.mnt-space-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);letter-spacing:1px;margin-bottom:8px;min-height:16px}
+
 /* ── SPACE CARDS ── */
 .mnt-spaces-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
 .mnt-space-card{background:var(--card);border:1px solid var(--bd);padding:20px;cursor:pointer;transition:all .3s ease;position:relative}
 .mnt-space-card:hover{border-color:rgba(0,255,65,.35);background:rgba(0,255,65,.02);transform:translateY(-2px)}
+.mnt-space-card:focus-visible{outline:2px solid var(--g);outline-offset:2px}
 .mnt-space-card.selected{border-color:var(--g);box-shadow:0 0 16px rgba(0,255,65,.12),inset 0 0 0 1px rgba(0,255,65,.08)}
+.mnt-space-card.selected::after{content:'✓';position:absolute;top:6px;right:8px;color:var(--g);font-size:14px;font-weight:700}
 .mnt-space-card.disabled{opacity:.35;pointer-events:none}
 .mnt-space-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:1px;margin-bottom:4px}
 .mnt-space-meta{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px}
 .mnt-space-price{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;margin-top:8px}
 .mnt-space-note{font-family:'Space Mono',monospace;font-size:8px;color:var(--ylw);margin-top:4px}
+
+/* ── EMPTY HINT ── */
+.mnt-empty-hint{text-align:center;color:var(--tx);opacity:.5;padding:24px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;border:1px dashed var(--bd);margin-top:16px}
 
 /* ── CALENDAR ACCORDION ── */
 .mnt-calendar-wrap{margin-top:8px;background:var(--card);border:1px solid var(--bd);transition:all .3s ease}
@@ -264,6 +272,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 
 .mnt-accordion-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .2s}
 .mnt-accordion-header:hover{background:rgba(0,255,65,.04)}
+.mnt-accordion-header:focus-visible{outline:2px solid var(--g);outline-offset:-2px}
 .mnt-accordion-arrow{font-size:12px;color:var(--g);width:14px;flex-shrink:0}
 .mnt-accordion-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--g);letter-spacing:2px}
 .mnt-accordion-summary{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px;margin-left:auto}
@@ -284,6 +293,9 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .mnt-cal-day.weekend.selected{background:rgba(240,192,64,.12);border-color:var(--ylw);color:var(--ylw)}
 .mnt-cal-day.disabled{opacity:.2;pointer-events:none}
 .mnt-cal-day.empty{visibility:hidden}
+
+/* ── CALENDAR LEGEND ── */
+.mnt-cal-legend{font-family:'Space Mono',monospace;font-size:8px;color:var(--tx);letter-spacing:1px;margin-top:6px;opacity:.6}
 
 /* ── MONTAJE STEPPER ── */
 .mnt-montaje{display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;background:rgba(0,255,65,.02);border:1px solid var(--bd)}

@@ -4,11 +4,10 @@
 
   var _venues = [];      // datos de catalogo categoría Venues
   var _clientes = [];    // lista de clientes para autocompletado
-  var _selected = {};    // { docId: { montajeDays: 0, eventDays: ['2026-08-15',...] } }
+  var _selected = {};    // { docId: { montajeDays: 0, eventDays: [...], calMonth: Date } }
   var _currentStep = 1;
   var _tipo = 'privado'; // 'privado' o 'publico'
   var _pdfStyle = 'neon';
-  var _calendarMonth = new Date();
   var _expandedVid = null; // venue con calendario expandido (accordion)
 
   function init() {
@@ -44,7 +43,10 @@
     // Validar paso actual antes de avanzar
     if (step > _currentStep) {
       if (_currentStep === 1 && !_validateStep1()) return;
-      if (_currentStep === 3) _buildResumen();
+      if (_currentStep === 3) {
+        if (!_validateStep3()) return;
+        _buildResumen();
+      }
     }
 
     _currentStep = step;
@@ -75,6 +77,14 @@
     if (!cliente) { BNKToast.warn('El cliente es requerido.'); return false; }
     if (!contacto) { BNKToast.warn('El contacto es requerido.'); return false; }
     if (!tel && !correo) { BNKToast.warn('Teléfono o correo es requerido.'); return false; }
+    return true;
+  }
+
+  function _validateStep3() {
+    var ids = Object.keys(_selected);
+    if (ids.length === 0) { BNKToast.warn('Selecciona al menos un espacio.'); return false; }
+    var hasDays = ids.some(function (vid) { return _selected[vid].eventDays.length > 0; });
+    if (!hasDays) { BNKToast.warn('Selecciona al menos una fecha de evento.'); return false; }
     return true;
   }
 
@@ -141,8 +151,9 @@
         disponible = false;
       }
       var isSelected = !!_selected[v.id];
-      html += '<div class="mnt-space-card' + (isSelected ? ' selected' : '') + (disponible ? '' : ' disabled') + '" data-vid="' + v.id + '">'
+      html += '<div class="mnt-space-card' + (isSelected ? ' selected' : '') + (disponible ? '' : ' disabled') + '" data-vid="' + v.id + '" tabindex="0" role="button">'
         + '<div class="mnt-space-name" style="color:var(--g)">' + _esc(v.concepto) + '</div>'
+        + (v.capacidad ? '<div class="mnt-space-meta">CAP: ' + _esc(String(v.capacidad)) + ' personas</div>' : '')
         + '<div class="mnt-space-meta">' + _esc(v.unidad || 'día') + '</div>'
         + '<div class="mnt-space-price">' + _formatMXN(v.precio) + ' / DÍA</div>'
         + (v.precioWeekend ? '<div class="mnt-space-meta">WKD: ' + _formatMXN(v.precioWeekend) + '</div>' : '')
@@ -150,22 +161,33 @@
     });
     grid.innerHTML = html;
 
-    // Bind clicks
+    // Update space count
+    _updateSpaceCount();
+
+    // Bind clicks + keyboard
     grid.querySelectorAll('.mnt-space-card').forEach(function (card) {
-      card.addEventListener('click', function () {
-        var vid = this.getAttribute('data-vid');
+      function toggle() {
+        var vid = card.getAttribute('data-vid');
         if (_selected[vid]) {
           delete _selected[vid];
-          this.classList.remove('selected');
+          card.classList.remove('selected');
           if (_expandedVid === vid) _expandedVid = null;
         } else {
-          _selected[vid] = { montajeDays: 0, eventDays: [] };
-          this.classList.add('selected');
-          _expandedVid = vid; // auto-expand newly selected venue
+          _selected[vid] = { montajeDays: 0, eventDays: [], calMonth: new Date() };
+          card.classList.add('selected');
+          _expandedVid = vid;
         }
+        _updateSpaceCount();
         _renderCalendars();
+      }
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
       });
     });
+
+    // Render calendars/placeholder on initial load
+    _renderCalendars();
   }
 
   // ── Toggle tipo evento ──
@@ -190,6 +212,14 @@
     });
   }
 
+  // ── Space count indicator ──
+  function _updateSpaceCount() {
+    var el = document.getElementById('mntSpaceCount');
+    if (!el) return;
+    var n = Object.keys(_selected).length;
+    el.textContent = n > 0 ? n + ' de ' + _venues.length + ' seleccionados' : '';
+  }
+
   // ── Calendarios (accordion) ──
   function _venueSummary(vid) {
     var sel = _selected[vid];
@@ -205,10 +235,13 @@
     if (!area) return;
 
     var selectedIds = Object.keys(_selected);
-    if (selectedIds.length === 0) { area.innerHTML = ''; return; }
+    if (selectedIds.length === 0) {
+      area.innerHTML = '<div class="mnt-empty-hint">Selecciona uno o más espacios para elegir fechas</div>';
+      return;
+    }
 
     // Auto-expand first if none expanded
-    if (!_expandedVid || selectedIds.indexOf(_expandedVid) < 0) {
+    if (_expandedVid === null || selectedIds.indexOf(_expandedVid) < 0) {
       _expandedVid = selectedIds[0];
     }
 
@@ -217,10 +250,11 @@
       var venue = _venues.find(function (v) { return v.id === vid; });
       if (!venue) return;
       var isOpen = _expandedVid === vid;
+      var sel = _selected[vid];
 
       // Accordion header
       html += '<div class="mnt-calendar-wrap' + (isOpen ? ' expanded' : ' collapsed') + '" data-vid="' + vid + '">'
-        + '<div class="mnt-accordion-header" data-vid="' + vid + '">'
+        + '<div class="mnt-accordion-header" data-vid="' + vid + '" tabindex="0" role="button">'
         + '<span class="mnt-accordion-arrow">' + (isOpen ? '▾' : '▸') + '</span>'
         + '<span class="mnt-accordion-title">' + _esc(venue.concepto) + '</span>'
         + '<span class="mnt-accordion-summary">' + _venueSummary(vid) + '</span>'
@@ -228,22 +262,24 @@
 
       // Calendar body (only if expanded)
       if (isOpen) {
+        var cm = sel.calMonth || new Date();
         html += '<div class="mnt-accordion-body">'
           + '<div class="mnt-cal-header">'
           + '<button class="mnt-cal-nav" data-dir="-1" data-vid="' + vid + '">&larr;</button>'
-          + '<span class="mnt-cal-title">' + _getMonthLabel() + '</span>'
+          + '<span class="mnt-cal-title">' + _getMonthLabel(cm) + '</span>'
           + '<button class="mnt-cal-nav" data-dir="1" data-vid="' + vid + '">&rarr;</button>'
           + '</div>'
           + '<div class="mnt-cal-grid">'
-          + _buildCalendarDays(vid, venue)
-          + '</div>';
+          + _buildCalendarDays(vid, venue, cm)
+          + '</div>'
+          + '<div class="mnt-cal-legend"><span style="color:var(--ylw)">■</span> TARIFA WEEKEND (VIE-SÁB)</div>';
 
         // Montaje stepper
         var montLabel = venue.precioMontaje > 0 ? _formatMXN(venue.precioMontaje) + ' / DÍA' : 'SIN COSTO';
         html += '<div class="mnt-montaje">'
           + '<span class="mnt-montaje-label">DÍAS DE MONTAJE (' + montLabel + ')</span>'
           + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="-1">−</button>'
-          + '<span class="mnt-montaje-val" id="montVal-' + vid + '">' + (_selected[vid].montajeDays || 0) + '</span>'
+          + '<span class="mnt-montaje-val" id="montVal-' + vid + '">' + (sel.montajeDays || 0) + '</span>'
           + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="1">+</button>'
           + '</div>';
 
@@ -254,20 +290,27 @@
     });
     area.innerHTML = html;
 
-    // Bind accordion toggle
+    // Bind accordion toggle (click to expand/collapse)
     area.querySelectorAll('.mnt-accordion-header').forEach(function (hdr) {
-      hdr.addEventListener('click', function () {
-        _expandedVid = this.getAttribute('data-vid');
+      function toggleAccordion() {
+        var vid = hdr.getAttribute('data-vid');
+        _expandedVid = (_expandedVid === vid) ? null : vid;
         _renderCalendars();
+      }
+      hdr.addEventListener('click', toggleAccordion);
+      hdr.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(); }
       });
     });
 
-    // Bind calendar nav
+    // Bind calendar nav (per-venue month)
     area.querySelectorAll('.mnt-cal-nav').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
+        var vid = this.getAttribute('data-vid');
         var dir = parseInt(this.getAttribute('data-dir'));
-        _calendarMonth.setMonth(_calendarMonth.getMonth() + dir);
+        var cm = _selected[vid].calMonth;
+        cm.setMonth(cm.getMonth() + dir);
         _renderCalendars();
       });
     });
@@ -307,14 +350,14 @@
     });
   }
 
-  function _getMonthLabel() {
+  function _getMonthLabel(calMonth) {
     var meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-    return meses[_calendarMonth.getMonth()] + ' ' + _calendarMonth.getFullYear();
+    return meses[calMonth.getMonth()] + ' ' + calMonth.getFullYear();
   }
 
-  function _buildCalendarDays(vid, venue) {
-    var year = _calendarMonth.getFullYear();
-    var month = _calendarMonth.getMonth();
+  function _buildCalendarDays(vid, venue, calMonth) {
+    var year = calMonth.getFullYear();
+    var month = calMonth.getMonth();
     var firstDay = new Date(year, month, 1).getDay(); // 0=Sun
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var today = new Date(); today.setHours(0,0,0,0);
@@ -637,6 +680,7 @@
     _selected = {};
     _currentStep = 1;
     _tipo = 'privado';
+    _expandedVid = null;
     ['mntCliente','mntAgencia','mntEvento','mntContacto','mntTelefono','mntCorreo','mntAsistentes','mntDescripcion','mntHoraInicio','mntHoraFin'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.value = '';
@@ -678,7 +722,10 @@
       step.addEventListener('click', function () {
         var target = parseInt(this.getAttribute('data-step'));
         if (target <= _currentStep || target === _currentStep + 1) {
-          if (target > _currentStep && _currentStep === 1 && !_validateStep1()) return;
+          if (target > _currentStep) {
+            if (_currentStep === 1 && !_validateStep1()) return;
+            if (_currentStep === 3 && !_validateStep3()) return;
+          }
           if (target === 4) _buildResumen();
           _goToStep(target);
         }
