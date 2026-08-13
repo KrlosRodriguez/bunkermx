@@ -64,21 +64,48 @@ El backend vive en Google Apps Script y usa Google Sheets como base de datos y G
 
 ### PDFs
 
-Dos estilos de PDF generados client-side con jsPDF 2.5.1:
-- **MNT (neon/verde)**: generado en `cotizador-munet.js`, colores del tema neon del dashboard
-- **BNK (dorado/terra)**: generado en `dashboard.html`, colores BUNKER corporativos (dorado `#C6A350`, fondo `#2C2419`)
+Dos estilos de PDF generados client-side con jsPDF 2.5.1, toggle Neon/Corporativa en ambos cotizadores:
+- **MNT (neon/verde)**: fondo `#050905`, acento `#00FF41`
+- **MNT (corporativa)**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`
+- **BNK**: mismas dos paletas, agrupación por categoría, condiciones comerciales con plantillas
+- **Logo embebido**: `BUNKER_LOGO_B64` en `panel/js/logo-data.js` (y `cotizador-munet/js/logo-data.js`)
 
 ### Panel Operativo (`/panel/`)
 
-App interna Firebase con Auth + Firestore. Archivos:
+App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
+
+**Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** — dashboard principal con tabs
+- **`panel/dashboard.html`** (~957 lines) — dashboard principal con 11 tabs
+- **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
-- **`panel/js/auth.js`** — autenticación + roles
-- **`panel/js/guard.js`** — guard de sesión
-- **`panel/js/firestore.js`** — abstracción Firestore
-- **`panel/js/pages/*.js`** — módulos por tab: cotizaciones, pipeline, clientes, proveedores, calendario, reportes, catalogo, eventos, usuarios
-- **`panel/css/*.css`** — estilos: login, panel, pipeline, reportes, eventos, calendario
+- **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
+- **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
+- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones, clientes, proveedores, catalogo, pipeline, calendario, eventos, usuarios
+- **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
+
+**Módulos por tab (`panel/js/pages/`):**
+- **`cotizaciones.js`** (~169 lines) — tabla con KPIs, filtros, paginación, estado editable
+- **`cotizar-mnt.js`** (~641 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore
+- **`cotizar-bnk.js`** (~417 lines) — formulario de servicios/producción, filas dinámicas de conceptos, autocomplete catálogo, plantillas de condiciones comerciales, PDF dual, guardado en Firestore
+- **`pipeline.js`** (~191 lines) — tablero kanban de seguimiento con timeline y notas
+- **`clientes.js`** (~703 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud
+- **`proveedores.js`** (~1064 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor
+- **`calendario.js`** (~116 lines) — calendario mensual de eventos por espacio
+- **`reportes.js`** (~190 lines) — funnel, gráficos mensuales, top clientes, rendimiento
+- **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
+- **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
+- **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
+
+**CSS:**
+- **`panel/css/panel.css`** (~368 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, cards `.ctz-card`, progress bar, calendar, responsive
+- **`panel/css/login.css`** — estilos del login
+- **`panel/css/pipeline.css`** — estilos del kanban
+- **`panel/css/reportes.css`** — estilos de reportes/gráficos
+- **`panel/css/eventos.css`** — estilos de eventos/producción
+- **`panel/css/calendario.css`** — estilos del calendario mensual
+
+**Infraestructura:**
 - **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
 - **`functions/index.js`** — Cloud Function `createUser` (requiere plan Blaze)
 - **`firestore.rules`** — reglas de seguridad (se publican manualmente en consola)
@@ -89,9 +116,18 @@ App interna Firebase con Auth + Firestore. Archivos:
 - **Panel**: `firebase deploy --only hosting --project bunker-panel`
 - **Reglas Firestore**: publicar manualmente en Firebase Console → Firestore → Reglas → pegar `firestore.rules` → Publicar
 - **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
-- **`firebase.json`** — hosting con `public: "panel"`, solo sirve archivos del panel
+- **`firebase.json`** — hosting con `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
 - **`.firebaserc`** — proyecto default: `bunker-panel`
 - **Firebase project ID**: `bunker-panel` (cuenta: admin@vanguardiaysoluciones)
+
+### UX Patterns del Panel
+
+- **Módulos IIFE**: cada `js/pages/*.js` es un IIFE auto-contenido que se inicializa via `BNK_AUTH.onReady()`
+- **Cards `.ctz-card`**: wrapper visual para secciones de formulario (fondo `var(--card)`, borde `var(--bd)`)
+- **Toast**: `BNKToast.ok/warn/error(msg)` para notificaciones
+- **Modales**: patrón `.bnk-overlay` + `.bnk-modal` con clase `.visible` para toggle
+- **Autocomplete**: patrón `.bnk-autocomplete` + `.bnk-ac-item` con clase `.visible`
+- **Colores de estado**: clases `.estado-{nombre}` y `.tipo-{MNT|BNK}` para badges
 
 ## Key Conventions
 
