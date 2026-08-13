@@ -46,6 +46,7 @@
   <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas">REPORTES</button>
   <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas">CATÁLOGO</button>
   <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion">EVENTOS</button>
+  <button class="dash-tab" data-tab="finanzas" data-require-role="admin,ventas">FINANZAS</button>
   <button class="dash-tab" data-tab="usuarios" data-require-role="admin">USUARIOS</button>
 </nav>
 
@@ -864,6 +865,365 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- FINANZAS -->
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="sec-finanzas" class="panel-section">
+    <link rel="stylesheet" href="css/finanzas.css">
+
+    <!-- Sub-tabs -->
+    <div class="panel-toolbar" style="border-bottom:1px solid var(--bd)">
+      <div class="modal-tabs" id="finTabs" style="border-bottom:none;margin-bottom:0">
+        <button class="modal-tab active" data-fin-tab="cuentas">CUENTAS POR PAGAR</button>
+        <button class="modal-tab" data-fin-tab="partners">PARTNERS</button>
+        <button class="modal-tab" data-fin-tab="dispersiones">DISPERSIONES</button>
+      </div>
+    </div>
+
+    <!-- ── SUB-TAB: CUENTAS POR PAGAR ── -->
+    <div class="fin-subtab" id="finSubCuentas">
+      <!-- KPIs -->
+      <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+        <div class="dash-card">
+          <div class="dash-card-label">TOTAL PAGADO</div>
+          <div class="dash-card-value" id="finKpiPagado">$0</div>
+          <div class="dash-card-sub">acumulado del período</div>
+        </div>
+        <div class="dash-card dash-card--warn">
+          <div class="dash-card-label">PENDIENTE PROVEEDORES</div>
+          <div class="dash-card-value" id="finKpiPendProv">0</div>
+          <div class="dash-card-sub">cuentas abiertas</div>
+        </div>
+        <div class="dash-card dash-card--warn">
+          <div class="dash-card-label">PENDIENTE PARTNERS</div>
+          <div class="dash-card-value" id="finKpiPendPart">0</div>
+          <div class="dash-card-sub">dispersiones activas</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">PAGOS DEL MES</div>
+          <div class="dash-card-value" id="finKpiMes">0</div>
+          <div class="dash-card-sub">registrados este mes</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="dash-filters">
+        <input type="text" id="finCuentasSearch" class="dash-search" placeholder="Buscar folio, destinatario...">
+        <select id="finCuentasTipo" class="dash-select">
+          <option value="">Todos los tipos</option>
+          <option value="proveedor">Proveedor</option>
+          <option value="partner">Partner</option>
+        </select>
+        <select id="finCuentasEstado" class="dash-select">
+          <option value="">Todos los estados</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Parcial">Parcial</option>
+          <option value="Cerrada">Cerrada</option>
+        </select>
+        <button class="panel-btn-primary fin-admin-only" id="finBtnRegistrarPago">+ REGISTRAR PAGO</button>
+      </div>
+
+      <!-- Tabla -->
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>FOLIO COT.</th>
+              <th>TIPO</th>
+              <th>DESTINATARIO</th>
+              <th>PAGADO</th>
+              <th>ÚLTIMO PAGO</th>
+              <th>ESTADO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="finCuentasBody"></tbody>
+        </table>
+        <div id="finCuentasEmpty" class="dash-empty" style="display:none">
+          <div class="dash-empty-icon">&#128176;</div>
+          <div class="dash-empty-text">Sin cuentas registradas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-TAB: PARTNERS ── -->
+    <div class="fin-subtab" id="finSubPartners" style="display:none">
+      <div class="panel-toolbar">
+        <h2 class="panel-section-title">PARTNERS / COPRODUCTORES</h2>
+        <input type="text" id="finPartnerSearch" class="dash-search" placeholder="Buscar partner..." style="max-width:300px">
+        <button class="panel-btn-primary fin-admin-only" id="finBtnNuevoPartner">+ NUEVO PARTNER</button>
+      </div>
+
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>NOMBRE</th>
+              <th>CONTACTO</th>
+              <th>CORREO</th>
+              <th>TELÉFONO</th>
+              <th>COTIZACIONES</th>
+              <th>ESTADO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="finPartnersBody"></tbody>
+        </table>
+        <div id="finPartnersEmpty" class="dash-empty" style="display:none">
+          <div class="dash-empty-icon">&#129309;</div>
+          <div class="dash-empty-text">Sin partners registrados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-TAB: DISPERSIONES ── -->
+    <div class="fin-subtab" id="finSubDispersiones" style="display:none">
+      <div class="panel-toolbar">
+        <h2 class="panel-section-title">DISPERSIONES A PARTNERS</h2>
+        <button class="panel-btn-primary fin-admin-only" id="finBtnAsignarPartner">+ ASIGNAR PARTNER</button>
+      </div>
+
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>FOLIO</th>
+              <th>CLIENTE</th>
+              <th>EVENTO</th>
+              <th>ESTADO COT.</th>
+              <th>PARTNERS</th>
+              <th>ESTADO DISPERSIÓN</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="finDispersionesBody"></tbody>
+        </table>
+        <div id="finDispersionesEmpty" class="dash-empty" style="display:none">
+          <div class="dash-empty-icon">&#128300;</div>
+          <div class="dash-empty-text">Sin cotizaciones con partners asignados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: REGISTRAR PAGO -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finPagoOverlay">
+      <div class="bnk-modal" style="max-width:600px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title">REGISTRAR PAGO</span>
+          <button class="bnk-modal-close" id="finPagoClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="ctz-card">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">COTIZACIÓN *</label>
+                <input type="text" class="bnk-input" id="finPagoCotizacion" placeholder="Buscar folio..." autocomplete="off">
+                <div class="bnk-autocomplete" id="finPagoCotAuto"></div>
+                <input type="hidden" id="finPagoCotId">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">TIPO *</label>
+                <select class="bnk-input" id="finPagoTipo">
+                  <option value="proveedor">Proveedor</option>
+                  <option value="partner">Partner</option>
+                </select>
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">DESTINATARIO *</label>
+                <select class="bnk-input" id="finPagoDest"></select>
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">MONTO *</label>
+                <input type="number" class="bnk-input" id="finPagoMonto" placeholder="0" min="0" step="0.01">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">FECHA DE PAGO *</label>
+                <input type="date" class="bnk-input" id="finPagoFecha">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">MÉTODO DE PAGO</label>
+                <select class="bnk-input" id="finPagoMetodo">
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Efectivo">Efectivo</option>
+                </select>
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">REFERENCIA / COMPROBANTE</label>
+                <input type="text" class="bnk-input" id="finPagoRef" placeholder="No. de referencia">
+              </div>
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">NOTAS</label>
+                <textarea class="bnk-textarea" id="finPagoNotas" rows="2" placeholder="Notas del pago..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="finPagoCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="finPagoGuardar">GUARDAR PAGO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: DETALLE CUENTA -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finDetalleOverlay">
+      <div class="bnk-modal" style="max-width:700px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="finDetalleTitle">DETALLE DE CUENTA</span>
+          <button class="bnk-modal-close" id="finDetalleClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div id="finDetalleInfo"></div>
+          <div class="bnk-section-label" style="margin-top:16px">HISTORIAL DE PAGOS</div>
+          <div class="dash-table-wrap" style="padding:0">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>FECHA</th>
+                  <th>MONTO</th>
+                  <th>MÉTODO</th>
+                  <th>REFERENCIA</th>
+                  <th>REGISTRÓ</th>
+                </tr>
+              </thead>
+              <tbody id="finDetallePagos"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary fin-admin-only" id="finDetalleCerrar">MARCAR COMO CERRADA</button>
+          <button class="panel-btn-primary fin-admin-only" id="finDetalleAgregar">+ AGREGAR PAGO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: PARTNER (CRUD) -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finPartnerOverlay">
+      <div class="bnk-modal" style="max-width:800px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="finPartnerModalTitle">NUEVO PARTNER</span>
+          <button class="bnk-modal-close" id="finPartnerClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <input type="hidden" id="finPartnerId">
+          <div class="modal-tabs">
+            <button class="modal-tab active" data-ptr-tab="general">GENERAL</button>
+            <button class="modal-tab" data-ptr-tab="contacto">CONTACTO</button>
+            <button class="modal-tab" data-ptr-tab="bancarios">BANCARIOS</button>
+          </div>
+
+          <!-- Tab General -->
+          <div class="modal-tab-content" id="ptrTabGeneral">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">NOMBRE / RAZÓN SOCIAL</label><input type="text" class="bnk-input" id="ptrNombre"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NOMBRE COMERCIAL</label><input type="text" class="bnk-input" id="ptrNombreComercial"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
+                <select class="bnk-input" id="ptrTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
+              </div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA ACTIVA</label>
+                <select class="bnk-input" id="ptrCuentaActiva"><option value="Sí">Sí</option><option value="No">No</option></select>
+              </div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">OBSERVACIONES</label><textarea class="bnk-textarea" id="ptrObservaciones" rows="2"></textarea></div>
+            </div>
+          </div>
+
+          <!-- Tab Contacto -->
+          <div class="modal-tab-content" id="ptrTabContacto" style="display:none">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">PERSONA CONTACTO</label><input type="text" class="bnk-input" id="ptrContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">PUESTO</label><input type="text" class="bnk-input" id="ptrPuesto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CORREO</label><input type="email" class="bnk-input" id="ptrCorreo"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TELÉFONO</label><input type="tel" class="bnk-input" id="ptrTelefono"></div>
+            </div>
+          </div>
+
+          <!-- Tab Bancarios -->
+          <div class="modal-tab-content" id="ptrTabBancarios" style="display:none">
+            <div class="bnk-section-label">CUENTA MXN</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="ptrBanco"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="ptrClabe"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="ptrTitular"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="ptrTipoCuenta"></div>
+            </div>
+            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="ptrBancoExtranjero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="ptrDivisa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="ptrCuentaIBAN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="ptrSwift"></div>
+            </div>
+          </div>
+
+          <!-- Cotizaciones vinculadas (solo lectura, fuera de tabs) -->
+          <div class="bnk-section-label" style="margin-top:20px">COTIZACIONES VINCULADAS</div>
+          <div id="ptrCotizaciones" style="font-size:13px;color:var(--tx)">Sin cotizaciones vinculadas.</div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="finPartnerCancel">CANCELAR</button>
+          <button class="panel-btn-primary fin-admin-only" id="finPartnerGuardar">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: ASIGNAR PARTNER A COTIZACIÓN -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finAsignarOverlay">
+      <div class="bnk-modal" style="max-width:550px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title">ASIGNAR PARTNER A COTIZACIÓN</span>
+          <button class="bnk-modal-close" id="finAsignarClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="ctz-card">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">COTIZACIÓN *</label>
+                <input type="text" class="bnk-input" id="finAsignarCot" placeholder="Buscar folio..." autocomplete="off">
+                <div class="bnk-autocomplete" id="finAsignarCotAuto"></div>
+                <input type="hidden" id="finAsignarCotId">
+              </div>
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">PARTNERS *</label>
+                <div id="finAsignarPartnersList" class="fin-partner-checks"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="finAsignarCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="finAsignarGuardar">ASIGNAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: DETALLE DISPERSIÓN -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finDispDetalleOverlay">
+      <div class="bnk-modal" style="max-width:700px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="finDispDetalleTitle">DETALLE DISPERSIÓN</span>
+          <button class="bnk-modal-close" id="finDispDetalleClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body" id="finDispDetalleBody"></div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-primary fin-admin-only" id="finDispAsignarMas">+ ASIGNAR PARTNER</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
 </main>
 
 <!-- ── TOAST NOTIFICATIONS ── -->
@@ -917,6 +1277,31 @@
     });
   });
 
+  // Finanzas sub-tab switching
+  document.querySelectorAll('[data-fin-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = this.getAttribute('data-fin-tab');
+      document.querySelectorAll('[data-fin-tab]').forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      document.querySelectorAll('.fin-subtab').forEach(function (s) { s.style.display = 'none'; });
+      var el = document.getElementById('finSub' + target.charAt(0).toUpperCase() + target.slice(1));
+      if (el) el.style.display = '';
+    });
+  });
+
+  // Partner modal tab switching
+  document.querySelectorAll('[data-ptr-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var target = this.getAttribute('data-ptr-tab');
+      document.querySelectorAll('[data-ptr-tab]').forEach(function (t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      ['general', 'contacto', 'bancarios'].forEach(function (t) {
+        var el = document.getElementById('ptrTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (el) el.style.display = t === target ? '' : 'none';
+      });
+    });
+  });
+
   // Logout
   document.getElementById('panelLogout').addEventListener('click', function () {
     BNK_AUTH.logout();
@@ -952,6 +1337,7 @@
 <script src="js/pages/eventos.js"></script>
 <script src="js/pages/cotizar-mnt.js"></script>
 <script src="js/pages/cotizar-bnk.js"></script>
+<script src="js/pages/finanzas.js"></script>
 
 </body>
 </html>
