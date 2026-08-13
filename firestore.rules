@@ -77,5 +77,20 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
+
+    match /partners/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pagos/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /cotizacionPartners/{docId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
   }
 }

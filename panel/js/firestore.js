@@ -119,15 +119,18 @@
 
   // ── API pública ──
   window.BNK_DB = {
-    cotizaciones: collectionAPI('cotizaciones', { orderBy: { field: 'fecha', dir: 'desc' } }),
-    clientes:     collectionAPI('clientes', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
-    proveedores:  collectionAPI('proveedores', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
-    catalogo:     collectionAPI('catalogo', { orderBy: { field: 'categoria', dir: 'asc' } }),
-    usuarios:     collectionAPI('usuarios', { orderBy: { field: 'nombre', dir: 'asc' } }),
-    eventos:      collectionAPI('eventos', { orderBy: { field: 'fechaEvento', dir: 'asc' } }),
-    plantillas:   collectionAPI('plantillas'),
-    config:       collectionAPI('config'),
-    actividad:    actividadAPI,
-    tareas:       tareasAPI
+    cotizaciones:        collectionAPI('cotizaciones', { orderBy: { field: 'fecha', dir: 'desc' } }),
+    clientes:            collectionAPI('clientes', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
+    proveedores:         collectionAPI('proveedores', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
+    catalogo:            collectionAPI('catalogo', { orderBy: { field: 'categoria', dir: 'asc' } }),
+    usuarios:            collectionAPI('usuarios', { orderBy: { field: 'nombre', dir: 'asc' } }),
+    eventos:             collectionAPI('eventos', { orderBy: { field: 'fechaEvento', dir: 'asc' } }),
+    plantillas:          collectionAPI('plantillas'),
+    config:              collectionAPI('config'),
+    partners:            collectionAPI('partners', { orderBy: { field: 'nombre', dir: 'asc' } }),
+    pagos:               collectionAPI('pagos', { orderBy: { field: 'createdAt', dir: 'desc' } }),
+    cotizacionPartners:  collectionAPI('cotizacionPartners'),
+    actividad:           actividadAPI,
+    tareas:              tareasAPI
   };
 })();
