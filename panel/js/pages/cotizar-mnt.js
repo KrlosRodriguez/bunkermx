@@ -56,6 +56,14 @@
     });
     var target = document.querySelector('.mnt-step[data-step="' + step + '"]');
     if (target) target.classList.add('active');
+
+    // Update step indicator
+    var indicator = document.getElementById('mntStepIndicator');
+    if (indicator) indicator.textContent = 'PASO ' + step + ' DE 4';
+
+    // Scroll to top of wizard
+    var wizard = document.getElementById('mntWizard');
+    if (wizard) wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function _validateStep1() {
@@ -612,6 +620,18 @@
 
     // Generar
     document.getElementById('mntGenerar').addEventListener('click', _enviar);
+
+    // Progress steps clickeables
+    document.querySelectorAll('.mnt-progress-step').forEach(function (step) {
+      step.addEventListener('click', function () {
+        var target = parseInt(this.getAttribute('data-step'));
+        if (target <= _currentStep || target === _currentStep + 1) {
+          if (target > _currentStep && _currentStep === 1 && !_validateStep1()) return;
+          if (target === 4) _buildResumen();
+          _goToStep(target);
+        }
+      });
+    });
   }
 
   // ── Init ──

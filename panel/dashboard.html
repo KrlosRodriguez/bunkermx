@@ -142,10 +142,12 @@
         <div class="mnt-progress-step" data-step="3"><span class="step-num">3</span>ESPACIOS</div>
         <div class="mnt-progress-step" data-step="4"><span class="step-num">4</span>RESUMEN</div>
       </div>
+      <div class="mnt-step-indicator" id="mntStepIndicator">PASO 1 DE 4</div>
 
       <!-- Paso 1: Datos de Contacto -->
       <div class="mnt-step active" data-step="1">
         <div class="mnt-step-title">DATOS DE CONTACTO</div>
+        <div class="ctz-card">
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
             <label class="bnk-label">CLIENTE / EMPRESA *</label>
@@ -177,6 +179,7 @@
             <input type="number" class="bnk-input" id="mntAsistentes" placeholder="Número estimado" min="0">
           </div>
         </div>
+        </div>
         <div class="mnt-nav">
           <span></span>
           <button class="panel-btn-primary" id="mntNext1">SIGUIENTE →</button>
@@ -186,6 +189,7 @@
       <!-- Paso 2: Tipo de Evento -->
       <div class="mnt-step" data-step="2">
         <div class="mnt-step-title">TIPO DE EVENTO</div>
+        <div class="ctz-card">
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
             <label class="bnk-label">MODALIDAD</label>
@@ -208,6 +212,7 @@
             <textarea class="bnk-textarea" id="mntDescripcion" rows="3" placeholder="Describe brevemente el evento..."></textarea>
           </div>
         </div>
+        </div>
         <div class="mnt-nav">
           <button class="panel-btn-secondary" id="mntPrev2">← ANTERIOR</button>
           <button class="panel-btn-primary" id="mntNext2">SIGUIENTE →</button>
@@ -217,8 +222,10 @@
       <!-- Paso 3: Espacios y Fechas -->
       <div class="mnt-step" data-step="3">
         <div class="mnt-step-title">SELECCIONA ESPACIOS</div>
-        <div class="mnt-spaces-grid" id="mntSpacesGrid"></div>
-        <div id="mntCalendarArea"></div>
+        <div class="ctz-card">
+          <div class="mnt-spaces-grid" id="mntSpacesGrid"></div>
+          <div id="mntCalendarArea"></div>
+        </div>
         <div class="mnt-nav">
           <button class="panel-btn-secondary" id="mntPrev3">← ANTERIOR</button>
           <button class="panel-btn-primary" id="mntNext3">SIGUIENTE →</button>
@@ -251,80 +258,86 @@
       <div class="mnt-step-title">NUEVA COTIZACIÓN BNK — SERVICIOS</div>
 
       <!-- Datos del cliente -->
-      <div class="bnk-section-label">DATOS DEL CLIENTE</div>
-      <div class="bnk-form-grid">
-        <div class="bnk-form-group">
-          <label class="bnk-label">EMPRESA *</label>
-          <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
-          <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">CONTACTO</label>
-          <input type="text" class="bnk-input" id="bnkContacto" placeholder="Persona de contacto">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">TELÉFONO</label>
-          <input type="tel" class="bnk-input" id="bnkTelefono" placeholder="Teléfono">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">CORREO</label>
-          <input type="email" class="bnk-input" id="bnkCorreo" placeholder="correo@empresa.com">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">EVENTO</label>
-          <input type="text" class="bnk-input" id="bnkEvento" placeholder="Nombre del evento">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">FECHA EVENTO</label>
-          <input type="date" class="bnk-input" id="bnkFechaEvento">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">SEDE</label>
-          <input type="text" class="bnk-input" id="bnkSede" value="MUNET" placeholder="MUNET u otra">
-        </div>
-        <div class="bnk-form-group">
-          <label class="bnk-label">VINCULAR A FOLIO MNT</label>
-          <input type="text" class="bnk-input" id="bnkFolioMNT" placeholder="Opcional — ej: MNT-260812-1234">
+      <div class="ctz-card">
+        <div class="bnk-section-label">DATOS DEL CLIENTE</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">EMPRESA *</label>
+            <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
+            <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CONTACTO</label>
+            <input type="text" class="bnk-input" id="bnkContacto" placeholder="Persona de contacto">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">TELÉFONO</label>
+            <input type="tel" class="bnk-input" id="bnkTelefono" placeholder="Teléfono">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">CORREO</label>
+            <input type="email" class="bnk-input" id="bnkCorreo" placeholder="correo@empresa.com">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">EVENTO</label>
+            <input type="text" class="bnk-input" id="bnkEvento" placeholder="Nombre del evento">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">FECHA EVENTO</label>
+            <input type="date" class="bnk-input" id="bnkFechaEvento">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">SEDE</label>
+            <input type="text" class="bnk-input" id="bnkSede" value="MUNET" placeholder="MUNET u otra">
+          </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">VINCULAR A FOLIO MNT</label>
+            <input type="text" class="bnk-input" id="bnkFolioMNT" placeholder="Opcional — ej: MNT-260812-1234">
+          </div>
         </div>
       </div>
 
       <!-- Conceptos -->
-      <div class="bnk-section-label" style="margin-top:24px">CONCEPTOS</div>
-      <div class="bnk-conceptos-header">
-        <span>CATEGORÍA</span>
-        <span>CONCEPTO</span>
-        <span>CANT.</span>
-        <span>UNIDAD</span>
-        <span>PRECIO UNIT.</span>
-        <span>SUBTOTAL</span>
-        <span></span>
-      </div>
-      <div id="bnkConceptosBody"></div>
-      <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
+      <div class="ctz-card">
+        <div class="bnk-section-label">CONCEPTOS</div>
+        <div class="bnk-conceptos-header">
+          <span>CATEGORÍA</span>
+          <span>CONCEPTO</span>
+          <span>CANT.</span>
+          <span>UNIDAD</span>
+          <span>PRECIO UNIT.</span>
+          <span>SUBTOTAL</span>
+          <span></span>
+        </div>
+        <div id="bnkConceptosBody"></div>
+        <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
 
-      <!-- Totales -->
-      <div class="bnk-totales">
-        <div class="bnk-total-row"><span>SUBTOTAL (SIN IVA)</span><span id="bnkSubtotal">$0</span></div>
-        <div class="bnk-total-row"><span>IVA (16%)</span><span id="bnkIVA">$0</span></div>
-        <div class="bnk-total-row bnk-total-gran"><span>TOTAL</span><span id="bnkTotal">$0</span></div>
+        <!-- Totales -->
+        <div class="bnk-totales">
+          <div class="bnk-total-row"><span>SUBTOTAL (SIN IVA)</span><span id="bnkSubtotal">$0</span></div>
+          <div class="bnk-total-row"><span>IVA (16%)</span><span id="bnkIVA">$0</span></div>
+          <div class="bnk-total-row bnk-total-gran"><span>TOTAL</span><span id="bnkTotal">$0</span></div>
+        </div>
       </div>
 
       <!-- Condiciones -->
-      <div class="bnk-section-label" style="margin-top:24px">CONDICIONES COMERCIALES</div>
-      <div class="bnk-form-grid">
-        <div class="bnk-form-group">
-          <label class="bnk-label">PLANTILLA</label>
-          <select class="bnk-input" id="bnkPlantilla">
-            <option value="estandar">ESTÁNDAR</option>
-            <option value="estructura">ESTRUCTURA PESADA</option>
-            <option value="especial">EVENTO ESPECIAL</option>
-          </select>
+      <div class="ctz-card">
+        <div class="bnk-section-label">CONDICIONES COMERCIALES</div>
+        <div class="bnk-form-grid">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PLANTILLA</label>
+            <select class="bnk-input" id="bnkPlantilla">
+              <option value="estandar">ESTÁNDAR</option>
+              <option value="estructura">ESTRUCTURA PESADA</option>
+              <option value="especial">EVENTO ESPECIAL</option>
+            </select>
+          </div>
         </div>
+        <textarea class="bnk-textarea" id="bnkCondiciones" rows="8"></textarea>
       </div>
-      <textarea class="bnk-textarea" id="bnkCondiciones" rows="8"></textarea>
 
       <!-- Acciones -->
-      <div class="mnt-nav" style="margin-top:24px">
+      <div class="mnt-nav">
         <button class="panel-btn-secondary" id="bnkLimpiar">LIMPIAR</button>
         <div>
           <div class="pdf-style-toggle" id="bnkPdfToggle">

@@ -5,8 +5,7 @@
     "public": "panel",
     "ignore": ["**/node_modules/**"],
     "rewrites": [
-      { "source": "/dashboard", "destination": "/dashboard.html" },
-      { "source": "**", "destination": "/index.html" }
+      { "source": "/dashboard", "destination": "/dashboard.html" }
     ],
     "headers": [
       {

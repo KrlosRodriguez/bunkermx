@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUNKER — Error</title>
+<link rel="icon" type="image/webp" href="img/logo-bunker.webp">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bk:#050905;--dk:#070F09;--g:#00FF41;--gd:#00CC33;
+  --wh:#EDF8ED;--tx:rgba(200,236,200,0.6);--bd:rgba(0,255,65,0.12);
+  --red:#FF4455;--ylw:#F0C040
+}
+html{scroll-behavior:smooth}
+body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;-webkit-font-smoothing:antialiased}
+
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,255,65,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,65,.04) 1px,transparent 1px);
+  background-size:60px 60px}
+
+.error-box{position:relative;z-index:1;text-align:center;max-width:520px;padding:40px}
+
+.error-code{font-family:'Barlow Condensed',sans-serif;font-weight:900;
+  font-size:clamp(120px,20vw,200px);line-height:1;letter-spacing:-4px;
+  color:transparent;-webkit-text-stroke:2px var(--g);
+  text-shadow:0 0 60px rgba(0,255,65,.15);
+  animation:glitch 3s infinite}
+
+.error-label{font-family:'Space Mono',monospace;font-size:11px;
+  letter-spacing:6px;color:var(--g);margin-top:8px;
+  text-transform:uppercase}
+
+.error-line{width:80px;height:2px;background:var(--g);margin:24px auto;
+  box-shadow:0 0 12px rgba(0,255,65,.3)}
+
+.error-msg{font-family:'Barlow',sans-serif;font-size:15px;
+  color:var(--tx);line-height:1.7;margin-bottom:32px}
+
+.error-btn{display:inline-block;padding:12px 36px;
+  border:1px solid var(--g);background:transparent;color:var(--g);
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:13px;letter-spacing:3px;text-transform:uppercase;
+  text-decoration:none;cursor:pointer;transition:all .3s}
+.error-btn:hover{background:rgba(0,255,65,.08);
+  box-shadow:0 0 20px rgba(0,255,65,.12)}
+
+.error-footer{margin-top:48px;font-family:'Space Mono',monospace;
+  font-size:9px;letter-spacing:2px;color:rgba(200,236,200,.25)}
+
+.scanline{position:fixed;top:0;left:0;right:0;height:2px;
+  background:rgba(0,255,65,.06);z-index:2;
+  animation:scan 4s linear infinite}
+
+@keyframes scan{0%{top:0}100%{top:100vh}}
+@keyframes glitch{
+  0%,92%,100%{opacity:1;transform:none}
+  93%{opacity:.8;transform:translateX(-2px) skewX(-1deg)}
+  94%{opacity:1;transform:translateX(2px)}
+  95%{opacity:.7;transform:translateX(-1px) skewX(1deg)}
+  96%{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<div class="error-box">
+  <div class="error-code" id="errorCode">404</div>
+  <div class="error-label" id="errorLabel">recurso no encontrado</div>
+  <div class="error-line"></div>
+  <div class="error-msg" id="errorMsg">
+    La ruta solicitada no existe en el sistema.<br>
+    Verifica la dirección o regresa al panel.
+  </div>
+  <a href="/" class="error-btn">VOLVER AL PANEL</a>
+  <div class="error-footer">BUNKER CREATIVIDAD EMPRESARIAL &copy; 2026</div>
+</div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+
+  var messages = {
+    '401': { label: 'acceso no autorizado', msg: 'No tienes permisos para acceder a este recurso.<br>Inicia sesión o contacta al administrador.' },
+    '403': { label: 'acceso denegado', msg: 'Tu rol no tiene permisos para esta sección.<br>Contacta al administrador si necesitas acceso.' },
+    '404': { label: 'recurso no encontrado', msg: 'La ruta solicitada no existe en el sistema.<br>Verifica la dirección o regresa al panel.' },
+    '500': { label: 'error del servidor', msg: 'Algo salió mal en el sistema.<br>Intenta de nuevo o contacta soporte.' }
+  };
+
+  if (code && messages[code]) {
+    document.getElementById('errorCode').textContent = code;
+    document.getElementById('errorLabel').textContent = messages[code].label;
+    document.getElementById('errorMsg').innerHTML = messages[code].msg;
+  }
+})();
+</script>
+
+</body>
+</html>
