@@ -362,7 +362,7 @@
       total: total,
       linkPdf: '',
       estado: 'Nueva',
-      creadoPor: BNK_AUTH.currentUser ? BNK_AUTH.currentUser.uid : ''
+      creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 
     BNK_DB.cotizaciones.create(firestoreData).then(function () {

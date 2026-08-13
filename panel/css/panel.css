@@ -262,7 +262,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .mnt-montaje-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--g);min-width:30px;text-align:center}
 
 /* ── TIPO EVENTO TOGGLE ── */
-.mnt-tipo-toggle{display:flex;gap:0;border:1px solid var(--bd);display:inline-flex}
+.mnt-tipo-toggle{display:inline-flex;gap:0;border:1px solid var(--bd)}
 .mnt-tipo-btn{padding:10px 24px;background:transparent;border:none;color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s}
 .mnt-tipo-btn.active{background:rgba(0,255,65,.08);color:var(--g)}
 
@@ -293,7 +293,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .bnk-total-gran{font-size:20px;font-weight:700;color:var(--ylw);border-top:1px solid var(--ylw);padding-top:8px;margin-top:4px}
 
 /* ── PDF STYLE TOGGLE ── */
-.pdf-style-toggle{display:flex;gap:0;border:1px solid var(--bd);display:inline-flex;margin-right:12px}
+.pdf-style-toggle{display:inline-flex;gap:0;border:1px solid var(--bd);margin-right:12px}
 .pdf-style-btn{padding:8px 18px;background:transparent;border:none;color:var(--tx);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
 .pdf-style-btn.active{background:rgba(0,255,65,.08);color:var(--g)}
 .pdf-style-btn[data-style="corporativa"].active{background:rgba(198,163,80,.08);color:#C6A350}

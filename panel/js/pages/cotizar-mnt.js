@@ -396,7 +396,6 @@
     var HEADER_BG = isNeon ? [5, 9, 5] : [44, 36, 25];
     var HEADER_TEXT = [255, 255, 255];
     var SUB_TEXT = isNeon ? [200, 236, 200] : [120, 120, 120];
-    var LINE = isNeon ? [0, 255, 65, 0.12] : [232, 220, 200];
 
     var HEADER_H = 28, FOOTER_H = 20, CONTENT_TOP = 36, MAX_Y = H - FOOTER_H;
     var y = 0;
@@ -534,7 +533,7 @@
       desgloseVenues: JSON.stringify(calc.desglose),
       diasTotal: calc.desglose.reduce(function (sum, d) { return sum + d.diasTotal; }, 0),
       descripcion: document.getElementById('mntDescripcion').value.trim(),
-      horario: (document.getElementById('mntHoraInicio').value || '') + ' — ' + (document.getElementById('mntHoraFin').value || ''),
+      horario: (function () { var hi = document.getElementById('mntHoraInicio').value, hf = document.getElementById('mntHoraFin').value; return hi && hf ? hi + ' — ' + hf : ''; })(),
       espacios: espaciosNombres,
       rentaTotal: calc.rentaTotal,
       montajeTotal: calc.montajeTotal,
@@ -543,7 +542,7 @@
       total: calc.total,
       linkPdf: '',
       estado: 'Nueva',
-      creadoPor: BNK_AUTH.currentUser ? BNK_AUTH.currentUser.uid : ''
+      creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 
     BNK_DB.cotizaciones.create(data).then(function () {
