@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=4">
+<link rel="stylesheet" href="css/panel.css?v=5">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -143,7 +143,7 @@
         <div class="mnt-progress-step" data-step="3"><span class="step-num">3</span>ESPACIOS</div>
         <div class="mnt-progress-step" data-step="4"><span class="step-num">4</span>RESUMEN</div>
       </div>
-      <div class="mnt-step-indicator" id="mntStepIndicator">PASO 1 DE 4</div>
+      <div class="mnt-step-indicator" id="mntStepIndicator">CONTACTO</div>
 
       <!-- Paso 1: Datos de Contacto -->
       <div class="mnt-step active" data-step="1">
@@ -152,7 +152,10 @@
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
             <label class="bnk-label">CLIENTE / EMPRESA *</label>
-            <input type="text" class="bnk-input" id="mntCliente" placeholder="Buscar cliente..." autocomplete="off">
+            <div class="bnk-input-icon-wrap">
+              <span class="bnk-input-icon">&#128269;</span>
+              <input type="text" class="bnk-input" id="mntCliente" placeholder="Buscar cliente..." autocomplete="off">
+            </div>
             <div class="bnk-autocomplete" id="mntAutoCliente"></div>
           </div>
           <div class="bnk-form-group">
@@ -160,7 +163,7 @@
             <input type="text" class="bnk-input" id="mntAgencia" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">NOMBRE DEL EVENTO</label>
+            <label class="bnk-label">NOMBRE DEL EVENTO *</label>
             <input type="text" class="bnk-input" id="mntEvento" placeholder="Nombre del evento">
           </div>
           <div class="bnk-form-group">
@@ -168,11 +171,11 @@
             <input type="text" class="bnk-input" id="mntContacto" placeholder="Persona de contacto">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">TELÉFONO</label>
+            <label class="bnk-label">TELÉFONO <span class="bnk-hint">* al menos uno</span></label>
             <input type="tel" class="bnk-input" id="mntTelefono" placeholder="Teléfono">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">CORREO</label>
+            <label class="bnk-label">CORREO <span class="bnk-hint">* al menos uno</span></label>
             <input type="email" class="bnk-input" id="mntCorreo" placeholder="correo@empresa.com">
           </div>
           <div class="bnk-form-group">
@@ -199,7 +202,6 @@
               <button class="mnt-tipo-btn" data-tipo="publico">PÚBLICO</button>
             </div>
           </div>
-          <div class="bnk-form-group"></div>
           <div class="bnk-form-group">
             <label class="bnk-label">HORA INICIO</label>
             <input type="time" class="bnk-input" id="mntHoraInicio">
@@ -238,6 +240,23 @@
       <div class="mnt-step" data-step="4">
         <div class="mnt-step-title">RESUMEN DE COTIZACIÓN</div>
         <div id="mntResumen"></div>
+        <div class="ctz-card" style="margin-top:16px">
+          <div class="bnk-section-label">CONDICIONES COMERCIALES</div>
+          <div class="bnk-form-grid">
+            <div class="bnk-form-group">
+              <label class="bnk-label">VIGENCIA</label>
+              <input type="text" class="bnk-input" id="mntVigencia" value="15 días naturales">
+            </div>
+            <div class="bnk-form-group">
+              <label class="bnk-label">CONDICIONES DE PAGO</label>
+              <input type="text" class="bnk-input" id="mntCondPago" value="50% anticipo, 50% día del evento">
+            </div>
+            <div class="bnk-form-group bnk-form-full">
+              <label class="bnk-label">NOTAS ADICIONALES</label>
+              <textarea class="bnk-textarea" id="mntNotas" rows="2" placeholder="Observaciones, requerimientos especiales..."></textarea>
+            </div>
+          </div>
+        </div>
         <div class="mnt-nav">
           <button class="panel-btn-secondary" id="mntPrev4">← ANTERIOR</button>
           <div>
@@ -1336,7 +1355,7 @@
 <script src="js/pages/catalogo.js"></script>
 <script src="js/pages/usuarios.js"></script>
 <script src="js/pages/eventos.js"></script>
-<script src="js/pages/cotizar-mnt.js?v=4"></script>
+<script src="js/pages/cotizar-mnt.js?v=5"></script>
 <script src="js/pages/cotizar-bnk.js"></script>
 <script src="js/pages/finanzas.js"></script>
 

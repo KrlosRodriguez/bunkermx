@@ -36,33 +36,36 @@
     return 'MNT-' + yy + mm + dd + '-' + rand;
   }
 
+  var _stepNames = ['', 'CONTACTO', 'EVENTO', 'ESPACIOS', 'RESUMEN'];
+
   // ── Navegación del wizard ──
   function _goToStep(step) {
     if (step < 1 || step > 4) return;
 
-    // Validar paso actual antes de avanzar
+    // Validar pasos intermedios al avanzar
     if (step > _currentStep) {
-      if (_currentStep === 1 && !_validateStep1()) return;
-      if (_currentStep === 3) {
-        if (!_validateStep3()) return;
-        _buildResumen();
+      for (var s = _currentStep; s < step; s++) {
+        if (s === 1 && !_validateStep1()) return;
+        if (s === 2 && !_validateStep2()) return;
+        if (s === 3 && !_validateStep3()) return;
       }
+      if (step === 4) _buildResumen();
     }
 
     _currentStep = step;
     document.querySelectorAll('.mnt-step').forEach(function (el) { el.classList.remove('active'); });
     document.querySelectorAll('.mnt-progress-step').forEach(function (el) {
-      var s = parseInt(el.getAttribute('data-step'));
+      var n = parseInt(el.getAttribute('data-step'));
       el.classList.remove('active', 'done');
-      if (s === step) el.classList.add('active');
-      else if (s < step) el.classList.add('done');
+      if (n === step) el.classList.add('active');
+      else if (n < step) el.classList.add('done');
     });
     var target = document.querySelector('.mnt-step[data-step="' + step + '"]');
     if (target) target.classList.add('active');
 
-    // Update step indicator
+    // Update step indicator with step name
     var indicator = document.getElementById('mntStepIndicator');
-    if (indicator) indicator.textContent = 'PASO ' + step + ' DE 4';
+    if (indicator) indicator.textContent = _stepNames[step];
 
     // Scroll to top of wizard
     var wizard = document.getElementById('mntWizard');
@@ -71,12 +74,19 @@
 
   function _validateStep1() {
     var cliente = document.getElementById('mntCliente').value.trim();
+    var evento = document.getElementById('mntEvento').value.trim();
     var contacto = document.getElementById('mntContacto').value.trim();
     var tel = document.getElementById('mntTelefono').value.trim();
     var correo = document.getElementById('mntCorreo').value.trim();
     if (!cliente) { BNKToast.warn('El cliente es requerido.'); return false; }
+    if (!evento) { BNKToast.warn('El nombre del evento es requerido.'); return false; }
     if (!contacto) { BNKToast.warn('El contacto es requerido.'); return false; }
     if (!tel && !correo) { BNKToast.warn('Teléfono o correo es requerido.'); return false; }
+    return true;
+  }
+
+  function _validateStep2() {
+    // Step 2 is optional fields only — modalidad has default, hours and description are optional
     return true;
   }
 
@@ -451,10 +461,16 @@
       return;
     }
 
+    var fechasResumen = _buildFechasResumen(calc.desglose);
+
     var html = '';
-    calc.desglose.forEach(function (d) {
+    calc.desglose.forEach(function (d, idx) {
       html += '<div class="mnt-venue-desglose">'
-        + '<div class="mnt-venue-desglose-title">' + _esc(d.nombre) + '</div>'
+        + '<div class="mnt-venue-desglose-title">'
+        + _esc(d.nombre)
+        + '<span class="mnt-edit-venue" data-idx="' + idx + '" title="Editar fechas">&#9998;</span>'
+        + '</div>'
+        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Fechas: ' + _esc(d.eventDays.join(', ')) + '</span></div>'
         + '<div class="mnt-resumen-row"><span>Días regulares (Lun-Jue): ' + d.diasRegular + '</span><span>' + _formatMXN(d.diasRegular * d.precioRegular) + '</span></div>'
         + (d.diasWeekend > 0 ? '<div class="mnt-resumen-row"><span>Días weekend (Vie-Sáb): ' + d.diasWeekend + '</span><span>' + _formatMXN(d.diasWeekend * d.precioWeekend) + '</span></div>' : '')
         + (d.montajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días montaje: ' + d.montajeDays + '</span><span>' + _formatMXN(d.montaje) + '</span></div>' : '')
@@ -471,6 +487,16 @@
       + '</div>';
 
     container.innerHTML = html;
+
+    // Bind edit venue buttons
+    var selectedIds = Object.keys(_selected);
+    container.querySelectorAll('.mnt-edit-venue').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(this.getAttribute('data-idx'));
+        if (selectedIds[idx]) _expandedVid = selectedIds[idx];
+        _goToStep(3);
+      });
+    });
   }
 
   // ── PDF ──
@@ -545,6 +571,17 @@
     if (horario) info += ' | Horario: ' + horario;
     doc.text(info, margin, y); y += 6;
 
+    // Fechas
+    var fechasResumen = _buildFechasResumen(calc.desglose);
+    if (fechasResumen) {
+      doc.setFontSize(7); doc.setTextColor(SUB_TEXT[0], SUB_TEXT[1], SUB_TEXT[2]);
+      var fechasLines = doc.splitTextToSize('Fechas: ' + fechasResumen, contentW);
+      fechasLines.forEach(function (line) {
+        doc.text(line, margin, y); y += 4;
+      });
+      y += 2;
+    }
+
     // Desglose por venue
     calc.desglose.forEach(function (d) {
       checkPage(40);
@@ -600,6 +637,30 @@
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
     doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
     doc.text('TOTAL: ' + _formatMXN(calc.total), W - margin - 4, y + 4, { align: 'right' });
+    y += 14;
+
+    // Condiciones comerciales
+    var vigencia = (document.getElementById('mntVigencia') || {}).value || '15 días naturales';
+    var condPago = (document.getElementById('mntCondPago') || {}).value || '';
+    var notas = (document.getElementById('mntNotas') || {}).value || '';
+
+    if (vigencia || condPago || notas) {
+      checkPage(30);
+      doc.setFillColor(HEADER_BG[0], HEADER_BG[1], HEADER_BG[2]);
+      doc.rect(margin, y, contentW, 8, 'F');
+      doc.setTextColor(HEADER_TEXT[0], HEADER_TEXT[1], HEADER_TEXT[2]);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+      doc.text('CONDICIONES COMERCIALES', margin + 4, y + 5.5); y += 12;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+      if (vigencia) { doc.text('Vigencia: ' + vigencia, margin + 4, y + 4); y += 7; }
+      if (condPago) { doc.text('Pago: ' + condPago, margin + 4, y + 4); y += 7; }
+      if (notas) {
+        var notasLines = doc.splitTextToSize('Notas: ' + notas, contentW - 8);
+        notasLines.forEach(function (line) { checkPage(7); doc.text(line, margin + 4, y + 4); y += 5; });
+      }
+    }
 
     // Footers
     var totalPages = doc.internal.getNumberOfPages();
@@ -610,11 +671,13 @@
 
   // ── Guardar en Firestore ──
   function _enviar() {
+    if (!navigator.onLine) { BNKToast.warn('Sin conexión a internet. Verifica tu red.'); return; }
+
     var result = _generarPDF();
     if (!result) return;
 
     var btn = document.getElementById('mntGenerar');
-    btn.disabled = true; btn.textContent = 'GENERANDO...';
+    btn.disabled = true; btn.textContent = 'GUARDANDO...';
 
     var calc = result.calc;
     var folio = result.folio;
@@ -638,6 +701,9 @@
       descripcion: document.getElementById('mntDescripcion').value.trim(),
       horario: (function () { var hi = document.getElementById('mntHoraInicio').value, hf = document.getElementById('mntHoraFin').value; return hi && hf ? hi + ' — ' + hf : ''; })(),
       espacios: espaciosNombres,
+      vigencia: (document.getElementById('mntVigencia') || {}).value || '',
+      condicionesPago: (document.getElementById('mntCondPago') || {}).value || '',
+      notas: (document.getElementById('mntNotas') || {}).value || '',
       rentaTotal: calc.rentaTotal,
       montajeTotal: calc.montajeTotal,
       subtotal: calc.subtotal,
@@ -653,9 +719,10 @@
       BNKToast.ok('Cotización ' + folio + ' generada.');
       _resetWizard();
     }).catch(function (err) {
-      BNKToast.error('Error: ' + err.message);
+      BNKToast.error('Error al guardar: ' + err.message);
+      btn.textContent = 'REINTENTAR';
     }).finally(function () {
-      btn.disabled = false; btn.textContent = 'GENERAR COTIZACIÓN';
+      btn.disabled = false;
     });
   }
 
@@ -681,10 +748,16 @@
     _currentStep = 1;
     _tipo = 'privado';
     _expandedVid = null;
-    ['mntCliente','mntAgencia','mntEvento','mntContacto','mntTelefono','mntCorreo','mntAsistentes','mntDescripcion','mntHoraInicio','mntHoraFin'].forEach(function (id) {
+    ['mntCliente','mntAgencia','mntEvento','mntContacto','mntTelefono','mntCorreo','mntAsistentes','mntDescripcion','mntHoraInicio','mntHoraFin','mntNotas'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+    var vigEl = document.getElementById('mntVigencia');
+    if (vigEl) vigEl.value = '15 días naturales';
+    var condEl = document.getElementById('mntCondPago');
+    if (condEl) condEl.value = '50% anticipo, 50% día del evento';
+    var genBtn = document.getElementById('mntGenerar');
+    if (genBtn) genBtn.textContent = 'GENERAR COTIZACIÓN';
     document.querySelectorAll('.mnt-tipo-btn').forEach(function (b) { b.classList.remove('active'); });
     document.querySelector('.mnt-tipo-btn[data-tipo="privado"]').classList.add('active');
     _renderSpaces();
@@ -721,15 +794,26 @@
     document.querySelectorAll('.mnt-progress-step').forEach(function (step) {
       step.addEventListener('click', function () {
         var target = parseInt(this.getAttribute('data-step'));
-        if (target <= _currentStep || target === _currentStep + 1) {
-          if (target > _currentStep) {
-            if (_currentStep === 1 && !_validateStep1()) return;
-            if (_currentStep === 3 && !_validateStep3()) return;
-          }
-          if (target === 4) _buildResumen();
+        // Allow going back freely, or forward one step at a time via _goToStep validation
+        if (target <= _currentStep) {
           _goToStep(target);
+        } else {
+          _goToStep(target); // _goToStep validates all intermediate steps
         }
       });
+    });
+
+    // Keyboard shortcuts: Enter to advance, Escape to go back
+    document.getElementById('mntWizard').addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'TEXTAREA') return; // don't capture Enter in textareas
+      if (e.key === 'Enter' && !e.target.closest('button')) {
+        e.preventDefault();
+        if (_currentStep < 4) _goToStep(_currentStep + 1);
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (_currentStep > 1) _goToStep(_currentStep - 1);
+      }
     });
   }
 
