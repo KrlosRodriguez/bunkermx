@@ -258,15 +258,26 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .mnt-space-price{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;margin-top:8px}
 .mnt-space-note{font-family:'Space Mono',monospace;font-size:8px;color:var(--ylw);margin-top:4px}
 
-/* ── CALENDAR ── */
-.mnt-calendar-wrap{margin-top:16px;background:var(--card);border:1px solid var(--bd);padding:16px}
-.mnt-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.mnt-cal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--g);letter-spacing:2px}
-.mnt-cal-nav{background:none;border:1px solid var(--bd);color:var(--g);padding:4px 10px;cursor:pointer;font-size:14px;transition:all .2s}
+/* ── CALENDAR ACCORDION ── */
+.mnt-calendar-wrap{margin-top:8px;background:var(--card);border:1px solid var(--bd);transition:all .3s ease}
+.mnt-calendar-wrap.expanded{border-color:rgba(0,255,65,.25)}
+
+.mnt-accordion-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .2s}
+.mnt-accordion-header:hover{background:rgba(0,255,65,.04)}
+.mnt-accordion-arrow{font-size:12px;color:var(--g);width:14px;flex-shrink:0}
+.mnt-accordion-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--g);letter-spacing:2px}
+.mnt-accordion-summary{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px;margin-left:auto}
+.mnt-calendar-wrap.collapsed .mnt-accordion-summary{opacity:.7}
+
+.mnt-accordion-body{padding:0 14px 14px}
+
+.mnt-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mnt-cal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--g);letter-spacing:2px}
+.mnt-cal-nav{background:none;border:1px solid var(--bd);color:var(--g);padding:2px 8px;cursor:pointer;font-size:12px;transition:all .2s}
 .mnt-cal-nav:hover{background:rgba(0,255,65,.08)}
-.mnt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
-.mnt-cal-day-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);padding:4px}
-.mnt-cal-day{padding:8px 4px;font-family:'Barlow',sans-serif;font-size:13px;cursor:pointer;border:1px solid transparent;transition:all .2s}
+.mnt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;max-width:420px}
+.mnt-cal-day-label{font-family:'Space Mono',monospace;font-size:8px;color:var(--tx);padding:2px}
+.mnt-cal-day{padding:5px 2px;font-family:'Barlow',sans-serif;font-size:11px;cursor:pointer;border:1px solid transparent;transition:all .2s}
 .mnt-cal-day:hover{border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.04)}
 .mnt-cal-day.selected{background:rgba(0,255,65,.12);border-color:var(--g);color:var(--g);font-weight:700}
 .mnt-cal-day.weekend{color:var(--ylw)}
@@ -275,11 +286,11 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .mnt-cal-day.empty{visibility:hidden}
 
 /* ── MONTAJE STEPPER ── */
-.mnt-montaje{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;background:rgba(0,255,65,.02);border:1px solid var(--bd)}
-.mnt-montaje-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);letter-spacing:1px}
-.mnt-montaje-btn{width:28px;height:28px;border:1px solid var(--bd);background:none;color:var(--g);font-size:16px;cursor:pointer;transition:all .2s}
+.mnt-montaje{display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;background:rgba(0,255,65,.02);border:1px solid var(--bd)}
+.mnt-montaje-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px}
+.mnt-montaje-btn{width:24px;height:24px;border:1px solid var(--bd);background:none;color:var(--g);font-size:14px;cursor:pointer;transition:all .2s}
 .mnt-montaje-btn:hover{background:rgba(0,255,65,.08);border-color:var(--g)}
-.mnt-montaje-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--g);min-width:30px;text-align:center}
+.mnt-montaje-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--g);min-width:26px;text-align:center}
 
 /* ── TIPO EVENTO TOGGLE ── */
 .mnt-tipo-toggle{display:inline-flex;gap:0;border:1px solid var(--bd)}
