@@ -362,6 +362,10 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .mnt-venue-desglose{margin:12px 0;padding:12px;border:1px solid var(--bd)}
 .mnt-venue-desglose-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;margin-bottom:8px}
 
+/* ── BNK ACTIONS ── */
+.bnk-actions-right{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.bnk-shortcut-hint{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px;opacity:.5;margin-left:12px}
+
 /* ── BNK FORM TITLE ── */
 #sec-cotizar-bnk > .bnk-form-wrap > .mnt-step-title{font-size:24px;letter-spacing:5px;color:var(--ylw);margin-bottom:28px;padding-bottom:14px;border-bottom:2px solid rgba(240,192,64,.2)}
 
@@ -392,6 +396,10 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
   .bnk-conceptos-header{display:none}
   .bnk-concepto-row{grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
   .bnk-concepto-row select,.bnk-concepto-row input{width:100%}
+  .bnk-concepto-row [data-label]::before{content:attr(data-label);display:block;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--tx);margin-bottom:2px}
+  .bnk-concepto-row .bnk-sub-val{display:flex;flex-direction:column;align-items:flex-start}
+  .bnk-concepto-row .bnk-del-btn{grid-column:1/-1;justify-self:end}
+  .bnk-shortcut-hint{display:none}
   .mnt-progress-step{font-size:10px;padding:8px 6px;letter-spacing:1px}
   .mnt-progress-step .step-num{margin-right:4px}
 }

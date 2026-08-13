@@ -103,12 +103,12 @@
     row.className = 'bnk-concepto-row';
     row.id = id;
     row.innerHTML =
-      '<select class="bnk-cat" data-row="' + id + '">' + catOptions + '</select>'
-      + '<input type="text" class="bnk-con" data-row="' + id + '" placeholder="Buscar concepto..." list="dl-' + id + '"><datalist id="dl-' + id + '"></datalist>'
-      + '<input type="number" class="bnk-cant" data-row="' + id + '" value="1" min="1" step="1">'
-      + '<input type="text" class="bnk-uni" data-row="' + id + '" value="servicio" placeholder="unidad">'
-      + '<input type="number" class="bnk-pre" data-row="' + id + '" value="0" min="0" step="0.01">'
-      + '<span class="bnk-sub-val" data-row="' + id + '">$0</span>'
+      '<select class="bnk-cat" data-row="' + id + '" data-label="Categoría">' + catOptions + '</select>'
+      + '<input type="text" class="bnk-con" data-row="' + id + '" data-label="Concepto" placeholder="Buscar concepto..." list="dl-' + id + '"><datalist id="dl-' + id + '"></datalist>'
+      + '<input type="number" class="bnk-cant" data-row="' + id + '" data-label="Cant." value="1" min="1" step="1">'
+      + '<input type="text" class="bnk-uni" data-row="' + id + '" data-label="Unidad" value="servicio" placeholder="unidad">'
+      + '<input type="number" class="bnk-pre" data-row="' + id + '" data-label="Precio" value="0" min="0" step="0.01">'
+      + '<span class="bnk-sub-val" data-row="' + id + '" data-label="Subtotal">$0</span>'
       + '<button class="bnk-del-btn" data-row="' + id + '">&times;</button>';
     body.appendChild(row);
 
@@ -116,7 +116,13 @@
     row.querySelector('.bnk-con').addEventListener('change', function () { _autocompletarPrecio(id); });
     row.querySelector('.bnk-cant').addEventListener('input', function () { _recalcularFila(id); });
     row.querySelector('.bnk-pre').addEventListener('input', function () { _recalcularFila(id); });
-    row.querySelector('.bnk-del-btn').addEventListener('click', function () { row.remove(); _recalcularTotales(); });
+    row.querySelector('.bnk-del-btn').addEventListener('click', function () {
+      row.remove();
+      _recalcularTotales();
+      // Auto-add row if all deleted
+      var remaining = document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row');
+      if (remaining.length === 0) _agregarFila();
+    });
   }
 
   function _actualizarDatalist(rowId) {
@@ -187,6 +193,27 @@
     return conceptos;
   }
 
+  // ── Validation ──
+  function _validarFormulario() {
+    var empresa = document.getElementById('bnkEmpresa').value.trim();
+    if (!empresa) { BNKToast.warn('La empresa es requerida.'); return false; }
+
+    var evento = document.getElementById('bnkEvento').value.trim();
+    if (!evento) { BNKToast.warn('El nombre del evento es requerido.'); return false; }
+
+    var tel = document.getElementById('bnkTelefono').value.trim();
+    var correo = document.getElementById('bnkCorreo').value.trim();
+    if (!tel && !correo) { BNKToast.warn('Ingresa al menos teléfono o correo.'); return false; }
+
+    var conceptos = _recopilarConceptos();
+    if (conceptos.length === 0) { BNKToast.warn('Agrega al menos un concepto.'); return false; }
+
+    var hayPreciosCero = conceptos.some(function (c) { return c.precioUnit <= 0; });
+    if (hayPreciosCero) { BNKToast.warn('Todos los conceptos deben tener precio mayor a $0.'); return false; }
+
+    return true;
+  }
+
   // ── PDF BNK ──
   function _generarPDF(data) {
     var jsPDF = window.jspdf.jsPDF;
@@ -208,7 +235,6 @@
 
     function drawHeader() {
       drawBG();
-      // Logo BUNKER prominente arriba
       doc.setFillColor(HEADER_BG[0], HEADER_BG[1], HEADER_BG[2]);
       doc.rect(0, 0, W, HEADER_H, 'F');
       if (typeof BUNKER_LOGO_B64 !== 'undefined') {
@@ -248,6 +274,12 @@
 
     // Página 1
     drawHeader(); y = CONTENT_TOP;
+
+    // Fecha de emisión
+    doc.setFontSize(7); doc.setTextColor(SUB_TEXT[0], SUB_TEXT[1], SUB_TEXT[2]);
+    var hoy = new Date();
+    var fechaEmision = hoy.getDate() + '/' + (hoy.getMonth() + 1) + '/' + hoy.getFullYear();
+    doc.text('Fecha de emisión: ' + fechaEmision, W - margin, y - 2, { align: 'right' });
 
     // Intro
     doc.setFontSize(8); doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
@@ -294,6 +326,21 @@
     doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
     doc.text('TOTAL: ' + _formatMXN(data.total), W - margin - 4, y + 4, { align: 'right' }); y += 12;
 
+    // Vigencia y condiciones de pago
+    if (data.vigencia || data.condPago) {
+      checkPage(18);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+      if (data.vigencia) {
+        doc.text('Vigencia: ' + data.vigencia + ' días a partir de la fecha de emisión.', margin + 4, y + 4);
+        y += 6;
+      }
+      if (data.condPago) {
+        doc.text('Condiciones de pago: ' + data.condPago, margin + 4, y + 4);
+        y += 6;
+      }
+      y += 4;
+    }
+
     // Condiciones
     if (data.condiciones) {
       drawSection('CONDICIONES COMERCIALES');
@@ -302,6 +349,16 @@
         var wrapped = doc.splitTextToSize(line, contentW - 8);
         wrapped.forEach(function (wl) { checkPage(5); doc.text(wl, margin + 4, y + 4); y += 5; });
       });
+    }
+
+    // Notas
+    if (data.notas) {
+      y += 4;
+      checkPage(14);
+      drawSection('NOTAS');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
+      var notasLines = doc.splitTextToSize(data.notas, contentW - 8);
+      notasLines.forEach(function (nl) { checkPage(5); doc.text(nl, margin + 4, y + 4); y += 5; });
     }
 
     // Footers
@@ -313,30 +370,40 @@
 
   // ── Enviar ──
   function _enviar() {
-    var empresa = document.getElementById('bnkEmpresa').value.trim();
-    if (!empresa) { BNKToast.warn('La empresa es requerida.'); return; }
+    if (!_validarFormulario()) return;
 
-    var conceptos = _recopilarConceptos();
-    if (conceptos.length === 0) { BNKToast.warn('Agrega al menos un concepto.'); return; }
+    // Online check
+    if (!navigator.onLine) {
+      BNKToast.error('Sin conexión a internet. Verifica tu red.');
+      return;
+    }
 
     var btn = document.getElementById('bnkGenerar');
     btn.disabled = true; btn.textContent = 'GENERANDO...';
 
+    var conceptos = _recopilarConceptos();
     var folio = _generarFolio();
     var subtotal = 0;
     conceptos.forEach(function (c) { subtotal += c.subtotal; });
     var iva = Math.round(subtotal * 0.16);
     var total = subtotal + iva;
 
+    var vigencia = document.getElementById('bnkVigencia').value || '30';
+    var condPago = document.getElementById('bnkCondPago').value.trim();
+    var notas = document.getElementById('bnkNotas').value.trim();
+
     var pdfData = {
       folio: folio,
-      empresa: empresa,
+      empresa: document.getElementById('bnkEmpresa').value.trim(),
       contacto: document.getElementById('bnkContacto').value.trim(),
       evento: document.getElementById('bnkEvento').value.trim(),
       fechaEvento: document.getElementById('bnkFechaEvento').value,
       sede: document.getElementById('bnkSede').value.trim() || 'MUNET',
       conceptos: conceptos,
       condiciones: document.getElementById('bnkCondiciones').value,
+      vigencia: vigencia,
+      condPago: condPago,
+      notas: notas,
       subtotal: subtotal,
       iva: iva,
       total: total
@@ -348,7 +415,7 @@
       fuente: 'BNK',
       folio: folio,
       folioMNT: document.getElementById('bnkFolioMNT').value.trim(),
-      empresa: empresa,
+      empresa: pdfData.empresa,
       contacto: pdfData.contacto,
       telefono: document.getElementById('bnkTelefono').value.trim(),
       correo: document.getElementById('bnkCorreo').value.trim(),
@@ -357,6 +424,9 @@
       sede: pdfData.sede,
       conceptos: JSON.stringify(conceptos),
       condiciones: pdfData.condiciones,
+      vigencia: vigencia,
+      condPago: condPago,
+      notas: notas,
       subtotal: subtotal,
       iva: iva,
       total: total,
@@ -370,13 +440,20 @@
       BNKToast.ok('Cotización ' + folio + ' generada.');
       _limpiar();
     }).catch(function (err) {
-      BNKToast.error('Error: ' + err.message);
+      BNKToast.error('Error al guardar: ' + err.message);
+      btn.textContent = 'REINTENTAR';
     }).finally(function () {
-      btn.disabled = false; btn.textContent = 'GENERAR COTIZACIÓN';
+      btn.disabled = false;
+      if (btn.textContent === 'GENERANDO...') btn.textContent = 'GENERAR COTIZACIÓN';
     });
   }
 
   function _limpiar() {
+    if (document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row').length > 0) {
+      var hayDatos = document.getElementById('bnkEmpresa').value.trim() ||
+        document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row .bnk-con').length > 0;
+      if (hayDatos && !confirm('¿Limpiar todo el formulario? Se perderán los datos ingresados.')) return;
+    }
     ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });
@@ -386,7 +463,11 @@
     _agregarFila();
     _setCondiciones('estandar');
     document.getElementById('bnkPlantilla').value = 'estandar';
+    document.getElementById('bnkVigencia').value = '30';
+    document.getElementById('bnkCondPago').value = '60% anticipo, 40% antes del evento';
+    document.getElementById('bnkNotas').value = '';
     _recalcularTotales();
+    document.getElementById('bnkGenerar').textContent = 'GENERAR COTIZACIÓN';
   }
 
   // ── Bind ──
@@ -407,6 +488,14 @@
         this.classList.add('active');
         _pdfStyle = this.getAttribute('data-style');
       });
+    });
+
+    // Keyboard shortcut: Ctrl+Enter to submit
+    document.getElementById('sec-cotizar-bnk').addEventListener('keydown', function (e) {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        _enviar();
+      }
     });
   }
 

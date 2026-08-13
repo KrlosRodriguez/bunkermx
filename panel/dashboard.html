@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=5">
+<link rel="stylesheet" href="css/panel.css?v=6">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -284,7 +284,10 @@
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
             <label class="bnk-label">EMPRESA *</label>
-            <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
+            <div class="bnk-input-icon-wrap">
+              <span class="bnk-input-icon">🔍</span>
+              <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
+            </div>
             <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
           </div>
           <div class="bnk-form-group">
@@ -292,15 +295,15 @@
             <input type="text" class="bnk-input" id="bnkContacto" placeholder="Persona de contacto">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">TELÉFONO</label>
+            <label class="bnk-label">TELÉFONO <span class="bnk-hint">(mín. teléfono o correo)</span></label>
             <input type="tel" class="bnk-input" id="bnkTelefono" placeholder="Teléfono">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">CORREO</label>
+            <label class="bnk-label">CORREO <span class="bnk-hint">(mín. teléfono o correo)</span></label>
             <input type="email" class="bnk-input" id="bnkCorreo" placeholder="correo@empresa.com">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">EVENTO</label>
+            <label class="bnk-label">EVENTO *</label>
             <input type="text" class="bnk-input" id="bnkEvento" placeholder="Nombre del evento">
           </div>
           <div class="bnk-form-group">
@@ -353,19 +356,32 @@
               <option value="especial">EVENTO ESPECIAL</option>
             </select>
           </div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">VIGENCIA (DÍAS)</label>
+            <input type="number" class="bnk-input" id="bnkVigencia" value="30" min="1" max="365">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">CONDICIONES DE PAGO</label>
+            <input type="text" class="bnk-input" id="bnkCondPago" value="60% anticipo, 40% antes del evento" placeholder="Ej: 60% anticipo, 40% antes del evento">
+          </div>
+          <div class="bnk-form-group bnk-form-full">
+            <label class="bnk-label">NOTAS ADICIONALES</label>
+            <textarea class="bnk-textarea" id="bnkNotas" rows="2" placeholder="Notas internas o para el cliente"></textarea>
+          </div>
         </div>
-        <textarea class="bnk-textarea" id="bnkCondiciones" rows="8"></textarea>
+        <textarea class="bnk-textarea" id="bnkCondiciones" rows="8" style="margin-top:16px"></textarea>
       </div>
 
       <!-- Acciones -->
       <div class="mnt-nav">
         <button class="panel-btn-secondary" id="bnkLimpiar">LIMPIAR</button>
-        <div>
+        <div class="bnk-actions-right">
           <div class="pdf-style-toggle" id="bnkPdfToggle">
             <button class="pdf-style-btn active" data-style="neon">NEON</button>
             <button class="pdf-style-btn" data-style="corporativa">CORPORATIVA</button>
           </div>
           <button class="panel-btn-primary" id="bnkGenerar">GENERAR COTIZACIÓN</button>
+          <span class="bnk-shortcut-hint">Ctrl+Enter</span>
         </div>
       </div>
     </div>
@@ -1355,8 +1371,8 @@
 <script src="js/pages/catalogo.js"></script>
 <script src="js/pages/usuarios.js"></script>
 <script src="js/pages/eventos.js"></script>
-<script src="js/pages/cotizar-mnt.js?v=5"></script>
-<script src="js/pages/cotizar-bnk.js"></script>
+<script src="js/pages/cotizar-mnt.js?v=6"></script>
+<script src="js/pages/cotizar-bnk.js?v=6"></script>
 <script src="js/pages/finanzas.js"></script>
 
 </body>
