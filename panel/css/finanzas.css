@@ -1,0 +1,100 @@
+/* finanzas.css — Estilos del módulo FINANZAS */
+
+/* Sub-tab content */
+.fin-subtab { }
+
+/* Admin-only elements — hidden by default, shown via JS for admin role */
+.fin-admin-only { display: none; }
+.fin-admin-visible .fin-admin-only { display: inline-block; }
+
+/* Partner checkbox list in asignar modal */
+.fin-partner-checks { max-height: 200px; overflow-y: auto; }
+.fin-partner-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--bd);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: var(--wh);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.fin-partner-check:hover { background: rgba(0,255,65,0.04); }
+.fin-partner-check input[type="checkbox"] { accent-color: var(--g); }
+
+/* Info grid in detalle modals */
+.fin-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+  padding: 12px 0;
+}
+.fin-info-item {
+  font-size: 13px;
+}
+.fin-info-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--tx);
+  margin-bottom: 2px;
+}
+.fin-info-value {
+  color: var(--wh);
+}
+
+/* Dispersión partner row in detail modal */
+.fin-disp-partner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bd);
+  font-size: 13px;
+}
+.fin-disp-partner:last-child { border-bottom: none; }
+.fin-disp-partner-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+.fin-disp-partner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Cerrada toggle button */
+.fin-btn-cerrar {
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.fin-btn-cerrar:hover {
+  border-color: var(--g);
+  color: var(--g);
+  background: rgba(0,255,65,0.06);
+}
+.fin-btn-cerrar.cerrada {
+  border-color: rgba(0,255,65,0.4);
+  color: var(--g);
+  background: rgba(0,255,65,0.08);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .fin-info-grid { grid-template-columns: 1fr; }
+  #sec-finanzas .dash-indicators { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 600px) {
+  #sec-finanzas .dash-indicators { grid-template-columns: 1fr; }
+}
