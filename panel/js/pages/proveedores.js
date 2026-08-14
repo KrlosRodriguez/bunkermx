@@ -360,7 +360,7 @@
     }
 
     // Mostrar primer tab
-    _activarTab('prvTab1');
+    _activarTab('prvTabGeneral');
 
     // ── Cotizaciones vinculadas ──
     var wrap = _getEl('prvCotizacionesWrap');
@@ -476,7 +476,7 @@
       }
       if (nextPanel) { nextPanel.classList.add('active'); nextPanel.style.display = 'block'; }
       // Cargar servicios si es Tab5
-      if (tabId === 'prvTab5' && _proveedorActivoId) loadServicios(_proveedorActivoId);
+      if (tabId === 'prvTabServicios' && _proveedorActivoId) loadServicios(_proveedorActivoId);
       return;
     }
 
@@ -495,7 +495,7 @@
       nextPanel.classList.add('active');
 
       // Cargar servicios si es Tab5
-      if (tabId === 'prvTab5' && _proveedorActivoId) loadServicios(_proveedorActivoId);
+      if (tabId === 'prvTabServicios' && _proveedorActivoId) loadServicios(_proveedorActivoId);
 
       requestAnimationFrame(function () {
         nextPanel.style.transition = 'opacity 80ms ease-in';
@@ -613,13 +613,24 @@
         renderTable();
         updateIndicators();
       })
-      .catch(function () {
+      .catch(function (err) {
         if (prvLoading) prvLoading.style.display = 'none';
         _proveedores = [];
+        BNKToast.error('Error al cargar proveedores: ' + (err && err.message ? err.message : 'desconocido'));
         if (prvEmpty) {
           prvEmpty.style.display = 'block';
           var txt = prvEmpty.querySelector('.dash-empty-text');
           if (txt) txt.textContent = 'ERROR AL CARGAR PROVEEDORES';
+          var icon = prvEmpty.querySelector('.dash-empty-icon');
+          if (icon) icon.textContent = '\u26A0';
+          if (!prvEmpty.querySelector('.prv-retry-btn')) {
+            var retryBtn = document.createElement('button');
+            retryBtn.className = 'panel-btn-primary prv-retry-btn';
+            retryBtn.textContent = 'REINTENTAR';
+            retryBtn.style.marginTop = '16px';
+            retryBtn.addEventListener('click', function () { load(); });
+            prvEmpty.appendChild(retryBtn);
+          }
         }
         updateIndicators();
       });
@@ -1032,6 +1043,17 @@
         if (e.target === overlay) cerrarModal();
       });
     }
+
+    // Escape to close modal
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var overlay = _getEl('prvOverlay');
+        if (overlay && overlay.classList.contains('visible')) {
+          e.preventDefault();
+          cerrarModal();
+        }
+      }
+    });
 
     _setupModalTabs();
     _setupFiltros();

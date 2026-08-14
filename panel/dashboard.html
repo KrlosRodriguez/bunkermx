@@ -577,29 +577,57 @@
   <!-- PROVEEDORES (Task 8) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-proveedores" class="panel-section">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">TOTAL PROVEEDORES</div><div class="dash-card-value" id="indPrvTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">POOL</div><div class="dash-card-value" id="indPrvPool">0</div></div>
+      <div class="dash-card dash-card--warn"><div class="dash-card-label">ONE-SHOT</div><div class="dash-card-value" id="indPrvOneShot">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">COMPLETITUD PROM.</div><div class="dash-card-value" id="indPrvCompletitud">0%</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">PROVEEDORES</h2>
-      <input type="text" id="prvSearch" class="dash-search" placeholder="Buscar proveedor..." style="max-width:300px">
       <button id="btnNuevoProveedor" class="panel-btn-primary">+ NUEVO PROVEEDOR</button>
     </div>
 
+    <!-- Filtros -->
+    <div class="dash-filters" id="prvFilters">
+      <input type="text" id="prvSearch" class="dash-search" placeholder="Buscar proveedor..." style="max-width:300px">
+      <select class="dash-select" id="prvTipo">
+        <option value="">Todos los tipos</option>
+        <option value="Pool">Pool</option>
+        <option value="One Shot">One-Shot</option>
+      </select>
+      <select class="dash-select" id="prvEstado">
+        <option value="">Todas las cuentas</option>
+        <option value="Sí">Activas</option>
+        <option value="No">Inactivas</option>
+      </select>
+      <button class="panel-btn-icon" id="prvClear" title="Limpiar filtros" style="display:none">&times;</button>
+      <button class="panel-btn-icon" id="prvExport" title="Exportar CSV">&#8681;</button>
+      <span id="prvCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-left:auto"></span>
+    </div>
+
+    <div id="prvLoading" class="dash-loading">CARGANDO PROVEEDORES...</div>
+
     <div class="dash-table-wrap">
-      <table class="dash-table" id="prvTable">
+      <table class="dash-table" id="prvTable" style="display:none">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>EMPRESA</th>
+            <th class="sortable" data-key="id">ID</th>
+            <th>%</th>
+            <th class="sortable" data-key="razonSocial">RAZÓN SOCIAL</th>
+            <th class="sortable" data-key="nombreComercial">NOMBRE COMERCIAL</th>
             <th>TIPO</th>
-            <th>CONTACTO</th>
-            <th>CORREO</th>
-            <th>TELÉFONO</th>
-            <th>SERVICIOS</th>
-            <th>% DATOS</th>
+            <th>CUENTA</th>
+            <th class="sortable" data-key="fechaAlta">FECHA ALTA</th>
+            <th class="sortable" data-key="fechaEdicion">ÚLT. EDICIÓN</th>
             <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody id="prvBody"></tbody>
       </table>
+      <div id="prvPagination"></div>
       <div id="prvEmpty" class="dash-empty" style="display:none">
         <div class="dash-empty-icon">&#128666;</div>
         <div class="dash-empty-text">Sin proveedores registrados</div>
@@ -616,24 +644,26 @@
         <div class="bnk-modal-body">
           <input type="hidden" id="prvId">
           <div class="modal-tabs">
-            <button class="modal-tab active" data-prv-tab="general">GENERAL</button>
-            <button class="modal-tab" data-prv-tab="contacto">CONTACTO</button>
-            <button class="modal-tab" data-prv-tab="fiscales">FISCALES</button>
-            <button class="modal-tab" data-prv-tab="bancarios">BANCARIOS</button>
-            <button class="modal-tab" data-prv-tab="servicios">SERVICIOS</button>
+            <button class="modal-tab active" data-target="prvTabGeneral">GENERAL</button>
+            <button class="modal-tab" data-target="prvTabContacto">CONTACTO</button>
+            <button class="modal-tab" data-target="prvTabFiscales">FISCALES</button>
+            <button class="modal-tab" data-target="prvTabBancarios">BANCARIOS</button>
+            <button class="modal-tab" data-target="prvTabServicios">SERVICIOS</button>
           </div>
 
           <!-- Tab General -->
-          <div class="modal-tab-content" id="prvTabGeneral">
+          <div class="modal-tab-content active" id="prvTabGeneral">
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">EMPRESA / RAZÓN SOCIAL</label><input type="text" class="bnk-input" id="prvEmpresa"></div>
-              <div class="bnk-form-group"><label class="bnk-label">TIPO</label>
-                <select class="bnk-input" id="prvTipo"><option value="Pool">Pool</option><option value="One-Shot">One-Shot</option></select>
+              <div class="bnk-form-group"><label class="bnk-label">RAZÓN SOCIAL *</label><input type="text" class="bnk-input" id="prvRazonSocial"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NOMBRE COMERCIAL</label><input type="text" class="bnk-input" id="prvNombreComercial"></div>
+              <div class="bnk-form-group"><label class="bnk-label">TIPO PROVEEDOR</label>
+                <select class="bnk-input" id="prvTipoProveedor"><option value="Pool">Pool</option><option value="One Shot">One-Shot</option></select>
               </div>
-              <div class="bnk-form-group"><label class="bnk-label">GIRO</label><input type="text" class="bnk-input" id="prvGiro"></div>
               <div class="bnk-form-group"><label class="bnk-label">CUENTA ACTIVA</label>
                 <select class="bnk-input" id="prvCuentaActiva"><option value="Sí">Sí</option><option value="No">No</option></select>
               </div>
+              <div class="bnk-form-group"><label class="bnk-label">ACTIVIDAD PRINCIPAL</label><input type="text" class="bnk-input" id="prvActividadPrincipal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">FECHA CONSTITUCIÓN</label><input type="date" class="bnk-input" id="prvFechaConstitucion"></div>
               <div class="bnk-form-group bnk-form-full"><label class="bnk-label">OBSERVACIONES</label><textarea class="bnk-textarea" id="prvObservaciones" rows="2"></textarea></div>
             </div>
           </div>
@@ -641,27 +671,38 @@
           <!-- Tab Contacto -->
           <div class="modal-tab-content" id="prvTabContacto" style="display:none">
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">PERSONA CONTACTO</label><input type="text" class="bnk-input" id="prvPersonaContacto"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NOMBRE CONTACTO</label><input type="text" class="bnk-input" id="prvNombreContacto"></div>
               <div class="bnk-form-group"><label class="bnk-label">PUESTO</label><input type="text" class="bnk-input" id="prvPuestoContacto"></div>
               <div class="bnk-form-group"><label class="bnk-label">CORREO</label><input type="email" class="bnk-input" id="prvCorreoContacto"></div>
               <div class="bnk-form-group"><label class="bnk-label">TELÉFONO</label><input type="tel" class="bnk-input" id="prvTelefonoContacto"></div>
-              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">DIRECCIÓN</label><input type="text" class="bnk-input" id="prvDireccion"></div>
             </div>
           </div>
 
           <!-- Tab Fiscales -->
           <div class="modal-tab-content" id="prvTabFiscales" style="display:none">
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="prvRFC"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="prvCURP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="prvRfc" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="prvCurp" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">RÉGIMEN FISCAL</label><input type="text" class="bnk-input" id="prvRegimenFiscal"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
                 <select class="bnk-input" id="prvTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
               </div>
-              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="prvUsoCFDI"></div>
+              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="prvUsoCfdi"></div>
               <div class="bnk-form-group"><label class="bnk-label">FORMA PAGO</label><input type="text" class="bnk-input" id="prvFormaPago"></div>
               <div class="bnk-form-group"><label class="bnk-label">MÉTODO PAGO</label><input type="text" class="bnk-input" id="prvMetodoPago"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CONDICIONES PAGO</label><input type="text" class="bnk-input" id="prvCondicionesPago"></div>
+              <div class="bnk-form-group"><label class="bnk-label">DÍAS CRÉDITO</label><input type="text" class="bnk-input" id="prvDiasCredito"></div>
+              <div class="bnk-form-group"><label class="bnk-label">OPINIÓN 32-D</label><input type="text" class="bnk-input" id="prvOpinion32d"></div>
+              <div class="bnk-form-group"><label class="bnk-label">FECHA CONSTANCIA FISCAL</label><input type="date" class="bnk-input" id="prvFechaConstanciaFiscal"></div>
+            </div>
+            <div class="bnk-section-label" style="margin-top:20px">DOMICILIO FISCAL</div>
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">CALLE</label><input type="text" class="bnk-input" id="prvCalle"></div>
+              <div class="bnk-form-group"><label class="bnk-label">NÚMERO</label><input type="text" class="bnk-input" id="prvNumero"></div>
+              <div class="bnk-form-group"><label class="bnk-label">COLONIA</label><input type="text" class="bnk-input" id="prvColonia"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CP</label><input type="text" class="bnk-input" id="prvCp"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ALCALDÍA/MUNICIPIO</label><input type="text" class="bnk-input" id="prvAlcaldia"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ENTIDAD</label><input type="text" class="bnk-input" id="prvEntidad"></div>
+              <div class="bnk-form-group"><label class="bnk-label">PAÍS</label><input type="text" class="bnk-input" id="prvPais" value="México"></div>
             </div>
           </div>
 
@@ -669,30 +710,45 @@
           <div class="modal-tab-content" id="prvTabBancarios" style="display:none">
             <div class="bnk-section-label">CUENTA MXN</div>
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoMXN"></div>
-              <div class="bnk-form-group"><label class="bnk-label">SUCURSAL</label><input type="text" class="bnk-input" id="prvSucursal"></div>
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoMxn"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SUCURSAL/PLAZA</label><input type="text" class="bnk-input" id="prvSucursalPlaza"></div>
               <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="prvTitularCuenta"></div>
               <div class="bnk-form-group"><label class="bnk-label">CUENTA CORTA</label><input type="text" class="bnk-input" id="prvCuentaCorta"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="prvCLABE"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="prvClabe" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="prvTipoCuenta"></div>
+              <div class="bnk-form-group bnk-form-full"><label class="bnk-label">DIRECCIÓN DEL BANCO</label><input type="text" class="bnk-input" id="prvDireccionBanco"></div>
             </div>
             <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="prvDivisa"></div>
               <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="prvTitularExtranjero"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="prvCuentaIBAN"></div>
-              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="prvSWIFT"></div>
-              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="prvABA"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="prvCuentaIban" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="prvSwiftBic" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="prvAbaRouting" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">BANCO INTERMEDIARIO</label><input type="text" class="bnk-input" id="prvBancoIntermediario"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT INTERMEDIARIO</label><input type="text" class="bnk-input" id="prvSwiftIntermediario" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">GASTOS BANCARIOS</label><input type="text" class="bnk-input" id="prvGastosBancarios"></div>
             </div>
           </div>
 
           <!-- Tab Servicios -->
           <div class="modal-tab-content" id="prvTabServicios" style="display:none">
             <div class="bnk-section-label">CATÁLOGO DE SERVICIOS DEL PROVEEDOR</div>
-            <div id="prvServiciosContainer"></div>
-            <button class="bnk-add-row" id="btnAddServicio">+ AGREGAR SERVICIO</button>
+            <table class="dash-table" id="prvServiciosTable" style="display:none">
+              <thead>
+                <tr><th>CATEGORÍA</th><th>SERVICIO</th><th>UNIDAD</th><th>COSTO</th><th>ACCIONES</th></tr>
+              </thead>
+              <tbody id="prvServiciosBody"></tbody>
+            </table>
+            <div id="prvServiciosEmpty" class="dash-empty" style="padding:30px">
+              <div class="dash-empty-text" style="font-size:13px">Sin servicios registrados</div>
+            </div>
+            <button class="bnk-add-row" id="prvAddServicio">+ AGREGAR SERVICIO</button>
           </div>
+
+          <!-- Cotizaciones vinculadas -->
+          <div id="prvCotizacionesWrap" style="margin-top:16px"></div>
         </div>
         <div class="bnk-modal-footer">
           <button class="panel-btn-secondary" id="prvCancel">CANCELAR</button>
@@ -1390,7 +1446,7 @@
 <script src="js/pages/cotizaciones.js"></script>
 <script src="js/pages/pipeline.js?v=6"></script>
 <script src="js/pages/clientes.js?v=6"></script>
-<script src="js/pages/proveedores.js"></script>
+<script src="js/pages/proveedores.js?v=6"></script>
 <script src="js/pages/calendario.js"></script>
 <script src="js/pages/reportes.js"></script>
 <script src="js/pages/catalogo.js"></script>
