@@ -86,6 +86,15 @@
       </div>
     </div>
 
+    <!-- Toolbar -->
+    <div class="panel-toolbar">
+      <h2 class="panel-section-title">COTIZACIONES</h2>
+      <div style="display:flex;gap:8px">
+        <button class="panel-btn-primary" id="cotBtnNuevaMNT">+ NUEVA MNT</button>
+        <button class="panel-btn-primary" id="cotBtnNuevaBNK">+ NUEVA BNK</button>
+      </div>
+    </div>
+
     <!-- Filtros -->
     <div class="dash-filters">
       <input type="text" id="cotSearch2" class="dash-search" placeholder="Buscar folio, cliente, evento...">
@@ -107,27 +116,38 @@
       </select>
       <input type="date" id="cotDesde2" class="dash-date" title="Desde">
       <input type="date" id="cotHasta2" class="dash-date" title="Hasta">
+      <button class="panel-btn-secondary" id="cotLimpiarFiltros" style="font-size:10px;padding:4px 12px">LIMPIAR</button>
     </div>
+
+    <div id="cotLoading" class="dash-loading">CARGANDO COTIZACIONES...</div>
 
     <!-- Tabla -->
     <div class="dash-table-wrap">
-      <table class="dash-table">
+      <table class="dash-table" id="cotTable2" style="display:none">
         <thead>
           <tr>
-            <th>FOLIO</th>
-            <th>FECHA</th>
-            <th>CLIENTE</th>
+            <th class="sortable" data-key="folio">FOLIO</th>
+            <th class="sortable" data-key="fecha">FECHA</th>
+            <th class="sortable" data-key="cliente">CLIENTE</th>
             <th>EVENTO</th>
             <th>TIPO</th>
             <th>DETALLE</th>
-            <th>TOTAL</th>
+            <th class="sortable" data-key="total">TOTAL</th>
             <th>ESTADO</th>
-            <th>PDF</th>
+            <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody id="cotBody2"></tbody>
       </table>
-      <div id="cotPagination2" style="text-align:center;padding:16px;color:var(--tx);font-family:'Space Mono',monospace;font-size:11px"></div>
+      <div id="cotEmpty2" class="dash-empty" style="display:none">
+        <div class="dash-empty-icon">&#128203;</div>
+        <div class="dash-empty-text">Sin cotizaciones</div>
+      </div>
+      <div id="cotPagination2" class="dash-pagination" style="display:none">
+        <button class="panel-btn-icon" id="cotPrevPage">&larr;</button>
+        <span id="cotPageInfo" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--tx)"></span>
+        <button class="panel-btn-icon" id="cotNextPage">&rarr;</button>
+      </div>
     </div>
   </section>
 
@@ -1558,7 +1578,7 @@
 </script>
 
 <!-- Módulos de página -->
-<script src="js/pages/cotizaciones.js"></script>
+<script src="js/pages/cotizaciones.js?v=6"></script>
 <script src="js/pages/pipeline.js?v=6"></script>
 <script src="js/pages/clientes.js?v=6"></script>
 <script src="js/pages/proveedores.js?v=6"></script>

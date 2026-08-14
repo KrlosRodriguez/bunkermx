@@ -426,3 +426,6 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
   .mnt-step-title{font-size:16px;letter-spacing:1px}
   .bnk-section-label{font-size:11px;letter-spacing:2px}
 }
+
+/* Pagination controls */
+.dash-pagination{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px}
