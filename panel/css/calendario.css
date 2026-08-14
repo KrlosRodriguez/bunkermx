@@ -13,20 +13,23 @@
 .cal-legend-item{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 12px;border:1px solid}
 .cal-legend--cotizado{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
 .cal-legend--confirmado{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
-.cal-legend--bloqueado{color:var(--red);border-color:rgba(255,68,85,.3);background:rgba(255,68,85,.06)}
+.cal-legend--evento{color:var(--cyan,#00e5ff);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.06)}
 
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:0 30px 30px;background:var(--bd)}
 .cal-header{background:var(--dk);padding:10px;text-align:center;font-family:'Barlow Condensed',sans-serif;
   font-size:11px;letter-spacing:2px;color:var(--g)}
 .cal-cell{background:var(--bk);padding:8px;min-height:100px;position:relative}
 .cal-cell--empty{background:rgba(5,9,5,.5)}
+.cal-cell--today{background:rgba(0,255,65,.04);outline:1px solid rgba(0,255,65,.25);outline-offset:-1px}
+.cal-cell--today .cal-day{color:var(--g);font-weight:700}
 .cal-day{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx);margin-bottom:4px;display:block}
 
 .cal-bloque{padding:3px 6px;margin-bottom:2px;font-size:10px;font-family:'Barlow Condensed',sans-serif;
-  letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
+  letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:opacity .15s}
+.cal-bloque:hover{opacity:.75}
 .cal-bloque--cotizado{background:rgba(240,192,64,.15);color:var(--ylw);border-left:2px solid var(--ylw)}
 .cal-bloque--confirmado{background:rgba(0,255,65,.1);color:var(--g);border-left:2px solid var(--g)}
-.cal-bloque--bloqueado{background:rgba(255,68,85,.1);color:var(--red);border-left:2px solid var(--red)}
+.cal-bloque--evento{background:rgba(0,229,255,.1);color:var(--cyan,#00e5ff);border-left:2px solid var(--cyan,#00e5ff)}
 
 @media(max-width:900px){
   .cal-grid{padding:0 16px 16px}

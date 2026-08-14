@@ -762,13 +762,22 @@
   <!-- CALENDARIO (Task 13) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-calendario" class="panel-section">
-    <link rel="stylesheet" href="css/calendario.css">
+    <link rel="stylesheet" href="css/calendario.css?v=6">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">EVENTOS ESTE MES</div><div class="dash-card-value" id="indCalTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">CONFIRMADOS</div><div class="dash-card-value" id="indCalConfirmados">0</div></div>
+      <div class="dash-card dash-card--warn"><div class="dash-card-label">COTIZADOS</div><div class="dash-card-value" id="indCalCotizados">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">PRÓXIMO EVENTO</div><div class="dash-card-value" id="indCalProximo" style="font-size:13px">—</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">CALENDARIO DE EVENTOS</h2>
       <div class="cal-nav">
-        <button id="calPrev" class="panel-btn-icon">&larr;</button>
+        <button id="calPrev" class="panel-btn-icon" title="Mes anterior">&larr;</button>
         <span id="calMesAnio" class="cal-mes-label"></span>
-        <button id="calNext" class="panel-btn-icon">&rarr;</button>
+        <button id="calNext" class="panel-btn-icon" title="Mes siguiente">&rarr;</button>
+        <button id="calHoy" class="panel-btn-secondary" style="margin-left:8px;font-size:10px;padding:4px 12px">HOY</button>
       </div>
     </div>
     <div class="cal-filtros" id="calFiltros">
@@ -782,9 +791,14 @@
     <div class="cal-legend">
       <span class="cal-legend-item cal-legend--cotizado">Cotizado</span>
       <span class="cal-legend-item cal-legend--confirmado">Confirmado</span>
-      <span class="cal-legend-item cal-legend--bloqueado">Bloqueado</span>
+      <span class="cal-legend-item cal-legend--evento">Evento</span>
     </div>
+    <div id="calLoading" class="dash-loading">CARGANDO CALENDARIO...</div>
     <div class="cal-grid" id="calGrid"></div>
+    <div id="calEmpty" class="dash-empty" style="display:none">
+      <div class="dash-empty-icon">&#128197;</div>
+      <div class="dash-empty-text">Sin eventos para este mes</div>
+    </div>
   </section>
 
   <!-- ══════════════════════════════════════════════ -->
@@ -1483,7 +1497,7 @@
 <script src="js/pages/pipeline.js?v=6"></script>
 <script src="js/pages/clientes.js?v=6"></script>
 <script src="js/pages/proveedores.js?v=6"></script>
-<script src="js/pages/calendario.js"></script>
+<script src="js/pages/calendario.js?v=6"></script>
 <script src="js/pages/reportes.js"></script>
 <script src="js/pages/catalogo.js?v=6"></script>
 <script src="js/pages/usuarios.js"></script>
