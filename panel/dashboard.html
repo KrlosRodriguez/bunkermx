@@ -1022,10 +1022,27 @@
   <!-- EVENTOS / PRODUCCIÓN (Task 12) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-eventos" class="panel-section">
-    <link rel="stylesheet" href="css/eventos.css">
-    <div class="panel-toolbar">
-      <h2 class="panel-section-title">EVENTOS / PRODUCCIÓN</h2>
+    <link rel="stylesheet" href="css/eventos.css?v=6">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">TOTAL EVENTOS</div><div class="dash-card-value" id="indEvtTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">EN PRODUCCIÓN</div><div class="dash-card-value" id="indEvtProd">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">EJECUTADOS</div><div class="dash-card-value" id="indEvtEjec">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">PRÓXIMO EVENTO</div><div class="dash-card-value" id="indEvtProx" style="font-size:13px">—</div></div>
     </div>
+
+    <div class="panel-toolbar" id="evtToolbar">
+      <h2 class="panel-section-title">EVENTOS / PRODUCCIÓN</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="evtSearch" class="dash-search" placeholder="Buscar evento..." style="max-width:250px">
+        <select class="dash-select" id="evtEstadoFiltro">
+          <option value="">Todos</option>
+          <option value="En Producción">En Producción</option>
+          <option value="Ejecutado">Ejecutados</option>
+        </select>
+      </div>
+    </div>
+    <div id="evtLoading" class="dash-loading">CARGANDO EVENTOS...</div>
     <div class="eventos-list" id="eventosListContainer"></div>
   </section>
 
@@ -1039,6 +1056,7 @@
       <div class="bnk-modal-body">
         <p style="color:var(--tx);font-size:13px;margin-bottom:16px">Selecciona una plantilla de checklist para este evento:</p>
         <div class="plantilla-list" id="evtPlantillaList"></div>
+        <div id="evtPlantillaEmpty" style="display:none;text-align:center;color:var(--tx);padding:20px;font-size:12px">Cargando plantillas...</div>
       </div>
       <div class="bnk-modal-footer">
         <button class="panel-btn-primary" id="evtPlantillaConfirm">CREAR EVENTO</button>
@@ -1515,7 +1533,7 @@
 <script src="js/pages/reportes.js?v=6"></script>
 <script src="js/pages/catalogo.js?v=6"></script>
 <script src="js/pages/usuarios.js"></script>
-<script src="js/pages/eventos.js"></script>
+<script src="js/pages/eventos.js?v=6"></script>
 <script src="js/pages/cotizar-mnt.js?v=6"></script>
 <script src="js/pages/cotizar-bnk.js?v=6"></script>
 <script src="js/pages/finanzas.js"></script>
