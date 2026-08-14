@@ -429,28 +429,50 @@
   <!-- CLIENTES (Task 8) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-clientes" class="panel-section">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">TOTAL CLIENTES</div><div class="dash-card-value" id="indCliTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">ACTIVOS</div><div class="dash-card-value" id="indCliActivos">0</div></div>
+      <div class="dash-card dash-card--warn"><div class="dash-card-label">INACTIVOS</div><div class="dash-card-value" id="indCliInactivos">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">COMPLETITUD PROM.</div><div class="dash-card-value" id="indCliCompletitud">0%</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">CLIENTES</h2>
-      <input type="text" id="cliSearch" class="dash-search" placeholder="Buscar cliente..." style="max-width:300px">
       <button id="btnNuevoCliente" class="panel-btn-primary">+ NUEVO CLIENTE</button>
     </div>
 
+    <!-- Filtros -->
+    <div class="dash-filters" id="cliFilters">
+      <input type="text" id="cliSearch" class="dash-search" placeholder="Buscar cliente..." style="max-width:300px">
+      <select class="dash-select" id="cliEstado">
+        <option value="">Todas las cuentas</option>
+        <option value="Sí">Activas</option>
+        <option value="No">Inactivas</option>
+      </select>
+      <button class="panel-btn-icon" id="cliClear" title="Limpiar filtros" style="display:none">&times;</button>
+      <button class="panel-btn-icon" id="cliExport" title="Exportar CSV">&#8681;</button>
+      <span id="cliCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-left:auto"></span>
+    </div>
+
+    <div id="cliLoading" class="dash-loading">CARGANDO CLIENTES...</div>
+
     <div class="dash-table-wrap">
-      <table class="dash-table" id="cliTable">
+      <table class="dash-table" id="cliTable" style="display:none">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>EMPRESA</th>
-            <th>CONTACTO</th>
-            <th>CORREO</th>
-            <th>TELÉFONO</th>
+            <th class="sortable" data-key="id">ID</th>
+            <th>%</th>
+            <th class="sortable" data-key="empresa">EMPRESA</th>
+            <th class="sortable" data-key="marcas">MARCAS</th>
             <th>CUENTA</th>
-            <th>% DATOS</th>
+            <th class="sortable" data-key="fechaEdicion">ÚLT. EDICIÓN</th>
             <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody id="cliBody"></tbody>
       </table>
+      <div id="cliPagination"></div>
       <div id="cliEmpty" class="dash-empty" style="display:none">
         <div class="dash-empty-icon">&#128100;</div>
         <div class="dash-empty-text">Sin clientes registrados</div>
@@ -468,16 +490,16 @@
           <input type="hidden" id="cliId">
           <!-- Tabs del modal -->
           <div class="modal-tabs">
-            <button class="modal-tab active" data-cli-tab="general">GENERAL</button>
-            <button class="modal-tab" data-cli-tab="contacto">CONTACTO</button>
-            <button class="modal-tab" data-cli-tab="facturacion">FACTURACIÓN</button>
-            <button class="modal-tab" data-cli-tab="bancarios">BANCARIOS</button>
+            <button class="modal-tab active" data-target="cliTabGeneral">GENERAL</button>
+            <button class="modal-tab" data-target="cliTabContacto">CONTACTO</button>
+            <button class="modal-tab" data-target="cliTabFacturacion">FACTURACIÓN</button>
+            <button class="modal-tab" data-target="cliTabBancarios">BANCARIOS</button>
           </div>
 
           <!-- Tab General -->
-          <div class="modal-tab-content" id="cliTabGeneral">
+          <div class="modal-tab-content active" id="cliTabGeneral">
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">EMPRESA</label><input type="text" class="bnk-input" id="cliEmpresa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">EMPRESA *</label><input type="text" class="bnk-input" id="cliEmpresa"></div>
               <div class="bnk-form-group"><label class="bnk-label">MARCAS</label><input type="text" class="bnk-input" id="cliMarcas"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
                 <select class="bnk-input" id="cliTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
@@ -504,19 +526,19 @@
           <div class="modal-tab-content" id="cliTabFacturacion" style="display:none">
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">RAZÓN SOCIAL</label><input type="text" class="bnk-input" id="cliRazonSocial"></div>
-              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="cliRFC"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="cliCURP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">RFC</label><input type="text" class="bnk-input" id="cliRfc" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CURP</label><input type="text" class="bnk-input" id="cliCurp" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">RÉGIMEN FISCAL</label><input type="text" class="bnk-input" id="cliRegimenFiscal"></div>
-              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="cliUsoCFDI"></div>
+              <div class="bnk-form-group"><label class="bnk-label">USO CFDI</label><input type="text" class="bnk-input" id="cliUsoCfdi"></div>
               <div class="bnk-form-group"><label class="bnk-label">FORMA PAGO</label><input type="text" class="bnk-input" id="cliFormaPago"></div>
               <div class="bnk-form-group"><label class="bnk-label">MÉTODO PAGO</label><input type="text" class="bnk-input" id="cliMetodoPago"></div>
               <div class="bnk-form-group bnk-form-full"><label class="bnk-label">CALLE</label><input type="text" class="bnk-input" id="cliCalle"></div>
               <div class="bnk-form-group"><label class="bnk-label">NO. EXT</label><input type="text" class="bnk-input" id="cliNoExt"></div>
               <div class="bnk-form-group"><label class="bnk-label">NO. INT</label><input type="text" class="bnk-input" id="cliNoInt"></div>
               <div class="bnk-form-group"><label class="bnk-label">COLONIA</label><input type="text" class="bnk-input" id="cliColonia"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CP</label><input type="text" class="bnk-input" id="cliCP"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CP</label><input type="text" class="bnk-input" id="cliCp"></div>
               <div class="bnk-form-group"><label class="bnk-label">ALCALDÍA/MUNICIPIO</label><input type="text" class="bnk-input" id="cliAlcaldia"></div>
-              <div class="bnk-form-group"><label class="bnk-label">ESTADO</label><input type="text" class="bnk-input" id="cliEstado"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ESTADO</label><input type="text" class="bnk-input" id="cliEstadoGeo"></div>
               <div class="bnk-form-group"><label class="bnk-label">PAÍS</label><input type="text" class="bnk-input" id="cliPais" value="México"></div>
             </div>
           </div>
@@ -525,11 +547,11 @@
           <div class="modal-tab-content" id="cliTabBancarios" style="display:none">
             <div class="bnk-section-label">CUENTA MXN</div>
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoMXN"></div>
+              <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoMxn"></div>
               <div class="bnk-form-group"><label class="bnk-label">SUCURSAL</label><input type="text" class="bnk-input" id="cliSucursal"></div>
               <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="cliTitularCuenta"></div>
               <div class="bnk-form-group"><label class="bnk-label">CUENTA CORTA</label><input type="text" class="bnk-input" id="cliCuentaCorta"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="cliCLABE"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="cliClabe" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="cliTipoCuenta"></div>
             </div>
             <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
@@ -537,9 +559,9 @@
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="cliDivisa"></div>
               <div class="bnk-form-group"><label class="bnk-label">TITULAR</label><input type="text" class="bnk-input" id="cliTitularExtranjero"></div>
-              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="cliCuentaIBAN"></div>
-              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="cliSWIFT"></div>
-              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="cliABA"></div>
+              <div class="bnk-form-group"><label class="bnk-label">CUENTA/IBAN</label><input type="text" class="bnk-input" id="cliCuentaIban" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="cliSwiftBic" autocomplete="off"></div>
+              <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="cliAbaRouting" autocomplete="off"></div>
             </div>
           </div>
         </div>
@@ -1367,7 +1389,7 @@
 <!-- Módulos de página -->
 <script src="js/pages/cotizaciones.js"></script>
 <script src="js/pages/pipeline.js?v=6"></script>
-<script src="js/pages/clientes.js"></script>
+<script src="js/pages/clientes.js?v=6"></script>
 <script src="js/pages/proveedores.js"></script>
 <script src="js/pages/calendario.js"></script>
 <script src="js/pages/reportes.js"></script>

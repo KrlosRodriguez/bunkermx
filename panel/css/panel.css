@@ -182,9 +182,19 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .status-pct--high{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
 
 /* Cuenta activa badge */
-.cuenta-badge{display:inline-block;width:10px;height:10px;border-radius:50%}
+.cuenta-badge-wrap{display:inline-flex;align-items:center;gap:6px}
+.cuenta-badge{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .cuenta-badge--on{background:var(--g);box-shadow:0 0 6px rgba(0,255,65,.4)}
 .cuenta-badge--off{background:var(--red);box-shadow:0 0 6px rgba(255,68,85,.4)}
+.cuenta-badge-label--on{font-family:'Space Mono',monospace;font-size:10px;color:var(--g);letter-spacing:1px}
+.cuenta-badge-label--off{font-family:'Space Mono',monospace;font-size:10px;color:var(--red);letter-spacing:1px}
+
+/* Sortable headers */
+th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:18px}
+th.sortable:hover{color:var(--wh)}
+th.sortable::after{content:'';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.4}
+th.sortable.sort-asc::after{content:'\u25B2';opacity:1}
+th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 
 /* Action buttons in table */
 .tbl-action{background:none;border:1px solid var(--bd);color:var(--tx);padding:4px 8px;font-size:12px;cursor:pointer;transition:all .2s;margin-right:4px}

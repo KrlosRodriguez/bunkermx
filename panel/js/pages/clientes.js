@@ -302,7 +302,7 @@
     }
 
     // Mostrar primer tab
-    _activarTab('cliTab1');
+    _activarTab('cliTabGeneral');
 
     // ── Cotizaciones vinculadas ──
     var wrap = _getEl('cliCotizacionesWrap');
@@ -325,7 +325,7 @@
       BNK_DB.cotizaciones.list().then(function (allCots) {
         var vinculadas = allCots.filter(function (cot) {
           var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
-          return cotEmpresa === empresaNombre;
+          return cotEmpresa === empresaNombre || cotEmpresa.indexOf(empresaNombre) !== -1 || empresaNombre.indexOf(cotEmpresa) !== -1;
         });
         _renderCotizacionesVinculadas(vinculadas);
       }).catch(function () {
@@ -542,13 +542,25 @@
         renderTable();
         updateIndicators();
       })
-      .catch(function () {
+      .catch(function (err) {
         if (cliLoading) cliLoading.style.display = 'none';
         _clientes = [];
+        BNKToast.error('Error al cargar clientes: ' + (err && err.message ? err.message : 'desconocido'));
         if (cliEmpty) {
           cliEmpty.style.display = 'block';
           var txt = cliEmpty.querySelector('.dash-empty-text');
           if (txt) txt.textContent = 'ERROR AL CARGAR CLIENTES';
+          var icon = cliEmpty.querySelector('.dash-empty-icon');
+          if (icon) icon.textContent = '\u26A0';
+          // Add retry button if not already present
+          if (!cliEmpty.querySelector('.cli-retry-btn')) {
+            var retryBtn = document.createElement('button');
+            retryBtn.className = 'panel-btn-primary cli-retry-btn';
+            retryBtn.textContent = 'REINTENTAR';
+            retryBtn.style.marginTop = '16px';
+            retryBtn.addEventListener('click', function () { load(); });
+            cliEmpty.appendChild(retryBtn);
+          }
         }
         updateIndicators();
       });
@@ -667,6 +679,17 @@
         if (e.target === overlay) cerrarModal();
       });
     }
+
+    // Escape to close modal
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var overlay = _getEl('cliOverlay');
+        if (overlay && overlay.classList.contains('visible')) {
+          e.preventDefault();
+          cerrarModal();
+        }
+      }
+    });
 
     _setupModalTabs();
     _setupFiltros();
