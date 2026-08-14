@@ -815,25 +815,62 @@
   <!-- CATÁLOGO (Task 14) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-catalogo" class="panel-section">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">TOTAL CONCEPTOS</div><div class="dash-card-value" id="indCatTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">ACTIVOS</div><div class="dash-card-value" id="indCatActivos">0</div></div>
+      <div class="dash-card dash-card--warn"><div class="dash-card-label">INACTIVOS</div><div class="dash-card-value" id="indCatInactivos">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">VENUES</div><div class="dash-card-value" id="indCatVenues">0</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">CATÁLOGO DE PRECIOS</h2>
-      <input type="text" id="catSearch" class="dash-search" placeholder="Buscar concepto..." style="max-width:300px">
       <button id="btnNuevoConcepto" class="panel-btn-primary">+ NUEVO CONCEPTO</button>
     </div>
+
+    <!-- Filtros -->
+    <div class="dash-filters" id="catFilters">
+      <input type="text" id="catSearch" class="dash-search" placeholder="Buscar concepto..." style="max-width:300px">
+      <select class="dash-select" id="catCatFiltro">
+        <option value="">Todas las categorías</option>
+        <option value="Audio">Audio</option>
+        <option value="Iluminación">Iluminación</option>
+        <option value="Video">Video</option>
+        <option value="Escenografía">Escenografía</option>
+        <option value="Venues">Venues</option>
+        <option value="Streaming">Streaming</option>
+        <option value="Personal">Personal</option>
+        <option value="Catering">Catering</option>
+        <option value="Otro">Otro</option>
+      </select>
+      <select class="dash-select" id="catEstadoFiltro">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
+      </select>
+      <span id="catCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-left:auto"></span>
+    </div>
+
+    <div id="catLoading" class="dash-loading">CARGANDO CATÁLOGO...</div>
+
     <div class="dash-table-wrap">
-      <table class="dash-table" id="catTable">
+      <table class="dash-table" id="catTable" style="display:none">
         <thead>
           <tr>
-            <th>CATEGORÍA</th>
-            <th>CONCEPTO</th>
+            <th class="sortable" data-key="categoria">CATEGORÍA</th>
+            <th class="sortable" data-key="concepto">CONCEPTO</th>
             <th>UNIDAD</th>
-            <th>PRECIO</th>
+            <th class="sortable" data-key="precio">PRECIO</th>
             <th>ESTADO</th>
             <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody id="catBody"></tbody>
       </table>
+      <div id="catEmpty" class="dash-empty" style="display:none">
+        <div class="dash-empty-icon">&#128230;</div>
+        <div class="dash-empty-text">Sin conceptos en el catálogo</div>
+      </div>
     </div>
 
     <!-- Modal concepto -->
@@ -844,7 +881,6 @@
           <button class="bnk-modal-close" id="catClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
-          <input type="hidden" id="catId">
           <div class="bnk-form-grid">
             <div class="bnk-form-group">
               <label class="bnk-label">CATEGORÍA</label>
@@ -861,7 +897,7 @@
               </select>
             </div>
             <div class="bnk-form-group">
-              <label class="bnk-label">CONCEPTO</label>
+              <label class="bnk-label">CONCEPTO *</label>
               <input type="text" class="bnk-input" id="catConcepto" placeholder="Nombre del servicio">
             </div>
             <div class="bnk-form-group">
@@ -869,15 +905,15 @@
               <input type="text" class="bnk-input" id="catUnidad" placeholder="evento, jornada, pieza...">
             </div>
             <div class="bnk-form-group">
-              <label class="bnk-label">PRECIO</label>
+              <label class="bnk-label">PRECIO *</label>
               <input type="number" class="bnk-input" id="catPrecio" placeholder="0" min="0" step="0.01">
             </div>
             <div class="bnk-form-group" id="catWeekendGroup" style="display:none">
-              <label class="bnk-label">PRECIO WEEKEND</label>
+              <label class="bnk-label">PRECIO WEEKEND *</label>
               <input type="number" class="bnk-input" id="catPrecioWeekend" placeholder="0" min="0" step="0.01">
             </div>
             <div class="bnk-form-group" id="catMontajeGroup" style="display:none">
-              <label class="bnk-label">PRECIO MONTAJE</label>
+              <label class="bnk-label">PRECIO MONTAJE *</label>
               <input type="number" class="bnk-input" id="catPrecioMontaje" placeholder="0" min="0" step="0.01">
             </div>
           </div>
@@ -1449,7 +1485,7 @@
 <script src="js/pages/proveedores.js?v=6"></script>
 <script src="js/pages/calendario.js"></script>
 <script src="js/pages/reportes.js"></script>
-<script src="js/pages/catalogo.js"></script>
+<script src="js/pages/catalogo.js?v=6"></script>
 <script src="js/pages/usuarios.js"></script>
 <script src="js/pages/eventos.js"></script>
 <script src="js/pages/cotizar-mnt.js?v=6"></script>
