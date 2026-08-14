@@ -3,7 +3,7 @@
 .reportes-periodo{display:flex;align-items:center;gap:12px}
 .reportes-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 30px 30px}
 
-.reporte-card{background:var(--card);border:1px solid var(--bd);padding:24px;min-height:300px}
+.reporte-card{background:var(--card);border:1px solid var(--bd);padding:24px}
 .reporte-card-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;
   color:var(--g);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
 
@@ -15,6 +15,16 @@
 .funnel-count{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:10px;color:var(--wh)}
 .funnel-monto{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--tx);width:100px}
 
+/* Funnel bar colors — using CSS token-aligned values */
+.funnel-bar--recorrido{background:rgba(200,236,200,.3)}
+.funnel-bar--cotizada{background:rgba(240,192,64,.5)}
+.funnel-bar--negociación{background:rgba(255,152,0,.5)}
+.funnel-bar--cerrada{background:rgba(0,255,65,.4)}
+.funnel-bar--en-producción{background:rgba(0,212,255,.4)}
+.funnel-bar--ejecutado{background:rgba(76,175,80,.4)}
+.funnel-bar--cancelada{background:rgba(255,68,85,.4)}
+.funnel-bar--perdida{background:rgba(158,158,158,.4)}
+
 /* Reporte table */
 .reporte-table{width:100%;border-collapse:collapse;font-size:12px}
 .reporte-table th{padding:8px 10px;text-align:left;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;
@@ -23,6 +33,7 @@
 
 /* Top clientes bar */
 .top-bar-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.top-bar-rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);width:18px;text-align:right}
 .top-bar-name{font-size:12px;color:var(--wh);width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .top-bar{height:20px;background:rgba(0,255,65,.15);transition:width .6s ease;position:relative}
 .top-bar-val{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:9px;color:var(--g)}
@@ -32,10 +43,10 @@
 .rendimiento-item{text-align:center;padding:20px;border:1px solid var(--bd)}
 .rendimiento-value{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--g)}
 .rendimiento-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx);margin-top:4px}
-.rendimiento-trend{font-size:12px;margin-top:4px}
-.trend-up{color:var(--g)}
-.trend-down{color:var(--red)}
 
 @media(max-width:900px){
   .reportes-grid{grid-template-columns:1fr;padding:0 16px 16px}
+  .funnel-label{width:80px;font-size:10px}
+  .funnel-monto{width:80px;font-size:10px}
+  .top-bar-name{width:100px;font-size:11px}
 }

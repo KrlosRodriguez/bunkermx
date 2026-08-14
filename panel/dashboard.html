@@ -805,23 +805,37 @@
   <!-- REPORTES (Task 11) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-reportes" class="panel-section">
-    <link rel="stylesheet" href="css/reportes.css">
+    <link rel="stylesheet" href="css/reportes.css?v=6">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">COTIZACIONES</div><div class="dash-card-value" id="indRepTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">MONTO CERRADO</div><div class="dash-card-value" id="indRepMonto">$0</div></div>
+      <div class="dash-card"><div class="dash-card-label">TASA CONVERSIÓN</div><div class="dash-card-value" id="indRepTasa">0%</div></div>
+      <div class="dash-card"><div class="dash-card-label">TICKET PROMEDIO</div><div class="dash-card-value" id="indRepTicket">$0</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">REPORTES</h2>
       <div class="reportes-periodo">
-        <select id="repPeriodo" class="bnk-input" style="max-width:200px">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--tx)">PERÍODO:</span>
+        <select id="repPeriodo" class="bnk-input" style="max-width:200px" disabled>
           <option value="mes">Este mes</option>
-          <option value="trimestre">Último trimestre</option>
+          <option value="trimestre">Últimos 3 meses</option>
           <option value="anio">Este año</option>
           <option value="todo">Todo</option>
         </select>
       </div>
     </div>
-    <div class="reportes-grid">
+    <div id="repLoading" class="dash-loading">CARGANDO REPORTES...</div>
+    <div class="reportes-grid" id="repGrid" style="display:none">
       <div class="reporte-card" id="repFunnel"></div>
       <div class="reporte-card" id="repMensual"></div>
       <div class="reporte-card" id="repTopClientes"></div>
       <div class="reporte-card" id="repRendimiento"></div>
+    </div>
+    <div id="repEmpty" class="dash-empty" style="display:none">
+      <div class="dash-empty-icon">&#128202;</div>
+      <div class="dash-empty-text">Sin datos para el período seleccionado</div>
     </div>
   </section>
 
@@ -1498,7 +1512,7 @@
 <script src="js/pages/clientes.js?v=6"></script>
 <script src="js/pages/proveedores.js?v=6"></script>
 <script src="js/pages/calendario.js?v=6"></script>
-<script src="js/pages/reportes.js"></script>
+<script src="js/pages/reportes.js?v=6"></script>
 <script src="js/pages/catalogo.js?v=6"></script>
 <script src="js/pages/usuarios.js"></script>
 <script src="js/pages/eventos.js"></script>
