@@ -958,24 +958,57 @@
   <!-- USUARIOS (Task 6) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-usuarios" class="panel-section">
+    <!-- KPIs -->
+    <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+      <div class="dash-card"><div class="dash-card-label">TOTAL USUARIOS</div><div class="dash-card-value" id="indUsrTotal">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">ACTIVOS</div><div class="dash-card-value" id="indUsrActivos">0</div></div>
+      <div class="dash-card dash-card--warn"><div class="dash-card-label">INACTIVOS</div><div class="dash-card-value" id="indUsrInactivos">0</div></div>
+      <div class="dash-card"><div class="dash-card-label">ADMINS</div><div class="dash-card-value" id="indUsrAdmins">0</div></div>
+    </div>
+
     <div class="panel-toolbar">
       <h2 class="panel-section-title">GESTIÓN DE USUARIOS</h2>
       <button id="btnNuevoUsuario" class="panel-btn-primary">+ NUEVO USUARIO</button>
     </div>
+
+    <!-- Filtros -->
+    <div class="dash-filters" id="usrFilters">
+      <input type="text" id="usrSearch" class="dash-search" placeholder="Buscar usuario..." style="max-width:250px">
+      <select class="dash-select" id="usrRolFiltro">
+        <option value="">Todos los roles</option>
+        <option value="admin">Admin</option>
+        <option value="ventas">Ventas</option>
+        <option value="produccion">Producción</option>
+        <option value="lectura">Lectura</option>
+      </select>
+      <select class="dash-select" id="usrEstadoFiltro">
+        <option value="">Todos</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
+      </select>
+      <span id="usrCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-left:auto"></span>
+    </div>
+
+    <div id="usrLoading" class="dash-loading">CARGANDO USUARIOS...</div>
+
     <div class="dash-table-wrap">
-      <table class="dash-table" id="usrTable">
+      <table class="dash-table" id="usrTable" style="display:none">
         <thead>
           <tr>
-            <th>NOMBRE</th>
+            <th class="sortable" data-key="nombre">NOMBRE</th>
             <th>EMAIL</th>
-            <th>ROL</th>
+            <th class="sortable" data-key="rol">ROL</th>
             <th>ESTADO</th>
+            <th>ÚLT. EDICIÓN</th>
             <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody id="usrBody"></tbody>
       </table>
-      <div id="usrEmpty" class="dash-empty" style="display:none">No hay usuarios registrados</div>
+      <div id="usrEmpty" class="dash-empty" style="display:none">
+        <div class="dash-empty-icon">&#128100;</div>
+        <div class="dash-empty-text">Sin usuarios registrados</div>
+      </div>
     </div>
 
     <!-- Modal usuario -->
@@ -988,11 +1021,11 @@
         <div class="bnk-modal-body">
           <div class="bnk-form-grid">
             <div class="bnk-form-group">
-              <label class="bnk-label">NOMBRE</label>
+              <label class="bnk-label">NOMBRE *</label>
               <input type="text" class="bnk-input" id="usrNombre" placeholder="Nombre completo">
             </div>
             <div class="bnk-form-group">
-              <label class="bnk-label">EMAIL</label>
+              <label class="bnk-label">EMAIL *</label>
               <input type="email" class="bnk-input" id="usrEmail" placeholder="correo@bunkermx.com">
             </div>
             <div class="bnk-form-group">
@@ -1005,8 +1038,8 @@
               </select>
             </div>
             <div class="bnk-form-group" id="usrPassGroup">
-              <label class="bnk-label">CONTRASEÑA TEMPORAL</label>
-              <input type="text" class="bnk-input" id="usrPass" placeholder="Mínimo 6 caracteres">
+              <label class="bnk-label">CONTRASEÑA TEMPORAL *</label>
+              <input type="password" class="bnk-input" id="usrPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
             </div>
           </div>
         </div>
@@ -1532,7 +1565,7 @@
 <script src="js/pages/calendario.js?v=6"></script>
 <script src="js/pages/reportes.js?v=6"></script>
 <script src="js/pages/catalogo.js?v=6"></script>
-<script src="js/pages/usuarios.js"></script>
+<script src="js/pages/usuarios.js?v=6"></script>
 <script src="js/pages/eventos.js?v=6"></script>
 <script src="js/pages/cotizar-mnt.js?v=6"></script>
 <script src="js/pages/cotizar-bnk.js?v=6"></script>
