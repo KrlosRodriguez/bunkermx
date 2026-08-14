@@ -391,16 +391,19 @@
   <!-- PIPELINE (Task 10) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-pipeline" class="panel-section">
-    <link rel="stylesheet" href="css/pipeline.css">
+    <link rel="stylesheet" href="css/pipeline.css?v=6">
     <div class="panel-toolbar">
       <h2 class="panel-section-title">PIPELINE DE SEGUIMIENTO</h2>
+      <input type="text" id="pipeSearch" class="dash-search" placeholder="Buscar por cliente, evento o folio..." style="max-width:340px">
       <div class="pipeline-legend">
-        <span class="legend-item legend-cold">Fría (&gt;3d)</span>
-        <span class="legend-item legend-stale">Estancada (&gt;5d)</span>
+        <span class="legend-item legend-cold" id="pipeLegendFria">Fría (&gt;3d)</span>
+        <span class="legend-item legend-stale" id="pipeLegendEstancada">Estancada (&gt;5d)</span>
       </div>
     </div>
 
-    <div class="pipeline-board" id="pipelineBoard"></div>
+    <div class="pipeline-board" id="pipelineBoard">
+      <div class="dash-loading">CARGANDO PIPELINE...</div>
+    </div>
 
     <!-- Modal detalle con timeline -->
     <div class="bnk-overlay" id="pipeDetailOverlay">
@@ -1363,7 +1366,7 @@
 
 <!-- Módulos de página -->
 <script src="js/pages/cotizaciones.js"></script>
-<script src="js/pages/pipeline.js"></script>
+<script src="js/pages/pipeline.js?v=6"></script>
 <script src="js/pages/clientes.js"></script>
 <script src="js/pages/proveedores.js"></script>
 <script src="js/pages/calendario.js"></script>

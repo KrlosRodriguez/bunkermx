@@ -11,7 +11,9 @@
   var CONFIG = { diasFria: 3, diasEstancada: 5 };
 
   var _data = [];
+  var _filter = '';
   var _unsubscribe = null;
+  var _firstLoad = true;
 
   function init() {
     BNK_DB.config.get('alertas').then(function (cfg) {
@@ -19,10 +21,16 @@
         CONFIG.diasFria = cfg.diasFria || 3;
         CONFIG.diasEstancada = cfg.diasEstancada || 5;
       }
+      // Update legend dynamically
+      var legFria = document.getElementById('pipeLegendFria');
+      var legEstancada = document.getElementById('pipeLegendEstancada');
+      if (legFria) legFria.textContent = 'Fría (>' + CONFIG.diasFria + 'd)';
+      if (legEstancada) legEstancada.textContent = 'Estancada (>' + CONFIG.diasEstancada + 'd)';
     });
 
     _unsubscribe = BNK_DB.cotizaciones.onSnapshot(function (docs) {
       _data = docs;
+      _firstLoad = false;
       _render();
     });
 
@@ -33,9 +41,17 @@
     var board = document.getElementById('pipelineBoard');
     if (!board) return;
 
+    var filtered = _data;
+    if (_filter) {
+      var q = _filter.toLowerCase();
+      filtered = _data.filter(function (d) {
+        return ((d.cliente || '') + ' ' + (d.evento || '') + ' ' + (d.folio || '')).toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
     var html = '';
     ESTADOS.forEach(function (estado) {
-      var cards = _data.filter(function (d) { return (d.estado || 'Cotizada') === estado; });
+      var cards = filtered.filter(function (d) { return (d.estado || 'Cotizada') === estado; });
       var totalMonto = cards.reduce(function (s, d) { return s + (parseFloat(d.total) || 0); }, 0);
 
       html += '<div class="pipeline-col">'
@@ -46,21 +62,30 @@
         + '</div>'
         + '<div class="pipeline-col-body">';
 
-      cards.forEach(function (d) {
-        var diasEnEstado = _diasDesde(d.updatedAt);
-        var alertClass = '';
-        if (estado === 'Cotizada' && diasEnEstado > CONFIG.diasFria) alertClass = 'pipeline-card--cold';
-        if (estado === 'Negociación' && diasEnEstado > CONFIG.diasEstancada) alertClass = 'pipeline-card--stale';
+      if (cards.length === 0) {
+        html += '<div class="pipeline-empty-col">Sin cotizaciones</div>';
+      } else {
+        cards.forEach(function (d) {
+          var diasEnEstado = _diasDesde(d.updatedAt);
+          var alertClass = '';
+          if (estado === 'Cotizada' && diasEnEstado > CONFIG.diasFria) alertClass = 'pipeline-card--cold';
+          if (estado === 'Negociación' && diasEnEstado > CONFIG.diasEstancada) alertClass = 'pipeline-card--stale';
 
-        html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '">'
-          + '<div class="pipeline-card-cliente">' + _esc(d.cliente) + '</div>'
-          + '<div class="pipeline-card-evento">' + _esc(d.evento || '\u2014') + '</div>'
-          + '<div class="pipeline-card-footer">'
-          + '<span class="pipeline-card-monto">' + _formatMXN(d.total) + '</span>'
-          + '<span class="pipeline-card-tiempo">' + _tiempoDisplay(diasEnEstado) + '</span>'
-          + '</div>'
-          + '</div>';
-      });
+          var tipoBadge = d.fuente === 'BNK' ? 'tipo-BNK' : 'tipo-MNT';
+          html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '">'
+            + '<div class="pipeline-card-top">'
+            + '<span class="pipeline-card-cliente">' + _esc(d.cliente) + '</span>'
+            + '<span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span>'
+            + '</div>'
+            + '<div class="pipeline-card-folio">' + _esc(d.folio || '') + '</div>'
+            + '<div class="pipeline-card-evento">' + _esc(d.evento || '\u2014') + '</div>'
+            + '<div class="pipeline-card-footer">'
+            + '<span class="pipeline-card-monto">' + _formatMXN(d.total) + '</span>'
+            + '<span class="pipeline-card-tiempo">' + _tiempoDisplay(diasEnEstado) + '</span>'
+            + '</div>'
+            + '</div>';
+        });
+      }
 
       html += '</div></div>';
     });
@@ -94,18 +119,53 @@
       if (e.target === this) _closeDetail();
     });
 
-    document.getElementById('pipeNoteBtn').addEventListener('click', function () {
-      var nota = document.getElementById('pipeNoteInput').value.trim();
-      if (!nota || !_currentDetailId) return;
-      var user = BNK_AUTH.currentUser();
-      BNK_DB.actividad.add(_currentDetailId, {
-        tipo: 'nota',
-        usuario: user ? user.nombre : 'Sistema',
-        nota: nota
-      }).then(function () {
-        document.getElementById('pipeNoteInput').value = '';
-        _loadTimeline(_currentDetailId);
+    // Escape to close modal
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _currentDetailId) {
+        e.preventDefault();
+        _closeDetail();
+      }
+    });
+
+    document.getElementById('pipeNoteBtn').addEventListener('click', _submitNote);
+
+    // Enter in note input to submit
+    document.getElementById('pipeNoteInput').addEventListener('keydown', function (e) {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        _submitNote();
+      }
+    });
+
+    // Search filter
+    var searchInput = document.getElementById('pipeSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        _filter = this.value.trim();
+        _render();
       });
+    }
+  }
+
+  function _submitNote() {
+    var nota = document.getElementById('pipeNoteInput').value.trim();
+    if (!nota) { BNKToast.warn('Escribe una nota de seguimiento.'); return; }
+    if (!_currentDetailId) return;
+    var user = BNK_AUTH.currentUser();
+    var btn = document.getElementById('pipeNoteBtn');
+    btn.disabled = true;
+    BNK_DB.actividad.add(_currentDetailId, {
+      tipo: 'nota',
+      usuario: user ? user.nombre : 'Sistema',
+      nota: nota
+    }).then(function () {
+      document.getElementById('pipeNoteInput').value = '';
+      BNKToast.ok('Nota agregada.');
+      _loadTimeline(_currentDetailId);
+    }).catch(function (err) {
+      BNKToast.error('Error al guardar nota: ' + err.message);
+    }).finally(function () {
+      btn.disabled = false;
     });
   }
 
@@ -118,12 +178,13 @@
 
     document.getElementById('pipeDetailTitle').textContent = d.folio || 'DETALLE';
 
+    var tipoBadge = d.fuente === 'BNK' ? 'tipo-BNK' : 'tipo-MNT';
     var info = '<div class="pipe-detail-grid">'
       + '<div><span class="bnk-label">CLIENTE</span><div>' + _esc(d.cliente) + '</div></div>'
       + '<div><span class="bnk-label">EVENTO</span><div>' + _esc(d.evento || '\u2014') + '</div></div>'
-      + '<div><span class="bnk-label">TIPO</span><div>' + _esc(d.fuente || 'MNT') + '</div></div>'
+      + '<div><span class="bnk-label">TIPO</span><div><span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span></div></div>'
       + '<div><span class="bnk-label">TOTAL</span><div>' + _formatMXN(d.total) + '</div></div>'
-      + '<div><span class="bnk-label">ESTADO</span><div>'
+      + '<div class="pipe-detail-estado-wrap"><span class="bnk-label">ESTADO</span><div>'
       + '<select id="pipeDetailEstado" class="bnk-input" style="max-width:200px">' + _estadoOpts(d.estado) + '</select>'
       + '</div></div>'
       + '</div>';
@@ -133,6 +194,7 @@
       var newEstado = this.value;
       var user = BNK_AUTH.currentUser();
       BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
+        BNKToast.ok('Estado actualizado a ' + newEstado + '.');
         BNK_DB.actividad.add(id, {
           tipo: 'cambio_estado',
           estado: newEstado,
@@ -140,6 +202,8 @@
           nota: ''
         });
         _loadTimeline(id);
+      }).catch(function (err) {
+        BNKToast.error('Error al cambiar estado: ' + err.message);
       });
     });
 
@@ -152,13 +216,15 @@
       var html = '';
       entries.forEach(function (entry) {
         var fecha = entry.fecha ? (entry.fecha.toDate ? entry.fecha.toDate().toLocaleString('es-MX') : entry.fecha) : '';
-        var icon = entry.tipo === 'cambio_estado' ? '\u25B6' : '\u270E';
-        var text = entry.tipo === 'cambio_estado'
+        var isEstado = entry.tipo === 'cambio_estado';
+        var icon = isEstado ? '\u25B6' : '\u270E';
+        var iconClass = isEstado ? 'pipe-timeline-icon--estado' : 'pipe-timeline-icon--nota';
+        var text = isEstado
           ? 'Cambió estado a <strong>' + _esc(entry.estado) + '</strong>'
           : _esc(entry.nota);
 
         html += '<div class="pipe-timeline-entry">'
-          + '<span class="pipe-timeline-icon">' + icon + '</span>'
+          + '<span class="pipe-timeline-icon ' + iconClass + '">' + icon + '</span>'
           + '<div class="pipe-timeline-content">'
           + '<div class="pipe-timeline-text">' + text + '</div>'
           + '<div class="pipe-timeline-meta">' + _esc(entry.usuario) + ' — ' + fecha + '</div>'
@@ -184,7 +250,16 @@
   function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
   BNK_AUTH.onReady(function (user) {
-    if (user && (user.rol === 'admin' || user.rol === 'ventas')) init();
+    if (user && (user.rol === 'admin' || user.rol === 'ventas')) {
+      init();
+    } else if (user) {
+      var board = document.getElementById('pipelineBoard');
+      if (board) {
+        board.innerHTML = '<div class="dash-empty"><div class="dash-empty-icon">🔒</div>'
+          + '<div class="dash-empty-text">ACCESO RESTRINGIDO</div>'
+          + '<p style="color:var(--tx);font-size:12px;margin-top:8px">Solo roles admin y ventas pueden ver el pipeline.</p></div>';
+      }
+    }
   });
 
   window.BNKPipeline = { load: function () {} };
