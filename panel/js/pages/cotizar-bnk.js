@@ -25,6 +25,12 @@
       _bindEvents();
       _setCondiciones('estandar');
       _agregarFila();
+      _restoreBnkDraft();
+      // Auto-save draft on input
+      BNK_DRAFT_FIELDS.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', _saveBnkDraft);
+      });
     });
   }
 
@@ -465,6 +471,7 @@
   }
 
   function _doLimpiar() {
+    _clearBnkDraft();
     ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });
@@ -508,6 +515,38 @@
         _enviar();
       }
     });
+  }
+
+  // ── Draft recovery (sessionStorage) ──
+  var BNK_DRAFT_KEY = 'bnk_bnk_draft';
+  var BNK_DRAFT_FIELDS = ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'];
+
+  function _saveBnkDraft() {
+    var draft = {};
+    BNK_DRAFT_FIELDS.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.value) draft[id] = el.value;
+    });
+    if (Object.keys(draft).length > 0) {
+      sessionStorage.setItem(BNK_DRAFT_KEY, JSON.stringify(draft));
+    }
+  }
+
+  function _restoreBnkDraft() {
+    var raw = sessionStorage.getItem(BNK_DRAFT_KEY);
+    if (!raw) return;
+    try {
+      var draft = JSON.parse(raw);
+      Object.keys(draft).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = draft[id];
+      });
+      BNKToast.ok('Borrador BNK restaurado.');
+    } catch (e) { /* ignore */ }
+  }
+
+  function _clearBnkDraft() {
+    sessionStorage.removeItem(BNK_DRAFT_KEY);
   }
 
   // ── Init ──

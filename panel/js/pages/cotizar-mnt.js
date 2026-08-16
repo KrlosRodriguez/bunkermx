@@ -29,6 +29,8 @@
       if (wizard) wizard.style.opacity = '';
       _renderSpaces();
       _bindEvents();
+      _restoreDraft();
+      _bindDraftAutoSave();
     }).catch(function () {
       loadingEl.textContent = 'Error al cargar catálogo. Recarga la página.';
     });
@@ -780,6 +782,7 @@
     if (genBtn) genBtn.textContent = 'GENERAR COTIZACIÓN';
     document.querySelectorAll('.mnt-tipo-btn').forEach(function (b) { b.classList.remove('active'); });
     document.querySelector('.mnt-tipo-btn[data-tipo="privado"]').classList.add('active');
+    _clearDraft();
     _renderSpaces();
     _renderCalendars();
     _goToStep(1);
@@ -834,6 +837,46 @@
         e.preventDefault();
         if (_currentStep > 1) _goToStep(_currentStep - 1);
       }
+    });
+  }
+
+  // ── Draft recovery (sessionStorage) ──
+  var DRAFT_KEY = 'bnk_mnt_draft';
+  var DRAFT_FIELDS = ['mntCliente','mntAgencia','mntEvento','mntContacto','mntTelefono','mntCorreo','mntAsistentes','mntDescripcion','mntHoraInicio','mntHoraFin'];
+
+  function _saveDraft() {
+    var draft = {};
+    DRAFT_FIELDS.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.value) draft[id] = el.value;
+    });
+    if (Object.keys(draft).length > 0) {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }
+  }
+
+  function _restoreDraft() {
+    var raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      var draft = JSON.parse(raw);
+      Object.keys(draft).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = draft[id];
+      });
+      BNKToast.ok('Borrador restaurado.');
+    } catch (e) { /* ignore */ }
+  }
+
+  function _clearDraft() {
+    sessionStorage.removeItem(DRAFT_KEY);
+  }
+
+  // Auto-save draft on input change
+  function _bindDraftAutoSave() {
+    DRAFT_FIELDS.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', _saveDraft);
     });
   }
 

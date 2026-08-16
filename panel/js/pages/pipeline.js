@@ -59,6 +59,11 @@
     var board = document.getElementById('pipelineBoard');
     if (!board) return;
 
+    if (_data.length === 0) {
+      board.innerHTML = '<div class="dash-empty" style="grid-column:1/-1"><div class="dash-empty-icon">&#128203;</div><div class="dash-empty-text">Sin cotizaciones en el pipeline</div></div>';
+      return;
+    }
+
     var filtered = _data;
     if (_filter) {
       var q = _filter.toLowerCase();

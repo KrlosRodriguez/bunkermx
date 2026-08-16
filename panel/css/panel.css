@@ -11,7 +11,7 @@
   --g:    #00FF41;
   --gd:   #00CC33;
   --wh:   #EDF8ED;
-  --tx:   rgba(200,236,200,0.6);
+  --tx:   rgba(200,236,200,0.78);
   --bd:   rgba(0,255,65,0.12);
   --red:  #FF4455;
   --ylw:  #F0C040;
@@ -155,7 +155,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .bnk-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
 .bnk-form-full{grid-column:1/-1}
 .bnk-form-group{display:flex;flex-direction:column;gap:4px;position:relative}
-.bnk-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx)}
+.bnk-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--tx)}
 .bnk-input{padding:8px 12px;background:var(--card);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .3s}
 .bnk-input:focus{border-color:rgba(0,255,65,.5);box-shadow:0 0 0 2px rgba(0,255,65,.06)}
 .bnk-textarea{width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif;font-size:12px;line-height:1.6;outline:none;resize:vertical}

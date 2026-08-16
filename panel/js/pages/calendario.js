@@ -300,18 +300,25 @@
 
       var cotId = bloque.getAttribute('data-cot-id');
       if (cotId) {
-        // Navigate to COTIZACIONES tab and highlight
-        var tabBtn = document.querySelector('[data-tab="sec-cotizaciones"]');
+        // Navigate to COTIZACIONES tab and apply search filter
+        var tabBtn = document.querySelector('[data-tab="cotizaciones"]');
         if (tabBtn) {
           tabBtn.click();
-          BNKToast.ok('Cotización: ' + (bloque.title || cotId));
+          // Apply folio to search input to filter the table
+          var folio = (bloque.title || '').split(' — ').pop() || '';
+          var searchInput = document.getElementById('ctzSearch');
+          if (searchInput && folio) {
+            searchInput.value = folio;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          BNKToast.ok('Filtrando: ' + folio);
         }
         return;
       }
 
       var evtId = bloque.getAttribute('data-evt-id');
       if (evtId) {
-        var tabBtn2 = document.querySelector('[data-tab="sec-eventos"]');
+        var tabBtn2 = document.querySelector('[data-tab="eventos"]');
         if (tabBtn2) {
           tabBtn2.click();
           BNKToast.ok('Evento: ' + (bloque.title || evtId));

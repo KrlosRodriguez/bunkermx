@@ -226,7 +226,9 @@
         var fechaLimStr = _formatFechaEvento(t.fechaLimite);
 
         html += '<div class="checklist-item ' + completed + '" data-tid="' + t.id + '">'
-          + '<button class="checklist-check ' + checked + '" data-tid="' + t.id + '"' + (canEdit ? '' : ' disabled') + '>'
+          + '<button class="checklist-check ' + checked + '" data-tid="' + t.id + '"' + (canEdit ? '' : ' disabled')
+          + ' aria-label="' + (t.completada ? 'Desmarcar' : 'Completar') + ': ' + _esc(t.descripcion) + '"'
+          + ' aria-pressed="' + (t.completada ? 'true' : 'false') + '">'
           + (t.completada ? '&#10003;' : '') + '</button>'
           + '<span class="checklist-desc">' + _esc(t.descripcion) + '</span>'
           + '<span class="checklist-responsable">' + _esc(responsableStr) + '</span>'
@@ -284,18 +286,22 @@
         evtLocal.tareasTotal = tareas.length;
       }
 
-      // Si todo completado, marcar como ejecutado
+      // Si todo completado, confirmar antes de marcar como ejecutado
       if (completadas === tareas.length && tareas.length > 0) {
         var evt = _eventos.find(function (e) { return e.id === eventoId; });
-        if (evt) {
-          evt.estado = 'Ejecutado';
-          if (evt.cotizacionId) {
-            BNK_DB.cotizaciones.update(evt.cotizacionId, { estado: 'Ejecutado' }).catch(function (err) {
-              BNKToast.error('Error al actualizar cotización: ' + (err && err.message ? err.message : 'desconocido'));
-            });
-          }
-          BNK_DB.eventos.update(eventoId, { estado: 'Ejecutado' }).catch(function () {});
-          BNKToast.ok('¡Todas las tareas completadas! Evento marcado como Ejecutado.');
+        if (evt && evt.estado !== 'Ejecutado') {
+          BNKConfirm.show('Todas las tareas completadas. ¿Marcar evento y cotización como "Ejecutado"?', 'MARCAR EJECUTADO').then(function (ok) {
+            if (!ok) return;
+            evt.estado = 'Ejecutado';
+            if (evt.cotizacionId) {
+              BNK_DB.cotizaciones.update(evt.cotizacionId, { estado: 'Ejecutado' }).catch(function (err) {
+                BNKToast.error('Error al actualizar cotización: ' + (err && err.message ? err.message : 'desconocido'));
+              });
+            }
+            BNK_DB.eventos.update(eventoId, { estado: 'Ejecutado' }).catch(function () {});
+            BNKToast.ok('Evento marcado como Ejecutado.');
+            _renderEventos();
+          });
         }
       }
 

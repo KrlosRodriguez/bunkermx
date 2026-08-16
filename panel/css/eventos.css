@@ -11,9 +11,8 @@
 .evento-card-date{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx)}
 .evento-card-info{display:flex;gap:20px;font-size:12px;color:var(--tx);margin-bottom:12px}
 
-/* Estado badges for eventos */
-.estado-EnProd{color:var(--cyan,#00e5ff);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)}
-.estado-Ejecutado{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.08)}
+/* Estado badges for eventos — EnProd es alias de EnProducción */
+.estado-EnProd{color:var(--blu);border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.08)}
 
 /* Progress bar */
 .evento-progress{height:6px;background:rgba(255,255,255,.05);position:relative;overflow:hidden}
