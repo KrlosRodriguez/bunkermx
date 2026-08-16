@@ -665,7 +665,9 @@
       var cps = cotIds[cotId];
       var partnerNames = cps.map(function (cp) { return cp.partnerNombre; }).join(', ');
 
-      var isLiquidada = cot.estado === 'Cerrada' || cot.estado === 'Ejecutado';
+      var cotEstado = cot.estado || 'Recorrido';
+      if (cotEstado === 'Nueva') cotEstado = 'Recorrido';
+      var isLiquidada = cotEstado === 'Cerrada' || cotEstado === 'Ejecutado';
       var allCerradas = cps.every(function (cp) { return cp.cerrada; });
       var estadoDisp;
       if (!isLiquidada) estadoDisp = 'Pendiente';
@@ -677,7 +679,7 @@
         folio: cot.folio,
         cliente: cot.cliente || cot.empresa || '',
         evento: cot.evento || '',
-        estadoCot: cot.estado || '',
+        estadoCot: cotEstado,
         partners: partnerNames,
         estadoDisp: estadoDisp
       });
@@ -777,7 +779,7 @@
       + '<div class="fin-info-item"><div class="fin-info-label">FOLIO</div><div class="fin-info-value">' + _esc(cot ? cot.folio : '') + '</div></div>'
       + '<div class="fin-info-item"><div class="fin-info-label">CLIENTE</div><div class="fin-info-value">' + _esc(cot ? (cot.cliente || cot.empresa || '') : '') + '</div></div>'
       + '<div class="fin-info-item"><div class="fin-info-label">EVENTO</div><div class="fin-info-value">' + _esc(cot ? cot.evento : '') + '</div></div>'
-      + '<div class="fin-info-item"><div class="fin-info-label">ESTADO</div><div class="fin-info-value">' + _esc(cot ? cot.estado : '') + '</div></div>'
+      + '<div class="fin-info-item"><div class="fin-info-label">ESTADO</div><div class="fin-info-value">' + _esc(cot ? (cot.estado === 'Nueva' ? 'Recorrido' : (cot.estado || 'Recorrido')) : '') + '</div></div>'
       + '</div>';
 
     html += '<div class="bnk-section-label" style="margin-top:16px">PARTNERS ASIGNADOS</div>';
