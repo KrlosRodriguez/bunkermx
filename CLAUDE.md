@@ -69,6 +69,7 @@ Dos estilos de PDF generados client-side con jsPDF 2.5.1, toggle Neon/Corporativ
 - **MNT (corporativa)**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`
 - **BNK**: mismas dos paletas, agrupación por categoría, condiciones comerciales con plantillas
 - **Logo embebido**: `BUNKER_LOGO_B64` en `panel/js/logo-data.js` (y `cotizador-munet/js/logo-data.js`)
+- **Regeneración**: `panel/js/pdf-rebuild.js` reconstruye PDFs idénticos desde datos de Firestore (sin necesidad de storage externo)
 
 ### Panel Operativo (`/panel/`)
 
@@ -81,18 +82,19 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones, clientes, proveedores, catalogo, pipeline, calendario, eventos, usuarios, partners, pagos, cotizacionPartners
+- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners
+- **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
 
 **Módulos por tab (`panel/js/pages/`):**
-- **`cotizaciones.js`** (~169 lines) — tabla con KPIs, filtros, paginación, estado editable
-- **`cotizar-mnt.js`** (~641 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore
-- **`cotizar-bnk.js`** (~417 lines) — formulario de servicios/producción, filas dinámicas de conceptos, autocomplete catálogo, plantillas de condiciones comerciales, PDF dual, guardado en Firestore
-- **`pipeline.js`** (~191 lines) — tablero kanban de seguimiento con timeline y notas
-- **`clientes.js`** (~703 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud
+- **`cotizaciones.js`** (~180 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js)
+- **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
+- **`cotizar-bnk.js`** (~430 lines) — formulario de servicios/producción, filas dinámicas de conceptos, autocomplete catálogo, plantillas de condiciones comerciales, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
+- **`pipeline.js`** (~195 lines) — tablero kanban de seguimiento con timeline y notas
+- **`clientes.js`** (~895 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud, chips UI para marcas, cotizaciones vinculadas
 - **`proveedores.js`** (~1064 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor
-- **`calendario.js`** (~116 lines) — calendario mensual de eventos por espacio
-- **`reportes.js`** (~190 lines) — funnel, gráficos mensuales, top clientes, rendimiento
+- **`calendario.js`** (~140 lines) — calendario mensual de eventos por espacio, soporta múltiples fechas MNT via desgloseVenues
+- **`reportes.js`** (~200 lines) — funnel, gráficos mensuales, top clientes, rendimiento
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
 - **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
 - **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
@@ -130,6 +132,9 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Modales**: patrón `.bnk-overlay` + `.bnk-modal` con clase `.visible` para toggle
 - **Autocomplete**: patrón `.bnk-autocomplete` + `.bnk-ac-item` con clase `.visible`
 - **Colores de estado**: clases `.estado-{nombre}` y `.tipo-{MNT|BNK}` para badges
+- **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las cotizaciones nuevas se crean con estado `'Recorrido'`. El estado legacy `'Nueva'` se mapea a `'Recorrido'` en todos los módulos (pipeline, cotizaciones, reportes, finanzas)
+- **Campos de fecha en cotizaciones**: `fecha` (ISO timestamp de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp de Firestore). Todos los módulos usan `d.fecha || d.createdAt` como fallback para compatibilidad con registros legacy
+- **PDFs regenerables**: los PDFs no se almacenan en storage. Se regeneran on-the-fly desde datos en Firestore via `BNKPdfRebuild.download(cotData)`. MNT usa `desgloseVenues` (JSON), BNK usa `conceptos` (JSON)
 
 ## Key Conventions
 
