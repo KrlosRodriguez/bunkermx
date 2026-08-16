@@ -92,5 +92,9 @@ service cloud.firestore {
     match /cotizacionPartners/{docId} {
       allow read, create, update, delete: if isAdmin();
     }
+
+    match /cuentasCobrar/{docId} {
+      allow read, create, update, delete: if isAdmin();
+    }
   }
 }

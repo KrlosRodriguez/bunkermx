@@ -39,13 +39,15 @@
       if (el) el.innerHTML = '<tr><td colspan="11" class="dash-loading">CARGANDO...</td></tr>';
     });
 
+    function _safe(promise) { return promise.catch(function () { return []; }); }
+
     Promise.all([
-      BNK_DB.partners.list(),
-      BNK_DB.pagos.list(),
-      BNK_DB.cotizacionPartners.list(),
-      BNK_DB.cotizaciones.list(),
-      BNK_DB.proveedores.list(),
-      BNK_DB.cuentasCobrar.list()
+      _safe(BNK_DB.partners.list()),
+      _safe(BNK_DB.pagos.list()),
+      _safe(BNK_DB.cotizacionPartners.list()),
+      _safe(BNK_DB.cotizaciones.list()),
+      _safe(BNK_DB.proveedores.list()),
+      _safe(BNK_DB.cuentasCobrar.list())
     ]).then(function (results) {
       _partners = results[0];
       _pagos = results[1];
@@ -58,8 +60,6 @@
       _renderDispersiones();
       _renderCobrar();
       _renderKPIs();
-    }).catch(function (err) {
-      BNKToast.error('Error al cargar datos financieros.');
     });
   }
 
