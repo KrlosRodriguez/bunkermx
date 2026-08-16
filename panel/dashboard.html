@@ -35,19 +35,19 @@
 </header>
 
 <!-- ── TABS ── -->
-<nav class="panel-tabs">
-  <button class="dash-tab active" data-tab="cotizaciones">COTIZACIONES</button>
-  <button class="dash-tab" data-tab="cotizar-mnt" data-require-role="admin,ventas">COTIZAR MNT</button>
-  <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas">COTIZAR BNK</button>
-  <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas">PIPELINE</button>
-  <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura">CLIENTES</button>
-  <button class="dash-tab" data-tab="proveedores">PROVEEDORES</button>
-  <button class="dash-tab" data-tab="calendario">CALENDARIO</button>
-  <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas">REPORTES</button>
-  <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas">CATÁLOGO</button>
-  <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion">EVENTOS</button>
-  <button class="dash-tab" data-tab="finanzas">FINANZAS</button>
-  <button class="dash-tab" data-tab="usuarios" data-require-role="admin">USUARIOS</button>
+<nav class="panel-tabs" role="tablist" aria-label="Navegación del panel">
+  <button class="dash-tab active" data-tab="cotizaciones" role="tab" aria-selected="true" aria-controls="sec-cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab" data-tab="cotizar-mnt" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-mnt">COTIZAR MNT</button>
+  <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-bnk">COTIZAR BNK</button>
+  <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-pipeline">PIPELINE</button>
+  <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura" role="tab" aria-selected="false" aria-controls="sec-clientes">CLIENTES</button>
+  <button class="dash-tab" data-tab="proveedores" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
+  <button class="dash-tab" data-tab="calendario" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
+  <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-reportes">REPORTES</button>
+  <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-catalogo">CATÁLOGO</button>
+  <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-eventos">EVENTOS</button>
+  <button class="dash-tab" data-tab="finanzas" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
+  <button class="dash-tab" data-tab="usuarios" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-usuarios">USUARIOS</button>
 </nav>
 
 <!-- ── SECCIONES ── -->
@@ -56,7 +56,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- COTIZACIONES (Task 7) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-cotizaciones" class="panel-section active">
+  <section id="sec-cotizaciones" class="panel-section active" role="tabpanel">
     <!-- KPIs -->
     <div class="dash-indicators">
       <div class="dash-card">
@@ -154,7 +154,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- COTIZAR MNT -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-cotizar-mnt" class="panel-section">
+  <section id="sec-cotizar-mnt" class="panel-section" role="tabpanel">
     <div class="mnt-wizard" id="mntWizard">
       <!-- Progress bar -->
       <div class="mnt-progress">
@@ -294,7 +294,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- COTIZAR BNK -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-cotizar-bnk" class="panel-section">
+  <section id="sec-cotizar-bnk" class="panel-section" role="tabpanel">
     <div class="bnk-form-wrap" id="bnkForm">
       <div class="mnt-step-title">NUEVA COTIZACIÓN BNK — SERVICIOS</div>
 
@@ -410,7 +410,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- PIPELINE (Task 10) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-pipeline" class="panel-section">
+  <section id="sec-pipeline" class="panel-section" role="tabpanel">
     <link rel="stylesheet" href="css/pipeline.css?v=6">
     <div class="panel-toolbar">
       <h2 class="panel-section-title">PIPELINE DE SEGUIMIENTO</h2>
@@ -430,7 +430,7 @@
       <div class="bnk-modal" style="max-width:700px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="pipeDetailTitle">DETALLE</span>
-          <button class="bnk-modal-close" id="pipeDetailClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="pipeDetailClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div id="pipeDetailInfo"></div>
@@ -448,7 +448,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- CLIENTES (Task 8) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-clientes" class="panel-section">
+  <section id="sec-clientes" class="panel-section" role="tabpanel">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
       <div class="dash-card"><div class="dash-card-label">TOTAL CLIENTES</div><div class="dash-card-value" id="indCliTotal">0</div></div>
@@ -504,7 +504,7 @@
       <div class="bnk-modal" style="max-width:800px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="cliModalTitle">NUEVO CLIENTE</span>
-          <button class="bnk-modal-close" id="cliClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="cliClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <input type="hidden" id="cliId">
@@ -596,7 +596,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- PROVEEDORES (Task 8) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-proveedores" class="panel-section">
+  <section id="sec-proveedores" class="panel-section" role="tabpanel">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
       <div class="dash-card"><div class="dash-card-label">TOTAL PROVEEDORES</div><div class="dash-card-value" id="indPrvTotal">0</div></div>
@@ -659,7 +659,7 @@
       <div class="bnk-modal" style="max-width:900px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="prvModalTitle">NUEVO PROVEEDOR</span>
-          <button class="bnk-modal-close" id="prvClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="prvClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <input type="hidden" id="prvId">
@@ -781,7 +781,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- CALENDARIO (Task 13) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-calendario" class="panel-section">
+  <section id="sec-calendario" class="panel-section" role="tabpanel">
     <link rel="stylesheet" href="css/calendario.css?v=6">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
@@ -824,7 +824,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- REPORTES (Task 11) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-reportes" class="panel-section">
+  <section id="sec-reportes" class="panel-section" role="tabpanel">
     <link rel="stylesheet" href="css/reportes.css?v=6">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
@@ -862,7 +862,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- CATÁLOGO (Task 14) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-catalogo" class="panel-section">
+  <section id="sec-catalogo" class="panel-section" role="tabpanel">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
       <div class="dash-card"><div class="dash-card-label">TOTAL CONCEPTOS</div><div class="dash-card-value" id="indCatTotal">0</div></div>
@@ -926,7 +926,7 @@
       <div class="bnk-modal" style="max-width:500px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="catModalTitle">NUEVO CONCEPTO</span>
-          <button class="bnk-modal-close" id="catClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="catClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div class="bnk-form-grid">
@@ -977,7 +977,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- USUARIOS (Task 6) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-usuarios" class="panel-section">
+  <section id="sec-usuarios" class="panel-section" role="tabpanel">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
       <div class="dash-card"><div class="dash-card-label">TOTAL USUARIOS</div><div class="dash-card-value" id="indUsrTotal">0</div></div>
@@ -1036,7 +1036,7 @@
       <div class="bnk-modal" style="max-width:500px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="usrModalTitle">NUEVO USUARIO</span>
-          <button class="bnk-modal-close" id="usrClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="usrClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div class="bnk-form-grid">
@@ -1074,7 +1074,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- EVENTOS / PRODUCCIÓN (Task 12) -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-eventos" class="panel-section">
+  <section id="sec-eventos" class="panel-section" role="tabpanel">
     <link rel="stylesheet" href="css/eventos.css?v=6">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
@@ -1104,7 +1104,7 @@
     <div class="bnk-modal" style="max-width:500px">
       <div class="bnk-modal-header">
         <span class="bnk-modal-title">SELECCIONAR PLANTILLA</span>
-        <button class="bnk-modal-close" id="evtPlantillaClose">&times;</button>
+        <button class="bnk-modal-close" aria-label="Cerrar" id="evtPlantillaClose">&times;</button>
       </div>
       <div class="bnk-modal-body">
         <p style="color:var(--tx);font-size:13px;margin-bottom:16px">Selecciona una plantilla de checklist para este evento:</p>
@@ -1120,7 +1120,7 @@
   <!-- ══════════════════════════════════════════════ -->
   <!-- FINANZAS -->
   <!-- ══════════════════════════════════════════════ -->
-  <section id="sec-finanzas" class="panel-section">
+  <section id="sec-finanzas" class="panel-section" role="tabpanel">
     <link rel="stylesheet" href="css/finanzas.css">
 
     <!-- Sub-tabs -->
@@ -1265,7 +1265,7 @@
       <div class="bnk-modal" style="max-width:600px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title">REGISTRAR PAGO</span>
-          <button class="bnk-modal-close" id="finPagoClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finPagoClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div class="ctz-card">
@@ -1328,7 +1328,7 @@
       <div class="bnk-modal" style="max-width:700px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="finDetalleTitle">DETALLE DE CUENTA</span>
-          <button class="bnk-modal-close" id="finDetalleClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finDetalleClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div id="finDetalleInfo"></div>
@@ -1362,7 +1362,7 @@
       <div class="bnk-modal" style="max-width:800px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="finPartnerModalTitle">NUEVO PARTNER</span>
-          <button class="bnk-modal-close" id="finPartnerClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finPartnerClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <input type="hidden" id="finPartnerId">
@@ -1433,7 +1433,7 @@
       <div class="bnk-modal" style="max-width:550px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title">ASIGNAR PARTNER A COTIZACIÓN</span>
-          <button class="bnk-modal-close" id="finAsignarClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finAsignarClose">&times;</button>
         </div>
         <div class="bnk-modal-body">
           <div class="ctz-card">
@@ -1465,7 +1465,7 @@
       <div class="bnk-modal" style="max-width:700px">
         <div class="bnk-modal-header">
           <span class="bnk-modal-title" id="finDispDetalleTitle">DETALLE DISPERSIÓN</span>
-          <button class="bnk-modal-close" id="finDispDetalleClose">&times;</button>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finDispDetalleClose">&times;</button>
         </div>
         <div class="bnk-modal-body" id="finDispDetalleBody"></div>
         <div class="bnk-modal-footer">
@@ -1481,6 +1481,24 @@
 <!-- ── TOAST NOTIFICATIONS ── -->
 <div class="bnk-toast" id="bnkToast"></div>
 
+<!-- ── CONFIRM MODAL (replaces window.confirm) ── -->
+<div class="bnk-confirm-overlay" id="bnkConfirmOverlay">
+  <div class="bnk-confirm-box">
+    <div class="bnk-confirm-msg" id="bnkConfirmMsg"></div>
+    <div class="bnk-confirm-actions">
+      <button class="bnk-confirm-cancel" id="bnkConfirmCancel">CANCELAR</button>
+      <button class="bnk-confirm-ok" id="bnkConfirmOk">CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── IDLE TIMEOUT OVERLAY ── -->
+<div class="bnk-idle-overlay" id="bnkIdleOverlay">
+  <div class="bnk-idle-msg">SESIÓN INACTIVA</div>
+  <div class="bnk-idle-sub">Tu sesión se cerró por inactividad</div>
+  <button class="panel-btn-primary" onclick="location.reload()">RECONECTAR</button>
+</div>
+
 <!-- ══════════════════════════════════════════════ -->
 <!-- JS CORE + MÓDULOS -->
 <!-- ══════════════════════════════════════════════ -->
@@ -1495,9 +1513,10 @@
   tabs.forEach(function (tab) {
     tab.addEventListener('click', function () {
       var target = this.getAttribute('data-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); });
+      tabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
       sections.forEach(function (s) { s.classList.remove('active'); });
       this.classList.add('active');
+      this.setAttribute('aria-selected', 'true');
       var sec = document.getElementById('sec-' + target);
       if (sec) sec.classList.add('active');
     });
@@ -1574,6 +1593,112 @@
     warn: function (msg) { this._show(msg, 'warn'); },
     error: function (msg) { this._show(msg, 'error'); }
   };
+
+  // ── Confirm modal (replaces window.confirm) ──
+  window.BNKConfirm = {
+    _resolve: null,
+    show: function (msg, okLabel) {
+      var overlay = document.getElementById('bnkConfirmOverlay');
+      document.getElementById('bnkConfirmMsg').textContent = msg;
+      if (okLabel) document.getElementById('bnkConfirmOk').textContent = okLabel;
+      else document.getElementById('bnkConfirmOk').textContent = 'CONFIRMAR';
+      overlay.classList.add('visible');
+      document.getElementById('bnkConfirmCancel').focus();
+      return new Promise(function (resolve) {
+        BNKConfirm._resolve = resolve;
+      });
+    },
+    _close: function (result) {
+      document.getElementById('bnkConfirmOverlay').classList.remove('visible');
+      if (BNKConfirm._resolve) { BNKConfirm._resolve(result); BNKConfirm._resolve = null; }
+    }
+  };
+  document.getElementById('bnkConfirmOk').addEventListener('click', function () { BNKConfirm._close(true); });
+  document.getElementById('bnkConfirmCancel').addEventListener('click', function () { BNKConfirm._close(false); });
+  document.getElementById('bnkConfirmOverlay').addEventListener('click', function (e) {
+    if (e.target === this) BNKConfirm._close(false);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.getElementById('bnkConfirmOverlay').classList.contains('visible')) {
+      BNKConfirm._close(false);
+    }
+  });
+
+  // ── Inline field validation helper ──
+  window.BNKValidate = {
+    // Mark field as error — returns false (for chaining)
+    error: function (input, msg) {
+      input.classList.add('field-error');
+      var group = input.closest('.bnk-form-group');
+      if (group) {
+        group.classList.add('has-error');
+        var msgEl = group.querySelector('.bnk-field-error-msg');
+        if (!msgEl) {
+          msgEl = document.createElement('span');
+          msgEl.className = 'bnk-field-error-msg';
+          group.appendChild(msgEl);
+        }
+        msgEl.textContent = msg || 'Campo requerido';
+        msgEl.style.display = '';
+      }
+      return false;
+    },
+    // Clear error from a field
+    clear: function (input) {
+      input.classList.remove('field-error');
+      var group = input.closest('.bnk-form-group');
+      if (group) {
+        group.classList.remove('has-error');
+        var msgEl = group.querySelector('.bnk-field-error-msg');
+        if (msgEl) msgEl.style.display = 'none';
+      }
+    },
+    // Clear all errors in a container
+    clearAll: function (container) {
+      container.querySelectorAll('.field-error').forEach(function (el) {
+        BNKValidate.clear(el);
+      });
+    },
+    // Validate required — returns true if valid
+    required: function (input, msg) {
+      BNKValidate.clear(input);
+      if (!input.value.trim()) {
+        input.focus();
+        return BNKValidate.error(input, msg || 'Campo requerido');
+      }
+      return true;
+    },
+    // Validate email format
+    email: function (input) {
+      BNKValidate.clear(input);
+      var v = input.value.trim();
+      if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        return BNKValidate.error(input, 'Email inválido');
+      }
+      return true;
+    }
+  };
+  // Auto-clear errors on input
+  document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('field-error')) BNKValidate.clear(e.target);
+  });
+
+  // ── Idle timeout (30 min) ──
+  (function () {
+    var IDLE_MS = 30 * 60 * 1000;
+    var timer;
+    function reset() {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        document.getElementById('bnkIdleOverlay').classList.add('visible');
+        if (window.BNK_AUTH) BNK_AUTH.logout();
+      }, IDLE_MS);
+    }
+    ['click', 'keydown', 'mousemove', 'touchstart'].forEach(function (evt) {
+      document.addEventListener(evt, reset, { passive: true });
+    });
+    reset();
+  })();
 })();
 </script>
 

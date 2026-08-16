@@ -342,13 +342,14 @@
   function _deleteItem(id) {
     var item = _data.find(function (d) { return d.id === id; });
     var nombre = item ? item.concepto : id;
-    if (!confirm('¿Eliminar "' + nombre + '" del catálogo?\nEsta acción no se puede deshacer.')) return;
-
-    BNK_DB.catalogo.delete(id).then(function () {
-      BNKToast.ok('Concepto eliminado.');
-      load();
-    }).catch(function (err) {
-      BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+    BNKConfirm.show('¿Eliminar "' + nombre + '" del catálogo? Esta acción no se puede deshacer.', 'ELIMINAR').then(function (ok) {
+      if (!ok) return;
+      BNK_DB.catalogo.delete(id).then(function () {
+        BNKToast.ok('Concepto eliminado.');
+        load();
+      }).catch(function (err) {
+        BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+      });
     });
   }
 

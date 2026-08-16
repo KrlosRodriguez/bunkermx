@@ -478,12 +478,14 @@
   }
 
   function _deletePartner(id) {
-    if (!confirm('¿Eliminar este partner?')) return;
-    BNK_DB.partners.delete(id).then(function () {
-      BNKToast.ok('Partner eliminado.');
-      _loadData();
-    }).catch(function (err) {
-      BNKToast.error('Error: ' + err.message);
+    BNKConfirm.show('¿Eliminar este partner? Esta acción no se puede deshacer.', 'ELIMINAR').then(function (ok) {
+      if (!ok) return;
+      BNK_DB.partners.delete(id).then(function () {
+        BNKToast.ok('Partner eliminado.');
+        _loadData();
+      }).catch(function (err) {
+        BNKToast.error('Error: ' + err.message);
+      });
     });
   }
 
@@ -741,11 +743,13 @@
     document.getElementById('finDispDetalleBody').querySelectorAll('[data-quitar-cp]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var cpId = this.getAttribute('data-quitar-cp');
-        if (!confirm('¿Quitar este partner de la cotización?')) return;
-        BNK_DB.cotizacionPartners.delete(cpId).then(function () {
-          BNKToast.ok('Partner removido.');
-          _modal('finDispDetalleOverlay', false);
-          _loadData();
+        BNKConfirm.show('¿Quitar este partner de la cotización?', 'QUITAR').then(function (ok) {
+          if (!ok) return;
+          BNK_DB.cotizacionPartners.delete(cpId).then(function () {
+            BNKToast.ok('Partner removido.');
+            _modal('finDispDetalleOverlay', false);
+            _loadData();
+          });
         });
       });
     });
@@ -776,6 +780,19 @@
       }
     });
   }
+
+  // ── Escape to close modals ──
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var overlays = ['finPagoOverlay', 'finPartnerOverlay', 'finDetalleOverlay', 'finAsignarOverlay', 'finDispDetalleOverlay'];
+    for (var i = overlays.length - 1; i >= 0; i--) {
+      var el = document.getElementById(overlays[i]);
+      if (el && el.classList.contains('visible')) {
+        el.classList.remove('visible');
+        break;
+      }
+    }
+  });
 
   // ── Init ──
   BNK_AUTH.onReady(function (user) {

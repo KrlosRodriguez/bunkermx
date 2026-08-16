@@ -449,11 +449,15 @@
   }
 
   function _limpiar() {
-    if (document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row').length > 0) {
-      var hayDatos = document.getElementById('bnkEmpresa').value.trim() ||
-        document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row .bnk-con').length > 0;
-      if (hayDatos && !confirm('¿Limpiar todo el formulario? Se perderán los datos ingresados.')) return;
-    }
+    var hayDatos = document.getElementById('bnkEmpresa').value.trim() ||
+      document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row').length > 0;
+    if (!hayDatos) { _doLimpiar(); return; }
+    BNKConfirm.show('¿Limpiar todo el formulario? Se perderán los datos ingresados.', 'LIMPIAR').then(function (ok) {
+      if (ok) _doLimpiar();
+    });
+  }
+
+  function _doLimpiar() {
     ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });

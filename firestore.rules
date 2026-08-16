@@ -2,24 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function userRole() {
-      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol;
-    }
-
-    function isActive() {
-      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.activo == true;
-    }
-
-    function isAdmin() {
-      return isActive() && userRole() == 'admin';
-    }
-
-    function isAdminOrVentas() {
-      return isActive() && (userRole() == 'admin' || userRole() == 'ventas');
+    // Nota: Firestore cachea get() por request, así que múltiples
+    // llamadas al mismo doc no consumen reads adicionales en la misma evaluación.
+    function userData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
     }
 
     function isAuthenticated() {
-      return request.auth != null && isActive();
+      return request.auth != null && userData().activo == true;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && userData().rol == 'admin';
+    }
+
+    function isAdminOrVentas() {
+      return isAuthenticated() && userData().rol in ['admin', 'ventas'];
+    }
+
+    function isAdminOrProduccion() {
+      return isAuthenticated() && userData().rol in ['admin', 'produccion'];
     }
 
     match /usuarios/{uid} {
@@ -60,11 +62,11 @@ service cloud.firestore {
 
     match /eventos/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdminOrVentas();
+      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'];
 
       match /tareas/{tareaId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAuthenticated();
+        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'];
       }
     }
 
@@ -78,19 +80,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Finanzas: solo admin puede leer y escribir datos bancarios/pagos ──
     match /partners/{docId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
     }
 
     match /pagos/{docId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
     }
 
     match /cotizacionPartners/{docId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
     }
   }
 }

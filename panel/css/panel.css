@@ -429,3 +429,69 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 
 /* Pagination controls */
 .dash-pagination{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px}
+
+/* ── FOCUS VISIBLE (Accessibility) ── */
+.dash-tab:focus-visible,
+.panel-btn-primary:focus-visible,
+.panel-btn-secondary:focus-visible,
+.panel-btn-icon:focus-visible,
+.panel-logout-btn:focus-visible,
+.tbl-action:focus-visible,
+.bnk-modal-close:focus-visible,
+.modal-tab:focus-visible,
+.mnt-tipo-btn:focus-visible,
+.mnt-progress-step:focus-visible,
+.mnt-cal-nav:focus-visible,
+.mnt-montaje-btn:focus-visible,
+.pdf-style-btn:focus-visible,
+.bnk-add-row:focus-visible,
+.bnk-del-btn:focus-visible,
+.estado-select:focus-visible,
+.dash-select:focus-visible,
+.dash-search:focus-visible,
+.dash-date:focus-visible,
+.bnk-input:focus-visible,
+.bnk-textarea:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.tbl-action--del:focus-visible{outline-color:var(--red)}
+
+/* ── INLINE FIELD VALIDATION ── */
+.bnk-input.field-error,
+.bnk-textarea.field-error,
+.dash-select.field-error{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,68,85,.12)}
+.bnk-input.field-error:focus,
+.bnk-textarea.field-error:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(255,68,85,.18)}
+.bnk-field-error-msg{font-family:'Space Mono',monospace;font-size:9px;color:var(--red);letter-spacing:.5px;margin-top:2px;display:none}
+.bnk-form-group.has-error .bnk-field-error-msg{display:block}
+
+/* ── LOADING ANIMATION ── */
+.dash-loading::after{content:'';display:inline-block;width:4px;height:4px;margin-left:8px;border-radius:50%;background:var(--g);animation:loadPulse 1.2s infinite ease-in-out}
+@keyframes loadPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.2)}}
+
+/* ── BUTTON PROCESSING STATE ── */
+.panel-btn-primary.processing{pointer-events:none;opacity:.7;position:relative;color:transparent}
+.panel-btn-primary.processing::after{content:'';position:absolute;inset:0;margin:auto;width:16px;height:16px;border:2px solid transparent;border-top-color:var(--g);border-radius:50%;animation:btnSpin .6s linear infinite}
+@keyframes btnSpin{to{transform:rotate(360deg)}}
+
+/* ── CONFIRM MODAL (replaces window.confirm) ── */
+.bnk-confirm-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;
+  visibility:hidden;opacity:0;pointer-events:none;transition:opacity 200ms ease,visibility 0s 200ms}
+.bnk-confirm-overlay.visible{visibility:visible;opacity:1;pointer-events:auto;transition:opacity 200ms ease,visibility 0s}
+.bnk-confirm-box{background:var(--dk);border:1px solid var(--bd);padding:32px;max-width:420px;width:90%;text-align:center}
+.bnk-confirm-msg{font-family:'Barlow Condensed',sans-serif;font-size:17px;letter-spacing:1px;color:var(--wh);margin-bottom:24px;line-height:1.5}
+.bnk-confirm-actions{display:flex;gap:12px;justify-content:center}
+.bnk-confirm-cancel{padding:10px 24px;background:transparent;border:1px solid var(--bd);color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.bnk-confirm-cancel:hover{color:var(--wh);border-color:rgba(255,255,255,.3)}
+.bnk-confirm-cancel:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.bnk-confirm-ok{padding:10px 24px;background:rgba(255,68,85,.08);border:1px solid var(--red);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s}
+.bnk-confirm-ok:hover{background:rgba(255,68,85,.18);box-shadow:0 0 12px rgba(255,68,85,.15)}
+.bnk-confirm-ok:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* ── ARIA ROLES (screen reader aids) ── */
+.panel-tabs[role="tablist"] .dash-tab[aria-selected="true"]{color:var(--g);border-bottom-color:var(--g)}
+
+/* ── IDLE TIMEOUT OVERLAY ── */
+.bnk-idle-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  visibility:hidden;opacity:0;pointer-events:none;transition:opacity 300ms}
+.bnk-idle-overlay.visible{visibility:visible;opacity:1;pointer-events:auto}
+.bnk-idle-msg{font-family:'Barlow Condensed',sans-serif;font-size:20px;letter-spacing:3px;color:var(--ylw)}
+.bnk-idle-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx);letter-spacing:1px}

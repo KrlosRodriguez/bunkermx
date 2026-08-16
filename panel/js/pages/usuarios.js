@@ -344,13 +344,14 @@
   function _deleteUser(id) {
     var user = _usuarios.find(function (u) { return u.id === id; });
     var nombre = user ? user.nombre : id;
-    if (!confirm('¿Eliminar a "' + nombre + '"?\nEsta acción elimina el registro de Firestore.\nEl usuario de Firebase Auth debe eliminarse manualmente desde la consola.')) return;
-
-    BNK_DB.usuarios.delete(id).then(function () {
-      BNKToast.ok('Usuario eliminado de Firestore.');
-      load();
-    }).catch(function (err) {
-      BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+    BNKConfirm.show('¿Eliminar a "' + nombre + '"? El registro se elimina de Firestore. El usuario de Firebase Auth debe eliminarse manualmente desde la consola.', 'ELIMINAR').then(function (ok) {
+      if (!ok) return;
+      BNK_DB.usuarios.delete(id).then(function () {
+        BNKToast.ok('Usuario eliminado de Firestore.');
+        load();
+      }).catch(function (err) {
+        BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+      });
     });
   }
 
