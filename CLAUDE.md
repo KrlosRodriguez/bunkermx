@@ -77,12 +77,12 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 **Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~957 lines) — dashboard principal con 12 tabs
+- **`panel/dashboard.html`** (~1871 lines) — dashboard principal con 12 tabs
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners
+- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cuentasCobrar
 - **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
 
@@ -98,7 +98,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
 - **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
 - **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
-- **`finanzas.js`** (~800 lines) — módulo FINANZAS con 3 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas)
+- **`finanzas.js`** (~1000 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso)
 
 **CSS:**
 - **`panel/css/panel.css`** (~368 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, cards `.ctz-card`, progress bar, calendar, responsive
