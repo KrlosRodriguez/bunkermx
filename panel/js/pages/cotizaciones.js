@@ -178,7 +178,7 @@
 
       html += '</td>'
         + '<td>'
-        + (d.linkPdf ? '<a href="' + _esc(d.linkPdf) + '" target="_blank" class="pdf-link" title="Ver PDF">PDF</a>' : '')
+        + '<button class="tbl-action tbl-action--pdf" data-cot-pdf="' + _esc(d.id) + '" title="Descargar PDF">&#128196;</button>'
         + '<button class="tbl-action tbl-action--del" data-cot-del="' + _esc(d.id) + '" title="Eliminar">&times;</button>'
         + '</td>'
         + '</tr>';
@@ -331,12 +331,26 @@
       }
     });
 
-    // Delete
+    // Download PDF
     tbody.addEventListener('click', function (e) {
+      var pdfBtn = e.target.closest('[data-cot-pdf]');
+      if (pdfBtn) {
+        var id = pdfBtn.getAttribute('data-cot-pdf');
+        var cot = _data.find(function (d) { return d.id === id; });
+        if (cot && window.BNKPdfRebuild) {
+          BNKPdfRebuild.download(cot);
+          BNKToast.ok('PDF generado: ' + (cot.folio || id));
+        } else {
+          BNKToast.error('No se pudo generar el PDF.');
+        }
+        return;
+      }
+
+      // Delete
       var delBtn = e.target.closest('[data-cot-del]');
       if (!delBtn) return;
-      var id = delBtn.getAttribute('data-cot-del');
-      _deleteCotizacion(id);
+      var id2 = delBtn.getAttribute('data-cot-del');
+      _deleteCotizacion(id2);
     });
   }
 
