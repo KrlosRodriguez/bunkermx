@@ -1143,6 +1143,7 @@
         <button class="modal-tab active" data-fin-tab="cuentas">CUENTAS POR PAGAR</button>
         <button class="modal-tab" data-fin-tab="partners">PARTNERS</button>
         <button class="modal-tab" data-fin-tab="dispersiones">DISPERSIONES</button>
+        <button class="modal-tab" data-fin-tab="cobrar">CUENTAS POR COBRAR</button>
       </div>
     </div>
 
@@ -1268,6 +1269,141 @@
         <div id="finDispersionesEmpty" class="dash-empty" style="display:none">
           <div class="dash-empty-icon">&#128300;</div>
           <div class="dash-empty-text">Sin cotizaciones con partners asignados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUB-TAB: CUENTAS POR COBRAR ── -->
+    <div class="fin-subtab" id="finSubCobrar" style="display:none">
+      <!-- KPIs Cobrar -->
+      <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
+        <div class="dash-card">
+          <div class="dash-card-label">TOTAL POR COBRAR</div>
+          <div class="dash-card-value" id="finKpiTotalCobrar">$0</div>
+          <div class="dash-card-sub">monto sin IVA pendiente</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">FACTURAS REGISTRADAS</div>
+          <div class="dash-card-value" id="finKpiFacturas">0</div>
+          <div class="dash-card-sub">total de registros</div>
+        </div>
+        <div class="dash-card dash-card--warn">
+          <div class="dash-card-label">SIN PREFACTURA</div>
+          <div class="dash-card-value" id="finKpiSinPrefactura">0</div>
+          <div class="dash-card-sub">pendientes de confirmar</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-label">COBRADO ESTE MES</div>
+          <div class="dash-card-value" id="finKpiCobradoMes">0</div>
+          <div class="dash-card-sub">facturas ingresadas</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="dash-filters">
+        <input type="text" id="finCobrarSearch" class="dash-search" placeholder="Buscar folio, cliente, proyecto...">
+        <select id="finCobrarEstado" class="dash-select">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmada">Pre-factura confirmada</option>
+          <option value="ingresada">Factura ingresada</option>
+        </select>
+        <button class="panel-btn-primary fin-admin-only" id="finBtnNuevaCobrar">+ NUEVA CUENTA</button>
+      </div>
+
+      <!-- Tabla -->
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>FOLIO PROYECTO</th>
+              <th>FOLIO FACTURA</th>
+              <th>PREFACTURA</th>
+              <th>FECHA CONF.</th>
+              <th>LÍDER</th>
+              <th>CLIENTE</th>
+              <th>PROYECTO</th>
+              <th>CONCEPTO</th>
+              <th>MONTO S/IVA</th>
+              <th>FECHA INGRESO</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="finCobrarBody"></tbody>
+        </table>
+        <div id="finCobrarEmpty" class="dash-empty" style="display:none">
+          <div class="dash-empty-icon">&#128181;</div>
+          <div class="dash-empty-text">Sin cuentas por cobrar registradas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════ -->
+    <!-- MODAL: CUENTA POR COBRAR (CRUD) -->
+    <!-- ════════════════════════════════ -->
+    <div class="bnk-overlay" id="finCobrarOverlay">
+      <div class="bnk-modal" style="max-width:700px">
+        <div class="bnk-modal-header">
+          <span class="bnk-modal-title" id="finCobrarModalTitle">NUEVA CUENTA POR COBRAR</span>
+          <button class="bnk-modal-close" aria-label="Cerrar" id="finCobrarClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <input type="hidden" id="finCobrarId">
+          <div class="ctz-card">
+            <div class="bnk-form-grid">
+              <div class="bnk-form-group">
+                <label class="bnk-label">FOLIO PROYECTO *</label>
+                <input type="text" class="bnk-input" id="cbrFolioProyecto" placeholder="P26013302">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">FOLIO FACTURA *</label>
+                <input type="text" class="bnk-input" id="cbrFolioFactura" placeholder="FA-00000">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">CLIENTE *</label>
+                <input type="text" class="bnk-input" id="cbrCliente" placeholder="Nombre del cliente">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">MONTO SIN IVA *</label>
+                <input type="number" class="bnk-input" id="cbrMontoSinIva" placeholder="0" min="0" step="0.01">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">LÍDER DE PROYECTO</label>
+                <input type="text" class="bnk-input" id="cbrLider" placeholder="Nombre">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">SOLICITANTE</label>
+                <input type="text" class="bnk-input" id="cbrSolicitante" placeholder="Nombre">
+              </div>
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">PROYECTO</label>
+                <input type="text" class="bnk-input" id="cbrProyecto" placeholder="Nombre del proyecto">
+              </div>
+              <div class="bnk-form-group bnk-form-full">
+                <label class="bnk-label">CONCEPTO</label>
+                <input type="text" class="bnk-input" id="cbrConcepto" placeholder="Descripción del concepto">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">PRE-FACTURA CONFIRMADA</label>
+                <select class="bnk-input" id="cbrPrefacturaConfirmada">
+                  <option value="no">No</option>
+                  <option value="si">Sí</option>
+                </select>
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">FECHA CONFIRMACIÓN PREFACTURA</label>
+                <input type="date" class="bnk-input" id="cbrFechaConfirmacion">
+              </div>
+              <div class="bnk-form-group">
+                <label class="bnk-label">FECHA INGRESO FACTURA C/CLIENTE</label>
+                <input type="date" class="bnk-input" id="cbrFechaIngreso">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bnk-modal-footer">
+          <button class="panel-btn-secondary" id="finCobrarCancel">CANCELAR</button>
+          <button class="panel-btn-primary" id="finCobrarGuardar">GUARDAR</button>
         </div>
       </div>
     </div>

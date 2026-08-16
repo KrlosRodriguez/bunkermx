@@ -130,6 +130,7 @@
     partners:            collectionAPI('partners', { orderBy: { field: 'nombre', dir: 'asc' } }),
     pagos:               collectionAPI('pagos', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     cotizacionPartners:  collectionAPI('cotizacionPartners'),
+    cuentasCobrar:       collectionAPI('cuentasCobrar', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     actividad:           actividadAPI,
     tareas:              tareasAPI
   };

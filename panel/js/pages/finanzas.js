@@ -1,5 +1,5 @@
 // finanzas.js — Módulo FINANZAS para el Panel BUNKER
-// Sub-tabs: Cuentas por Pagar, Partners, Dispersiones
+// Sub-tabs: Cuentas por Pagar, Partners, Dispersiones, Cuentas por Cobrar
 (function () {
   'use strict';
 
@@ -8,6 +8,7 @@
   var _cotPartners = []; // cotizacionPartners
   var _cotizaciones = [];
   var _proveedores = [];
+  var _cuentasCobrar = [];
   var _isAdmin = false;
 
   function init() {
@@ -16,6 +17,7 @@
     _bindPartnerEvents();
     _bindCuentasEvents();
     _bindDispersionesEvents();
+    _bindCobrarEvents();
   }
 
   function _checkAdmin() {
@@ -31,10 +33,10 @@
 
   function _loadData() {
     // Show loading in active sub-tab
-    var bodies = ['finCuentasBody', 'finPartnersBody', 'finDispersionesBody'];
+    var bodies = ['finCuentasBody', 'finPartnersBody', 'finDispersionesBody', 'finCobrarBody'];
     bodies.forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.innerHTML = '<tr><td colspan="8" class="dash-loading">CARGANDO...</td></tr>';
+      if (el) el.innerHTML = '<tr><td colspan="11" class="dash-loading">CARGANDO...</td></tr>';
     });
 
     Promise.all([
@@ -42,16 +44,19 @@
       BNK_DB.pagos.list(),
       BNK_DB.cotizacionPartners.list(),
       BNK_DB.cotizaciones.list(),
-      BNK_DB.proveedores.list()
+      BNK_DB.proveedores.list(),
+      BNK_DB.cuentasCobrar.list()
     ]).then(function (results) {
       _partners = results[0];
       _pagos = results[1];
       _cotPartners = results[2];
       _cotizaciones = results[3];
       _proveedores = results[4];
+      _cuentasCobrar = results[5];
       _renderPartners();
       _renderCuentas();
       _renderDispersiones();
+      _renderCobrar();
       _renderKPIs();
     }).catch(function (err) {
       BNKToast.error('Error al cargar datos financieros.');
@@ -853,10 +858,210 @@
     });
   }
 
+  // ══════════════════════════════════════
+  // CUENTAS POR COBRAR
+  // ══════════════════════════════════════
+
+  function _generarFolioCBR() {
+    var max = 0;
+    _cuentasCobrar.forEach(function (c) {
+      var m = (c.folioFactura || '').match(/FA-(\d+)/);
+      if (m) { var n = parseInt(m[1]); if (n > max) max = n; }
+    });
+    return 'FA-' + String(max + 1).padStart(5, '0');
+  }
+
+  function _renderCobrar() {
+    var search = (document.getElementById('finCobrarSearch') || {}).value || '';
+    search = search.trim().toLowerCase();
+    var estadoFilter = (document.getElementById('finCobrarEstado') || {}).value || '';
+
+    var filtered = _cuentasCobrar.filter(function (c) {
+      if (search) {
+        var haystack = [c.folioProyecto, c.folioFactura, c.cliente, c.proyecto, c.concepto, c.lider, c.solicitante].join(' ').toLowerCase();
+        if (haystack.indexOf(search) === -1) return false;
+      }
+      if (estadoFilter) {
+        var est = _cobrarEstado(c);
+        if (est !== estadoFilter) return false;
+      }
+      return true;
+    });
+
+    var body = document.getElementById('finCobrarBody');
+    var empty = document.getElementById('finCobrarEmpty');
+    if (!body) return;
+
+    if (filtered.length === 0) {
+      body.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    var html = '';
+    filtered.forEach(function (c) {
+      var prefIcon = c.prefacturaConfirmada === 'si' ? '<span style="color:var(--g)">&#10004;</span>' : '<span style="color:var(--tx)">&mdash;</span>';
+      html += '<tr data-cbr-id="' + c.id + '">'
+        + '<td class="col-folio">' + _esc(c.folioProyecto) + '</td>'
+        + '<td class="col-folio">' + _esc(c.folioFactura) + '</td>'
+        + '<td style="text-align:center">' + prefIcon + '</td>'
+        + '<td>' + _esc(c.fechaConfirmacion || '\u2014') + '</td>'
+        + '<td>' + _esc(c.lider || '\u2014') + '</td>'
+        + '<td>' + _esc(c.cliente) + '</td>'
+        + '<td>' + _esc(c.proyecto || '\u2014') + '</td>'
+        + '<td>' + _esc(c.concepto || '\u2014') + '</td>'
+        + '<td class="col-total">' + _formatMXN(c.montoSinIva) + '</td>'
+        + '<td>' + _esc(c.fechaIngreso || '\u2014') + '</td>'
+        + '<td>'
+        + '<button class="tbl-action tbl-action--edit fin-admin-only" data-cbr-edit="' + c.id + '" title="Editar">&#9998;</button>'
+        + '<button class="tbl-action tbl-action--del fin-admin-only" data-cbr-del="' + c.id + '" title="Eliminar">&times;</button>'
+        + '</td>'
+        + '</tr>';
+    });
+    body.innerHTML = html;
+
+    _renderCobrarKPIs();
+  }
+
+  function _cobrarEstado(c) {
+    if (c.fechaIngreso) return 'ingresada';
+    if (c.prefacturaConfirmada === 'si') return 'confirmada';
+    return 'pendiente';
+  }
+
+  function _renderCobrarKPIs() {
+    var totalPorCobrar = _cuentasCobrar.filter(function (c) { return !c.fechaIngreso; })
+      .reduce(function (s, c) { return s + (parseFloat(c.montoSinIva) || 0); }, 0);
+    var totalFacturas = _cuentasCobrar.length;
+    var sinPrefactura = _cuentasCobrar.filter(function (c) { return c.prefacturaConfirmada !== 'si'; }).length;
+
+    var now = new Date();
+    var mesActual = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var cobradoMes = _cuentasCobrar.filter(function (c) {
+      return c.fechaIngreso && c.fechaIngreso.substring(0, 7) === mesActual;
+    }).length;
+
+    var elTotal = document.getElementById('finKpiTotalCobrar');
+    var elFacturas = document.getElementById('finKpiFacturas');
+    var elSinPref = document.getElementById('finKpiSinPrefactura');
+    var elCobrado = document.getElementById('finKpiCobradoMes');
+    if (elTotal) elTotal.textContent = _formatMXN(totalPorCobrar);
+    if (elFacturas) elFacturas.textContent = totalFacturas;
+    if (elSinPref) elSinPref.textContent = sinPrefactura;
+    if (elCobrado) elCobrado.textContent = cobradoMes;
+  }
+
+  function _openCobrarModal(id) {
+    var isNew = !id;
+    document.getElementById('finCobrarModalTitle').textContent = isNew ? 'NUEVA CUENTA POR COBRAR' : 'EDITAR CUENTA POR COBRAR';
+    document.getElementById('finCobrarId').value = id || '';
+
+    var fields = ['cbrFolioProyecto', 'cbrFolioFactura', 'cbrCliente', 'cbrMontoSinIva',
+      'cbrLider', 'cbrSolicitante', 'cbrProyecto', 'cbrConcepto',
+      'cbrPrefacturaConfirmada', 'cbrFechaConfirmacion', 'cbrFechaIngreso'];
+
+    if (isNew) {
+      fields.forEach(function (f) { var el = document.getElementById(f); if (el) el.value = ''; });
+      document.getElementById('cbrPrefacturaConfirmada').value = 'no';
+      document.getElementById('cbrFolioFactura').value = _generarFolioCBR();
+    } else {
+      var c = _cuentasCobrar.find(function (x) { return x.id === id; });
+      if (!c) return;
+      document.getElementById('cbrFolioProyecto').value = c.folioProyecto || '';
+      document.getElementById('cbrFolioFactura').value = c.folioFactura || '';
+      document.getElementById('cbrCliente').value = c.cliente || '';
+      document.getElementById('cbrMontoSinIva').value = c.montoSinIva || '';
+      document.getElementById('cbrLider').value = c.lider || '';
+      document.getElementById('cbrSolicitante').value = c.solicitante || '';
+      document.getElementById('cbrProyecto').value = c.proyecto || '';
+      document.getElementById('cbrConcepto').value = c.concepto || '';
+      document.getElementById('cbrPrefacturaConfirmada').value = c.prefacturaConfirmada || 'no';
+      document.getElementById('cbrFechaConfirmacion').value = c.fechaConfirmacion || '';
+      document.getElementById('cbrFechaIngreso').value = c.fechaIngreso || '';
+    }
+    _modal('finCobrarOverlay', true);
+  }
+
+  function _saveCobrar() {
+    var folioProyEl = document.getElementById('cbrFolioProyecto');
+    var folioFacEl = document.getElementById('cbrFolioFactura');
+    var clienteEl = document.getElementById('cbrCliente');
+    var montoEl = document.getElementById('cbrMontoSinIva');
+
+    [folioProyEl, folioFacEl, clienteEl, montoEl].forEach(function (el) { BNKValidate.clear(el); });
+
+    if (!folioProyEl.value.trim()) { BNKValidate.error(folioProyEl, 'Folio requerido'); BNKToast.warn('El folio de proyecto es requerido.'); return; }
+    if (!folioFacEl.value.trim()) { BNKValidate.error(folioFacEl, 'Folio requerido'); BNKToast.warn('El folio de factura es requerido.'); return; }
+    if (!clienteEl.value.trim()) { BNKValidate.error(clienteEl, 'Cliente requerido'); BNKToast.warn('El cliente es requerido.'); return; }
+    if (!(parseFloat(montoEl.value) > 0)) { BNKValidate.error(montoEl, 'Monto mayor a 0'); BNKToast.warn('El monto debe ser mayor a 0.'); return; }
+
+    var data = {
+      folioProyecto: folioProyEl.value.trim(),
+      folioFactura: folioFacEl.value.trim(),
+      cliente: clienteEl.value.trim(),
+      montoSinIva: parseFloat(montoEl.value) || 0,
+      lider: document.getElementById('cbrLider').value.trim(),
+      solicitante: document.getElementById('cbrSolicitante').value.trim(),
+      proyecto: document.getElementById('cbrProyecto').value.trim(),
+      concepto: document.getElementById('cbrConcepto').value.trim(),
+      prefacturaConfirmada: document.getElementById('cbrPrefacturaConfirmada').value,
+      fechaConfirmacion: document.getElementById('cbrFechaConfirmacion').value,
+      fechaIngreso: document.getElementById('cbrFechaIngreso').value
+    };
+
+    var id = document.getElementById('finCobrarId').value;
+    var promise = id ? BNK_DB.cuentasCobrar.update(id, data) : BNK_DB.cuentasCobrar.create(data);
+
+    var btn = document.getElementById('finCobrarGuardar');
+    btn.disabled = true; btn.classList.add('processing');
+
+    promise.then(function () {
+      BNKToast.ok(id ? 'Cuenta actualizada.' : 'Cuenta por cobrar creada.');
+      _modal('finCobrarOverlay', false);
+      _loadData();
+    }).catch(function (err) {
+      BNKToast.error('Error: ' + err.message);
+    }).finally(function () {
+      btn.disabled = false; btn.classList.remove('processing');
+    });
+  }
+
+  function _deleteCobrar(id) {
+    BNKConfirm.show('¿Eliminar esta cuenta por cobrar? Esta acción no se puede deshacer.', 'ELIMINAR').then(function (ok) {
+      if (!ok) return;
+      BNK_DB.cuentasCobrar.delete(id).then(function () {
+        BNKToast.ok('Cuenta eliminada.');
+        _loadData();
+      }).catch(function (err) {
+        BNKToast.error('Error: ' + err.message);
+      });
+    });
+  }
+
+  function _bindCobrarEvents() {
+    document.getElementById('finBtnNuevaCobrar').addEventListener('click', function () { _openCobrarModal(null); });
+    document.getElementById('finCobrarGuardar').addEventListener('click', _saveCobrar);
+    document.getElementById('finCobrarCancel').addEventListener('click', function () { _modal('finCobrarOverlay', false); });
+    document.getElementById('finCobrarClose').addEventListener('click', function () { _modal('finCobrarOverlay', false); });
+
+    document.getElementById('finCobrarBody').addEventListener('click', function (e) {
+      var editBtn = e.target.closest('[data-cbr-edit]');
+      if (editBtn) { _openCobrarModal(editBtn.getAttribute('data-cbr-edit')); return; }
+      var delBtn = e.target.closest('[data-cbr-del]');
+      if (delBtn) { _deleteCobrar(delBtn.getAttribute('data-cbr-del')); }
+    });
+
+    ['finCobrarSearch', 'finCobrarEstado'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', _renderCobrar);
+    });
+  }
+
   // ── Escape to close modals ──
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    var overlays = ['finPagoOverlay', 'finPartnerOverlay', 'finDetalleOverlay', 'finAsignarOverlay', 'finDispDetalleOverlay'];
+    var overlays = ['finCobrarOverlay', 'finPagoOverlay', 'finPartnerOverlay', 'finDetalleOverlay', 'finAsignarOverlay', 'finDispDetalleOverlay'];
     for (var i = overlays.length - 1; i >= 0; i--) {
       var el = document.getElementById(overlays[i]);
       if (el && el.classList.contains('visible')) {
