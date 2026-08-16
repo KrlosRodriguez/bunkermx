@@ -74,10 +74,12 @@
         var hay = [d.folio, d.cliente, d.marca, d.evento, d.espacios, d.folioMNT].join(' ').toLowerCase();
         if (hay.indexOf(search) === -1) return false;
       }
-      if (estado && d.estado !== estado) return false;
+      var dEstado = d.estado || 'Recorrido';
+      if (dEstado === 'Nueva') dEstado = 'Recorrido';
+      if (estado && dEstado !== estado) return false;
       if (tipo && (d.fuente || 'MNT') !== tipo) return false;
       if (desde || hasta) {
-        var fecha = _parseFecha(d.fecha);
+        var fecha = _parseFecha(d.fecha || d.createdAt);
         if (desde && fecha < desde) return false;
         if (hasta && fecha > hasta) return false;
       }
@@ -153,7 +155,9 @@
 
     var html = '';
     page.forEach(function (d) {
-      var estadoClass = 'estado-' + (d.estado || 'Cotizada').replace(/\s/g, '');
+      var estado = d.estado || 'Recorrido';
+      if (estado === 'Nueva') estado = 'Recorrido';
+      var estadoClass = 'estado-' + estado.replace(/\s/g, '');
       var tipoClass = 'tipo-' + (d.fuente || 'MNT');
       var fechaFormatted = _formatDate(d.fecha || d.createdAt);
 
@@ -169,11 +173,11 @@
         + '<td>';
 
       if (_canEdit) {
-        html += '<select class="estado-select ' + estadoClass + '" data-id="' + _esc(d.id) + '" data-prev="' + _esc(d.estado || 'Cotizada') + '">'
-          + _estadoOptions(d.estado)
+        html += '<select class="estado-select ' + estadoClass + '" data-id="' + _esc(d.id) + '" data-prev="' + _esc(estado) + '">'
+          + _estadoOptions(estado)
           + '</select>';
       } else {
-        html += '<span class="estado-badge ' + estadoClass + '">' + _esc(d.estado || 'Cotizada') + '</span>';
+        html += '<span class="estado-badge ' + estadoClass + '">' + _esc(estado) + '</span>';
       }
 
       html += '</td>'
