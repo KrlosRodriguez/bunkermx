@@ -342,13 +342,51 @@
   function _deleteCotizacion(id) {
     var cot = _data.find(function (d) { return d.id === id; });
     var folio = cot ? cot.folio : id;
-    BNKConfirm.show('¿Eliminar cotización "' + folio + '"? Esta acción no se puede deshacer.', 'ELIMINAR').then(function (ok) {
-      if (!ok) return;
-      BNK_DB.cotizaciones.delete(id).then(function () {
-        BNKToast.ok('Cotización eliminada.');
-      }).catch(function (err) {
-        BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+
+    // Verificar datos vinculados antes de permitir eliminar
+    Promise.all([
+      BNK_DB.pagos.list(),
+      BNK_DB.cotizacionPartners.list(),
+      BNK_DB.eventos.list(),
+      BNK_DB.actividad.list(id)
+    ]).then(function (results) {
+      var pagos = results[0].filter(function (p) { return p.cotizacionId === id; });
+      var partners = results[1].filter(function (cp) { return cp.cotizacionId === id; });
+      var eventos = results[2].filter(function (ev) { return ev.cotizacionId === id; });
+      var actividad = results[3];
+
+      var bloqueos = [];
+      if (pagos.length > 0) bloqueos.push(pagos.length + ' pago(s) registrado(s)');
+      if (partners.length > 0) bloqueos.push(partners.length + ' partner(s) asignado(s)');
+      if (eventos.length > 0) bloqueos.push(eventos.length + ' evento(s) vinculado(s)');
+
+      if (bloqueos.length > 0) {
+        BNKToast.error('No se puede eliminar "' + folio + '": tiene ' + bloqueos.join(', ') + '.');
+        return;
+      }
+
+      var msg = '¿Eliminar cotización "' + folio + '"?';
+      if (actividad.length > 0) msg += ' Se eliminarán también ' + actividad.length + ' registro(s) de actividad.';
+      msg += ' Esta acción no se puede deshacer.';
+
+      BNKConfirm.show(msg, 'ELIMINAR').then(function (ok) {
+        if (!ok) return;
+
+        // Eliminar actividad primero, luego la cotización
+        var delActividad = actividad.map(function (a) {
+          return BNK_FIREBASE.db.collection('cotizaciones').doc(id).collection('actividad').doc(a.id).delete();
+        });
+
+        Promise.all(delActividad).then(function () {
+          return BNK_DB.cotizaciones.delete(id);
+        }).then(function () {
+          BNKToast.ok('Cotización "' + folio + '" eliminada.');
+        }).catch(function (err) {
+          BNKToast.error('Error al eliminar: ' + (err && err.message ? err.message : 'desconocido'));
+        });
       });
+    }).catch(function () {
+      BNKToast.error('Error al verificar datos vinculados.');
     });
   }
 
