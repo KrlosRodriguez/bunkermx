@@ -30,6 +30,13 @@
   }
 
   function _loadData() {
+    // Show loading in active sub-tab
+    var bodies = ['finCuentasBody', 'finPartnersBody', 'finDispersionesBody'];
+    bodies.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = '<tr><td colspan="8" class="dash-loading">CARGANDO...</td></tr>';
+    });
+
     Promise.all([
       BNK_DB.partners.list(),
       BNK_DB.pagos.list(),
@@ -46,6 +53,8 @@
       _renderCuentas();
       _renderDispersiones();
       _renderKPIs();
+    }).catch(function (err) {
+      BNKToast.error('Error al cargar datos financieros.');
     });
   }
 
@@ -179,17 +188,24 @@
   }
 
   function _savePago() {
+    var cotInput = document.getElementById('finPagoCotizacion');
     var cotId = document.getElementById('finPagoCotId').value;
-    var cotFolio = document.getElementById('finPagoCotizacion').value.trim();
+    var cotFolio = cotInput.value.trim();
     var tipo = document.getElementById('finPagoTipo').value;
-    var destId = document.getElementById('finPagoDest').value;
-    var monto = parseFloat(document.getElementById('finPagoMonto').value) || 0;
-    var fecha = document.getElementById('finPagoFecha').value;
+    var destEl = document.getElementById('finPagoDest');
+    var destId = destEl.value;
+    var montoEl = document.getElementById('finPagoMonto');
+    var monto = parseFloat(montoEl.value) || 0;
+    var fechaEl = document.getElementById('finPagoFecha');
+    var fecha = fechaEl.value;
 
-    if (!cotId) { BNKToast.warn('Selecciona una cotización.'); return; }
-    if (!destId) { BNKToast.warn('Selecciona un destinatario.'); return; }
-    if (monto <= 0) { BNKToast.warn('El monto debe ser mayor a 0.'); return; }
-    if (!fecha) { BNKToast.warn('La fecha es requerida.'); return; }
+    // Clear previous
+    [cotInput, destEl, montoEl, fechaEl].forEach(function (el) { BNKValidate.clear(el); });
+
+    if (!cotId) { BNKValidate.error(cotInput, 'Selecciona una cotización'); BNKToast.warn('Selecciona una cotización.'); return; }
+    if (!destId) { BNKValidate.error(destEl, 'Selecciona destinatario'); BNKToast.warn('Selecciona un destinatario.'); return; }
+    if (monto <= 0) { BNKValidate.error(montoEl, 'Monto mayor a 0'); BNKToast.warn('El monto debe ser mayor a 0.'); return; }
+    if (!fecha) { BNKValidate.error(fechaEl, 'Fecha requerida'); BNKToast.warn('La fecha es requerida.'); return; }
 
     var destList = tipo === 'partner' ? _partners : _proveedores;
     var dest = destList.find(function (d) { return d.id === destId; });
@@ -210,12 +226,17 @@
       registradoPor: user ? user.uid : ''
     };
 
+    var btn = document.getElementById('finPagoGuardar');
+    btn.disabled = true; btn.classList.add('processing');
+
     BNK_DB.pagos.create(data).then(function () {
       BNKToast.ok('Pago registrado.');
       _modal('finPagoOverlay', false);
       _loadData();
     }).catch(function (err) {
       BNKToast.error('Error: ' + err.message);
+    }).finally(function () {
+      btn.disabled = false; btn.classList.remove('processing');
     });
   }
 
@@ -433,8 +454,10 @@
   }
 
   function _savePartner() {
-    var nombre = document.getElementById('ptrNombre').value.trim();
-    if (!nombre) { BNKToast.warn('El nombre es requerido.'); return; }
+    var nombreEl = document.getElementById('ptrNombre');
+    BNKValidate.clear(nombreEl);
+    var nombre = nombreEl.value.trim();
+    if (!nombre) { BNKValidate.error(nombreEl, 'Nombre requerido'); BNKToast.warn('El nombre es requerido.'); return; }
 
     var data = {
       nombre: nombre,
@@ -468,12 +491,17 @@
       promise = BNK_DB.partners.create(data);
     }
 
+    var btn = document.getElementById('finPartnerGuardar');
+    btn.disabled = true; btn.classList.add('processing');
+
     promise.then(function () {
       BNKToast.ok(id ? 'Partner actualizado.' : 'Partner creado.');
       _modal('finPartnerOverlay', false);
       _loadData();
     }).catch(function (err) {
       BNKToast.error('Error: ' + err.message);
+    }).finally(function () {
+      btn.disabled = false; btn.classList.remove('processing');
     });
   }
 

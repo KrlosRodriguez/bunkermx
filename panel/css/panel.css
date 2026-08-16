@@ -40,9 +40,10 @@ body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;font-s
 .panel-logout-btn:hover{background:rgba(0,255,65,.08);border-color:rgba(0,255,65,.3)}
 
 /* ── TABS ── */
-.panel-tabs{display:flex;gap:0;padding:0 30px;border-bottom:1px solid var(--bd);background:rgba(5,9,5,.95);position:sticky;top:54px;z-index:90}
+.panel-tabs{display:flex;gap:0;padding:0 30px;border-bottom:1px solid var(--bd);background:rgba(5,9,5,.95);position:sticky;top:54px;z-index:90;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.panel-tabs::-webkit-scrollbar{display:none}
 .dash-tab{padding:12px 24px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--tx);
-  font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px}
+  font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px;white-space:nowrap;flex-shrink:0}
 .dash-tab:hover{color:var(--wh)}
 .dash-tab.active{color:var(--g);border-bottom-color:var(--g)}
 

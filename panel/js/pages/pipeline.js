@@ -28,10 +28,28 @@
       if (legEstancada) legEstancada.textContent = 'Estancada (>' + CONFIG.diasEstancada + 'd)';
     });
 
+    // Show loading on first load
+    var board = document.getElementById('pipelineBoard');
+    if (board && _firstLoad) {
+      var loadEl = document.createElement('div');
+      loadEl.className = 'dash-loading';
+      loadEl.textContent = 'CARGANDO PIPELINE...';
+      loadEl.id = 'pipeLoading';
+      board.parentNode.insertBefore(loadEl, board);
+    }
+
     _unsubscribe = BNK_DB.cotizaciones.onSnapshot(function (docs) {
       _data = docs;
-      _firstLoad = false;
+      if (_firstLoad) {
+        _firstLoad = false;
+        var ld = document.getElementById('pipeLoading');
+        if (ld) ld.remove();
+      }
       _render();
+    }, function (err) {
+      var ld = document.getElementById('pipeLoading');
+      if (ld) ld.textContent = 'Error al cargar pipeline.';
+      BNKToast.error('Error en pipeline: ' + (err && err.message ? err.message : 'desconocido'));
     });
 
     _bindEvents();
@@ -185,26 +203,41 @@
       + '<div><span class="bnk-label">TIPO</span><div><span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span></div></div>'
       + '<div><span class="bnk-label">TOTAL</span><div>' + _formatMXN(d.total) + '</div></div>'
       + '<div class="pipe-detail-estado-wrap"><span class="bnk-label">ESTADO</span><div>'
-      + '<select id="pipeDetailEstado" class="bnk-input" style="max-width:200px">' + _estadoOpts(d.estado) + '</select>'
+      + '<select id="pipeDetailEstado" class="bnk-input" style="max-width:200px" data-prev="' + _esc(d.estado) + '">' + _estadoOpts(d.estado) + '</select>'
       + '</div></div>'
       + '</div>';
     document.getElementById('pipeDetailInfo').innerHTML = info;
 
     document.getElementById('pipeDetailEstado').addEventListener('change', function () {
-      var newEstado = this.value;
+      var select = this;
+      var newEstado = select.value;
+      var prevEstado = select.getAttribute('data-prev') || d.estado;
       var user = BNK_AUTH.currentUser();
-      BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
-        BNKToast.ok('Estado actualizado a ' + newEstado + '.');
-        BNK_DB.actividad.add(id, {
-          tipo: 'cambio_estado',
-          estado: newEstado,
-          usuario: user ? user.nombre : 'Sistema',
-          nota: ''
+
+      function doUpdate() {
+        select.setAttribute('data-prev', newEstado);
+        BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
+          BNKToast.ok('Estado actualizado a ' + newEstado + '.');
+          BNK_DB.actividad.add(id, {
+            tipo: 'cambio_estado',
+            estado: newEstado,
+            usuario: user ? user.nombre : 'Sistema',
+            nota: ''
+          });
+          _loadTimeline(id);
+        }).catch(function (err) {
+          select.value = prevEstado;
+          BNKToast.error('Error al cambiar estado: ' + err.message);
         });
-        _loadTimeline(id);
-      }).catch(function (err) {
-        BNKToast.error('Error al cambiar estado: ' + err.message);
-      });
+      }
+
+      if (newEstado === 'Cancelada' || newEstado === 'Perdida') {
+        BNKConfirm.show('¿Cambiar estado a "' + newEstado + '"?', 'CONFIRMAR').then(function (ok) {
+          if (ok) { doUpdate(); } else { select.value = prevEstado; }
+        });
+      } else {
+        doUpdate();
+      }
     });
 
     _loadTimeline(id);

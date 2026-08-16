@@ -195,15 +195,22 @@
 
   // ── Validation ──
   function _validarFormulario() {
-    var empresa = document.getElementById('bnkEmpresa').value.trim();
-    if (!empresa) { BNKToast.warn('La empresa es requerida.'); return false; }
+    var empresaEl = document.getElementById('bnkEmpresa');
+    var eventoEl = document.getElementById('bnkEvento');
+    var telEl = document.getElementById('bnkTelefono');
+    var correoEl = document.getElementById('bnkCorreo');
 
-    var evento = document.getElementById('bnkEvento').value.trim();
-    if (!evento) { BNKToast.warn('El nombre del evento es requerido.'); return false; }
+    // Clear previous
+    [empresaEl, eventoEl, telEl, correoEl].forEach(function (el) { BNKValidate.clear(el); });
 
-    var tel = document.getElementById('bnkTelefono').value.trim();
-    var correo = document.getElementById('bnkCorreo').value.trim();
-    if (!tel && !correo) { BNKToast.warn('Ingresa al menos teléfono o correo.'); return false; }
+    if (!empresaEl.value.trim()) { BNKValidate.error(empresaEl, 'Empresa requerida'); BNKToast.warn('La empresa es requerida.'); return false; }
+    if (!eventoEl.value.trim()) { BNKValidate.error(eventoEl, 'Evento requerido'); BNKToast.warn('El nombre del evento es requerido.'); return false; }
+    if (!telEl.value.trim() && !correoEl.value.trim()) {
+      BNKValidate.error(telEl, 'Teléfono o correo requerido');
+      BNKValidate.error(correoEl, 'Teléfono o correo requerido');
+      BNKToast.warn('Ingresa al menos teléfono o correo.');
+      return false;
+    }
 
     var conceptos = _recopilarConceptos();
     if (conceptos.length === 0) { BNKToast.warn('Agrega al menos un concepto.'); return false; }

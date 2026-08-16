@@ -11,6 +11,13 @@
   var _expandedVid = null; // venue con calendario expandido (accordion)
 
   function init() {
+    var wizard = document.getElementById('mntWizard');
+    var loadingEl = document.createElement('div');
+    loadingEl.className = 'dash-loading';
+    loadingEl.textContent = 'CARGANDO CATÁLOGO...';
+    loadingEl.id = 'mntLoading';
+    if (wizard) { wizard.style.opacity = '0'; wizard.parentNode.insertBefore(loadingEl, wizard); }
+
     Promise.all([
       BNK_DB.catalogo.list(),
       BNK_DB.clientes.list()
@@ -18,8 +25,12 @@
       var allCatalogo = results[0];
       _venues = allCatalogo.filter(function (c) { return c.categoria === 'Venues' && c.activo !== false; });
       _clientes = results[1];
+      if (loadingEl.parentNode) loadingEl.remove();
+      if (wizard) wizard.style.opacity = '';
       _renderSpaces();
       _bindEvents();
+    }).catch(function () {
+      loadingEl.textContent = 'Error al cargar catálogo. Recarga la página.';
     });
   }
 
@@ -73,15 +84,24 @@
   }
 
   function _validateStep1() {
-    var cliente = document.getElementById('mntCliente').value.trim();
-    var evento = document.getElementById('mntEvento').value.trim();
-    var contacto = document.getElementById('mntContacto').value.trim();
-    var tel = document.getElementById('mntTelefono').value.trim();
-    var correo = document.getElementById('mntCorreo').value.trim();
-    if (!cliente) { BNKToast.warn('El cliente es requerido.'); return false; }
-    if (!evento) { BNKToast.warn('El nombre del evento es requerido.'); return false; }
-    if (!contacto) { BNKToast.warn('El contacto es requerido.'); return false; }
-    if (!tel && !correo) { BNKToast.warn('Teléfono o correo es requerido.'); return false; }
+    var clienteEl = document.getElementById('mntCliente');
+    var eventoEl = document.getElementById('mntEvento');
+    var contactoEl = document.getElementById('mntContacto');
+    var telEl = document.getElementById('mntTelefono');
+    var correoEl = document.getElementById('mntCorreo');
+
+    // Clear previous errors
+    [clienteEl, eventoEl, contactoEl, telEl, correoEl].forEach(function (el) { BNKValidate.clear(el); });
+
+    if (!clienteEl.value.trim()) { BNKValidate.error(clienteEl, 'Cliente requerido'); BNKToast.warn('El cliente es requerido.'); return false; }
+    if (!eventoEl.value.trim()) { BNKValidate.error(eventoEl, 'Evento requerido'); BNKToast.warn('El nombre del evento es requerido.'); return false; }
+    if (!contactoEl.value.trim()) { BNKValidate.error(contactoEl, 'Contacto requerido'); BNKToast.warn('El contacto es requerido.'); return false; }
+    if (!telEl.value.trim() && !correoEl.value.trim()) {
+      BNKValidate.error(telEl, 'Teléfono o correo requerido');
+      BNKValidate.error(correoEl, 'Teléfono o correo requerido');
+      BNKToast.warn('Teléfono o correo es requerido.');
+      return false;
+    }
     return true;
   }
 

@@ -274,16 +274,19 @@
   }
 
   function _save() {
-    var nombre = (document.getElementById('usrNombre') || {}).value || '';
-    nombre = nombre.trim();
-    var email = (document.getElementById('usrEmail') || {}).value || '';
-    email = email.trim();
+    var nombreEl = document.getElementById('usrNombre');
+    var emailEl = document.getElementById('usrEmail');
+    var nombre = (nombreEl ? nombreEl.value : '').trim();
+    var email = (emailEl ? emailEl.value : '').trim();
     var rol = (document.getElementById('usrRol') || {}).value || 'ventas';
 
-    if (!nombre || !email) {
-      BNKToast.warn('Nombre y email son requeridos.');
-      return;
-    }
+    // Clear previous errors
+    if (nombreEl) BNKValidate.clear(nombreEl);
+    if (emailEl) BNKValidate.clear(emailEl);
+
+    if (!nombre) { BNKValidate.error(nombreEl, 'Nombre requerido'); BNKToast.warn('El nombre es requerido.'); return; }
+    if (!email) { BNKValidate.error(emailEl, 'Email requerido'); BNKToast.warn('El email es requerido.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { BNKValidate.error(emailEl, 'Email inválido'); BNKToast.warn('El formato de email es inválido.'); return; }
 
     var btn = document.getElementById('usrGuardar');
     if (btn) { btn.disabled = true; btn.textContent = 'GUARDANDO...'; }
@@ -306,9 +309,11 @@
           if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR'; }
         });
     } else {
-      var pass = (document.getElementById('usrPass') || {}).value || '';
-      if (!pass || pass.length < 6) {
-        BNKToast.warn('La contraseña debe tener al menos 6 caracteres.');
+      var passEl = document.getElementById('usrPass');
+      var pass = (passEl ? passEl.value : '') || '';
+      if (!pass || pass.length < 8) {
+        if (passEl) BNKValidate.error(passEl, 'Mínimo 8 caracteres');
+        BNKToast.warn('La contraseña debe tener al menos 8 caracteres.');
         if (btn) { btn.disabled = false; btn.textContent = 'GUARDAR'; }
         return;
       }

@@ -168,7 +168,7 @@
         + '<td>';
 
       if (_canEdit) {
-        html += '<select class="estado-select ' + estadoClass + '" data-id="' + _esc(d.id) + '">'
+        html += '<select class="estado-select ' + estadoClass + '" data-id="' + _esc(d.id) + '" data-prev="' + _esc(d.estado || 'Cotizada') + '">'
           + _estadoOptions(d.estado)
           + '</select>';
       } else {
@@ -301,21 +301,33 @@
       if (!_canEdit) return;
       var id = select.getAttribute('data-id');
       var newEstado = select.value;
+      var prevEstado = select.getAttribute('data-prev') || '';
       var user = BNK_AUTH.currentUser();
 
-      BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
-        BNKToast.ok('Estado actualizado a ' + newEstado);
-        BNK_DB.actividad.add(id, {
-          tipo: 'cambio_estado',
-          estado: newEstado,
-          usuario: user ? user.nombre : 'Sistema',
-          nota: ''
-        }).catch(function () {
-          // Actividad log failed — non-critical
+      function doUpdate() {
+        select.setAttribute('data-prev', newEstado);
+        BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
+          BNKToast.ok('Estado actualizado a ' + newEstado);
+          BNK_DB.actividad.add(id, {
+            tipo: 'cambio_estado',
+            estado: newEstado,
+            usuario: user ? user.nombre : 'Sistema',
+            nota: ''
+          }).catch(function () {});
+        }).catch(function (err) {
+          select.value = prevEstado;
+          BNKToast.error('Error al actualizar estado: ' + (err && err.message ? err.message : 'desconocido'));
         });
-      }).catch(function (err) {
-        BNKToast.error('Error al actualizar estado: ' + (err && err.message ? err.message : 'desconocido'));
-      });
+      }
+
+      // Confirm destructive states
+      if (newEstado === 'Cancelada' || newEstado === 'Perdida') {
+        BNKConfirm.show('¿Cambiar estado a "' + newEstado + '"? Esta acción es significativa.', 'CONFIRMAR').then(function (ok) {
+          if (ok) { doUpdate(); } else { select.value = prevEstado; }
+        });
+      } else {
+        doUpdate();
+      }
     });
 
     // Delete
