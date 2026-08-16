@@ -567,7 +567,7 @@
       iva: iva,
       total: total,
       linkPdf: '',
-      estado: 'Nueva',
+      estado: 'Recorrido',
       creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 

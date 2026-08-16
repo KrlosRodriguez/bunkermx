@@ -74,7 +74,11 @@
 
     var html = '';
     ESTADOS.forEach(function (estado) {
-      var cards = filtered.filter(function (d) { return (d.estado || 'Cotizada') === estado; });
+      var cards = filtered.filter(function (d) {
+        var e = d.estado || 'Recorrido';
+        if (e === 'Nueva') e = 'Recorrido';
+        return e === estado;
+      });
       var totalMonto = cards.reduce(function (s, d) { return s + (parseFloat(d.total) || 0); }, 0);
 
       html += '<div class="pipeline-col">'
