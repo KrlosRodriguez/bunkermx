@@ -78,7 +78,7 @@
     if (!desde) return _data;
 
     return _data.filter(function (d) {
-      var fecha = _parseFecha(d.fecha);
+      var fecha = _parseFecha(d.fecha || d.createdAt);
       return fecha && fecha >= desde;
     });
   }
@@ -146,7 +146,11 @@
     var counts = {};
     var montos = {};
     estados.forEach(function (e) {
-      var items = data.filter(function (d) { return (d.estado || 'Cotizada') === e; });
+      var items = data.filter(function (d) {
+        var est = d.estado || 'Recorrido';
+        if (est === 'Nueva') est = 'Recorrido';
+        return est === e;
+      });
       counts[e] = items.length;
       montos[e] = items.reduce(function (s, d) { return s + (parseFloat(d.total) || 0); }, 0);
     });
@@ -173,7 +177,7 @@
 
     var mesesMap = {};
     data.forEach(function (d) {
-      var fecha = d.fecha || '';
+      var fecha = d.fecha || d.createdAt || '';
       if (typeof fecha === 'object' && fecha.toDate) fecha = fecha.toDate().toISOString();
       var mes = String(fecha).substring(0, 7);
       if (!mes || mes.length < 7) return;
@@ -270,14 +274,14 @@
     var now = Date.now();
     var ms28d = 28 * 24 * 60 * 60 * 1000;
     var semana4 = _data.filter(function (d) {
-      var f = _parseFecha(d.fecha);
+      var f = _parseFecha(d.fecha || d.createdAt);
       return f && (now - f.getTime()) < ms28d;
     });
 
     // Calculate actual weeks elapsed (min 1 to avoid division by zero)
     var oldestInRange = now;
     semana4.forEach(function (d) {
-      var f = _parseFecha(d.fecha);
+      var f = _parseFecha(d.fecha || d.createdAt);
       if (f && f.getTime() < oldestInRange) oldestInRange = f.getTime();
     });
     var weeksElapsed = semana4.length > 0 ? Math.max(1, Math.ceil((now - oldestInRange) / (7 * 24 * 60 * 60 * 1000))) : 1;
