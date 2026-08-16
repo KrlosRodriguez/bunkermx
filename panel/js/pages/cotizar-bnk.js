@@ -46,6 +46,42 @@
     return 'BNK-' + yy + mm + dd + '-' + rand;
   }
 
+  // ── Selector de marca ──
+  function _showMarcaSelector(prefix, clienteId) {
+    var wrap = document.getElementById(prefix + 'MarcaWrap');
+    var select = document.getElementById(prefix + 'Marca');
+    if (!wrap || !select) return;
+
+    var cliente = null;
+    for (var i = 0; i < _clientes.length; i++) {
+      if (_clientes[i].id === clienteId) { cliente = _clientes[i]; break; }
+    }
+
+    var marcas = cliente && window.BNKClientes ? BNKClientes.parseMarcas(cliente.marcas) : [];
+    if (marcas.length === 0) {
+      wrap.classList.remove('visible');
+      select.innerHTML = '<option value="">\u2014 Sin marca \u2014</option>';
+      return;
+    }
+
+    var html = '<option value="">\u2014 Seleccionar marca \u2014</option>';
+    marcas.forEach(function (m) {
+      html += '<option value="' + _esc(m) + '">' + _esc(m) + '</option>';
+    });
+    select.innerHTML = html;
+
+    if (marcas.length === 1) {
+      select.value = marcas[0];
+    }
+
+    wrap.classList.add('visible');
+  }
+
+  function _hideMarcaSelector(prefix) {
+    var wrap = document.getElementById(prefix + 'MarcaWrap');
+    if (wrap) wrap.classList.remove('visible');
+  }
+
   // ── Autocompletado de clientes ──
   function _setupAutocomplete() {
     var input = document.getElementById('bnkEmpresa');
@@ -66,13 +102,20 @@
     }
 
     function _acSelect(item) {
-      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
+      if (!item || item.classList.contains('bnk-ac-new')) {
+        dropdown.classList.remove('visible');
+        _hideMarcaSelector('bnk');
+        return;
+      }
       document.getElementById('bnkEmpresa').value = item.getAttribute('data-empresa') || '';
       document.getElementById('bnkContacto').value = item.getAttribute('data-contacto') || '';
       document.getElementById('bnkTelefono').value = item.getAttribute('data-telefono') || '';
       document.getElementById('bnkCorreo').value = item.getAttribute('data-correo') || '';
       dropdown.classList.remove('visible');
       _acIndex = -1;
+      // Mostrar selector de marca si tiene marcas
+      var clienteId = item.getAttribute('data-cliente-id') || '';
+      _showMarcaSelector('bnk', clienteId);
     }
 
     input.addEventListener('input', function () {
@@ -88,11 +131,14 @@
       var html = '';
       matches.slice(0, 8).forEach(function (c) {
         var nombre = c.empresa || c.razonSocial || '';
+        var marcasArr = window.BNKClientes ? BNKClientes.parseMarcas(c.marcas) : [];
+        var marcasHint = marcasArr.length > 0 ? ' <span style="color:var(--tx);font-size:10px">(' + _esc(marcasArr.join(', ')) + ')</span>' : '';
         html += '<div class="bnk-ac-item" data-empresa="' + _esc(nombre)
           + '" data-contacto="' + _esc(c.personaContacto || '')
           + '" data-telefono="' + _esc(c.telefonoContacto || '')
-          + '" data-correo="' + _esc(c.correoContacto || '') + '">'
-          + _esc(nombre) + '</div>';
+          + '" data-correo="' + _esc(c.correoContacto || '')
+          + '" data-cliente-id="' + _esc(c.id || '') + '">'
+          + _esc(nombre) + marcasHint + '</div>';
       });
       if (matches.length === 0) {
         html = '<div class="bnk-ac-item bnk-ac-new">Nuevo: "' + _esc(input.value.trim()) + '"</div>';
@@ -476,9 +522,13 @@
     var condPago = document.getElementById('bnkCondPago').value.trim();
     var notas = document.getElementById('bnkNotas').value.trim();
 
+    var marcaSel = document.getElementById('bnkMarca');
+    var marcaVal = marcaSel ? marcaSel.value : '';
+
     var pdfData = {
       folio: folio,
       empresa: document.getElementById('bnkEmpresa').value.trim(),
+      marca: marcaVal,
       contacto: document.getElementById('bnkContacto').value.trim(),
       evento: document.getElementById('bnkEvento').value.trim(),
       fechaEvento: document.getElementById('bnkFechaEvento').value,
@@ -498,8 +548,10 @@
     var firestoreData = {
       fuente: 'BNK',
       folio: folio,
+      fecha: new Date().toISOString(),
       folioMNT: document.getElementById('bnkFolioMNT').value.trim(),
       empresa: pdfData.empresa,
+      marca: marcaVal,
       contacto: pdfData.contacto,
       telefono: document.getElementById('bnkTelefono').value.trim(),
       correo: document.getElementById('bnkCorreo').value.trim(),
@@ -546,6 +598,7 @@
     ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });
+    _hideMarcaSelector('bnk');
     document.getElementById('bnkSede').value = 'MUNET';
     document.getElementById('bnkConceptosBody').innerHTML = '';
     _conceptoCounter = 0;

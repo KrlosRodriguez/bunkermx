@@ -71,7 +71,7 @@
 
     return _data.filter(function (d) {
       if (search) {
-        var hay = [d.folio, d.cliente, d.evento, d.espacios, d.folioMNT].join(' ').toLowerCase();
+        var hay = [d.folio, d.cliente, d.marca, d.evento, d.espacios, d.folioMNT].join(' ').toLowerCase();
         if (hay.indexOf(search) === -1) return false;
       }
       if (estado && d.estado !== estado) return false;
@@ -155,12 +155,13 @@
     page.forEach(function (d) {
       var estadoClass = 'estado-' + (d.estado || 'Cotizada').replace(/\s/g, '');
       var tipoClass = 'tipo-' + (d.fuente || 'MNT');
-      var fechaFormatted = _formatDate(d.fecha);
+      var fechaFormatted = _formatDate(d.fecha || d.createdAt);
 
       html += '<tr data-id="' + _esc(d.id) + '">'
         + '<td class="col-folio">' + _esc(d.folio) + '</td>'
         + '<td>' + _esc(fechaFormatted) + '</td>'
         + '<td>' + _esc(d.cliente) + '</td>'
+        + '<td style="color:var(--tx);font-size:12px">' + _esc(d.marca || '\u2014') + '</td>'
         + '<td>' + _esc(d.evento || '\u2014') + '</td>'
         + '<td><span class="tipo-badge ' + tipoClass + '">' + _esc(d.fuente || 'MNT') + '</span></td>'
         + '<td>' + _esc(d.espacios || 'Servicios') + '</td>'

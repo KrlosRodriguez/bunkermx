@@ -120,6 +120,42 @@
     return true;
   }
 
+  // ── Selector de marca ──
+  function _showMarcaSelector(prefix, clienteId) {
+    var wrap = document.getElementById(prefix + 'MarcaWrap');
+    var select = document.getElementById(prefix + 'Marca');
+    if (!wrap || !select) return;
+
+    var cliente = null;
+    for (var i = 0; i < _clientes.length; i++) {
+      if (_clientes[i].id === clienteId) { cliente = _clientes[i]; break; }
+    }
+
+    var marcas = cliente && window.BNKClientes ? BNKClientes.parseMarcas(cliente.marcas) : [];
+    if (marcas.length === 0) {
+      wrap.classList.remove('visible');
+      select.innerHTML = '<option value="">\u2014 Sin marca \u2014</option>';
+      return;
+    }
+
+    var html = '<option value="">\u2014 Seleccionar marca \u2014</option>';
+    marcas.forEach(function (m) {
+      html += '<option value="' + _esc(m) + '">' + _esc(m) + '</option>';
+    });
+    select.innerHTML = html;
+
+    if (marcas.length === 1) {
+      select.value = marcas[0];
+    }
+
+    wrap.classList.add('visible');
+  }
+
+  function _hideMarcaSelector(prefix) {
+    var wrap = document.getElementById(prefix + 'MarcaWrap');
+    if (wrap) wrap.classList.remove('visible');
+  }
+
   // ── Autocompletado de clientes ──
   function _setupAutocomplete() {
     var input = document.getElementById('mntCliente');
@@ -140,13 +176,20 @@
     }
 
     function _acSelect(item) {
-      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
+      if (!item || item.classList.contains('bnk-ac-new')) {
+        dropdown.classList.remove('visible');
+        _hideMarcaSelector('mnt');
+        return;
+      }
       document.getElementById('mntCliente').value = item.getAttribute('data-empresa') || '';
       document.getElementById('mntContacto').value = item.getAttribute('data-contacto') || '';
       document.getElementById('mntTelefono').value = item.getAttribute('data-telefono') || '';
       document.getElementById('mntCorreo').value = item.getAttribute('data-correo') || '';
       dropdown.classList.remove('visible');
       _acIndex = -1;
+      // Mostrar selector de marca si tiene marcas
+      var clienteId = item.getAttribute('data-cliente-id') || '';
+      _showMarcaSelector('mnt', clienteId);
     }
 
     input.addEventListener('input', function () {
@@ -162,11 +205,14 @@
       var html = '';
       matches.slice(0, 8).forEach(function (c) {
         var nombre = c.empresa || c.razonSocial || '';
+        var marcasArr = window.BNKClientes ? BNKClientes.parseMarcas(c.marcas) : [];
+        var marcasHint = marcasArr.length > 0 ? ' <span style="color:var(--tx);font-size:10px">(' + _esc(marcasArr.join(', ')) + ')</span>' : '';
         html += '<div class="bnk-ac-item" data-empresa="' + _esc(nombre)
           + '" data-contacto="' + _esc(c.personaContacto || '')
           + '" data-telefono="' + _esc(c.telefonoContacto || '')
-          + '" data-correo="' + _esc(c.correoContacto || '') + '">'
-          + _esc(nombre) + '</div>';
+          + '" data-correo="' + _esc(c.correoContacto || '')
+          + '" data-cliente-id="' + _esc(c.id || '') + '">'
+          + _esc(nombre) + marcasHint + '</div>';
       });
       if (matches.length === 0) {
         html = '<div class="bnk-ac-item bnk-ac-new">Nuevo: "' + _esc(input.value.trim()) + '"</div>';
@@ -750,10 +796,24 @@
     var espaciosNombres = calc.desglose.map(function (d) { return d.nombre; }).join(', ');
     var fechasResumen = _buildFechasResumen(calc.desglose);
 
+    var mntMarcaSel = document.getElementById('mntMarca');
+    var mntMarcaVal = mntMarcaSel ? mntMarcaSel.value : '';
+
+    // Determinar primera fecha de evento para calendario y ordenamiento
+    var allEventDays = [];
+    calc.desglose.forEach(function (d) {
+      d.eventDays.forEach(function (day) { if (allEventDays.indexOf(day) < 0) allEventDays.push(day); });
+    });
+    allEventDays.sort();
+    var primeraFecha = allEventDays.length > 0 ? allEventDays[0] : new Date().toISOString().substring(0, 10);
+
     var data = {
       fuente: 'MNT',
       folio: folio,
+      fecha: new Date().toISOString(),
+      fechaEvento: primeraFecha,
       cliente: document.getElementById('mntCliente').value.trim(),
+      marca: mntMarcaVal,
       agencia: document.getElementById('mntAgencia').value.trim(),
       evento: document.getElementById('mntEvento').value.trim(),
       contacto: document.getElementById('mntContacto').value.trim(),
@@ -817,6 +877,7 @@
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
+    _hideMarcaSelector('mnt');
     var vigEl = document.getElementById('mntVigencia');
     if (vigEl) vigEl.value = '15 días naturales';
     var condEl = document.getElementById('mntCondPago');

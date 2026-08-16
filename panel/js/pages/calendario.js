@@ -125,11 +125,28 @@
 
     // Cotizaciones
     _cotizaciones.forEach(function (c) {
-      var fechaEvento = c.fechaEvento || c.fecha || '';
-      if (typeof fechaEvento === 'object' && fechaEvento.toDate) {
-        fechaEvento = fechaEvento.toDate().toISOString().substring(0, 10);
+      // MNT cotizaciones: check all event days from desgloseVenues
+      var matchesFecha = false;
+      if (c.desgloseVenues) {
+        try {
+          var desglose = JSON.parse(c.desgloseVenues);
+          for (var i = 0; i < desglose.length; i++) {
+            if (desglose[i].eventDays && desglose[i].eventDays.indexOf(fecha) !== -1) {
+              matchesFecha = true;
+              break;
+            }
+          }
+        } catch (e) { /* ignore parse errors */ }
       }
-      if (String(fechaEvento).substring(0, 10) !== fecha) return;
+      // Fallback: single fechaEvento (BNK cotizaciones)
+      if (!matchesFecha) {
+        var fechaEvento = c.fechaEvento || c.fecha || c.createdAt || '';
+        if (typeof fechaEvento === 'object' && fechaEvento.toDate) {
+          fechaEvento = fechaEvento.toDate().toISOString().substring(0, 10);
+        }
+        if (String(fechaEvento).substring(0, 10) === fecha) matchesFecha = true;
+      }
+      if (!matchesFecha) return;
 
       if (_espacioFiltro !== 'todos') {
         var espacios = _normalizarTexto(c.espacios || '');
@@ -197,7 +214,7 @@
     var prefijo = _anio + '-' + mesStr;
 
     var cotMes = _cotizaciones.filter(function (c) {
-      var f = c.fechaEvento || c.fecha || '';
+      var f = c.fechaEvento || c.fecha || c.createdAt || '';
       if (typeof f === 'object' && f.toDate) f = f.toDate().toISOString();
       return String(f).substring(0, 7) === prefijo;
     });
@@ -236,7 +253,7 @@
       hoy.setHours(0, 0, 0, 0);
       var proximo = null;
       _cotizaciones.forEach(function (c) {
-        var f = c.fechaEvento || '';
+        var f = c.fechaEvento || c.fecha || c.createdAt || '';
         if (typeof f === 'object' && f.toDate) f = f.toDate().toISOString().substring(0, 10);
         f = String(f).substring(0, 10);
         if (!f) return;
