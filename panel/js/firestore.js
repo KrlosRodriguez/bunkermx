@@ -119,7 +119,7 @@
 
   // ── API pública ──
   window.BNK_DB = {
-    cotizaciones:        collectionAPI('cotizaciones', { orderBy: { field: 'fecha', dir: 'desc' } }),
+    cotizaciones:        collectionAPI('cotizaciones', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     clientes:            collectionAPI('clientes', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
     proveedores:         collectionAPI('proveedores', { orderBy: { field: 'razonSocial', dir: 'asc' } }),
     catalogo:            collectionAPI('catalogo', { orderBy: { field: 'categoria', dir: 'asc' } }),

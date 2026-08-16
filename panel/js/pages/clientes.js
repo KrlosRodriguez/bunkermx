@@ -22,9 +22,9 @@
   var _focusTrapCleanup = null;
 
   // ── Mapeo campo backend → id de elemento HTML ──
+  // NOTA: 'marcas' se maneja aparte como chips (array), no como input simple
   var CAMPO_ID = {
     empresa:             'cliEmpresa',
-    marcas:              'cliMarcas',
     tipoPersona:         'cliTipoPersona',
     condicionesPago:     'cliCondicionesPago',
     cuentaActiva:        'cliCuentaActiva',
@@ -90,6 +90,113 @@
     var el = _getEl(id);
     if (!el) return;
     el.value = (val !== undefined && val !== null) ? val : '';
+  }
+
+  // ── Chips de marcas ──
+  var _marcasActuales = []; // array de strings para el modal actual
+
+  function _parseMarcas(val) {
+    if (Array.isArray(val)) return val.filter(function (v) { return v && String(v).trim(); });
+    if (!val || typeof val !== 'string') return [];
+    return val.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function _renderChips() {
+    var wrap = _getEl('cliMarcasWrap');
+    var input = _getEl('cliMarcasInput');
+    if (!wrap) return;
+    // Remove existing chips
+    var existing = wrap.querySelectorAll('.bnk-chip');
+    existing.forEach(function (c) { c.remove(); });
+    // Insert chips before input
+    _marcasActuales.forEach(function (marca, idx) {
+      var chip = document.createElement('span');
+      chip.className = 'bnk-chip';
+      chip.innerHTML = '<span class="bnk-chip-text">' + _escapeHTML(marca) + '</span>'
+        + '<button class="bnk-chip-x" data-idx="' + idx + '" type="button" title="Quitar">&times;</button>';
+      wrap.insertBefore(chip, input);
+    });
+  }
+
+  function _addMarca(texto) {
+    texto = texto.trim();
+    if (!texto) return;
+    // No duplicar
+    var existe = _marcasActuales.some(function (m) { return m.toLowerCase() === texto.toLowerCase(); });
+    if (existe) { BNKToast.warn('La marca "' + texto + '" ya existe.'); return; }
+    _marcasActuales.push(texto);
+    _renderChips();
+  }
+
+  function _removeMarca(idx) {
+    _marcasActuales.splice(idx, 1);
+    _renderChips();
+  }
+
+  function _setupChipsEvents() {
+    var wrap = _getEl('cliMarcasWrap');
+    var input = _getEl('cliMarcasInput');
+    if (!wrap || !input) return;
+
+    // Click on wrap focuses input
+    wrap.addEventListener('click', function (e) {
+      if (e.target === wrap) input.focus();
+    });
+
+    // Enter or comma to add
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        _addMarca(input.value.replace(',', ''));
+        input.value = '';
+      }
+      // Backspace on empty input removes last chip
+      if (e.key === 'Backspace' && !input.value && _marcasActuales.length > 0) {
+        _removeMarca(_marcasActuales.length - 1);
+      }
+    });
+
+    // Blur also adds if there's text
+    input.addEventListener('blur', function () {
+      if (input.value.trim()) {
+        _addMarca(input.value);
+        input.value = '';
+      }
+    });
+
+    // Delete chip via X button (delegation)
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('.bnk-chip-x');
+      if (!btn) return;
+      var idx = parseInt(btn.getAttribute('data-idx'));
+      if (!isNaN(idx)) _removeMarca(idx);
+    });
+  }
+
+  // ── Detección de duplicados por empresa ──
+  function _checkDuplicado(empresa) {
+    if (!empresa) return;
+    var empresaLower = empresa.trim().toLowerCase();
+    var idActual = _getVal('cliId').trim();
+    var duplicado = null;
+    for (var i = 0; i < _clientes.length; i++) {
+      var c = _clientes[i];
+      if (c.id === idActual) continue;
+      if ((c.empresa || '').trim().toLowerCase() === empresaLower) {
+        duplicado = c;
+        break;
+      }
+    }
+    // Mostrar/ocultar warning
+    var warnEl = _getEl('cliDupWarn');
+    if (!warnEl) return;
+    if (duplicado) {
+      warnEl.textContent = '\u26A0 Ya existe "' + duplicado.empresa + '" (' + duplicado.id + '). Clic para abrir ese registro.';
+      warnEl.setAttribute('data-dup-id', duplicado.id);
+      warnEl.classList.add('visible');
+    } else {
+      warnEl.classList.remove('visible');
+    }
   }
 
   // ── calcCompletitud ──
@@ -209,7 +316,8 @@
 
       var idSafe      = _escapeHTML(c.id || '');
       var empresaSafe = _escapeHTML(c.empresa || '\u2014');
-      var marcasSafe  = _escapeHTML(c.marcas  || '\u2014');
+      var marcasArr   = _parseMarcas(c.marcas);
+      var marcasSafe  = marcasArr.length > 0 ? _escapeHTML(marcasArr.join(', ')) : '\u2014';
       var fechaEdSafe = _escapeHTML(c.fechaEdicion || '\u2014');
 
       html += '<tr>'
@@ -266,6 +374,12 @@
     _setVal('cliCuentaActiva', 'Sí');
     _setVal('cliPais', 'México');
 
+    // Reset marcas chips
+    _marcasActuales = [];
+    // Hide duplicate warning
+    var dupWarn = _getEl('cliDupWarn');
+    if (dupWarn) dupWarn.classList.remove('visible');
+
     if (modo === 'crear') {
       if (titulo) titulo.textContent = 'NUEVO CLIENTE';
       _actualizarCirculo(0);
@@ -284,6 +398,11 @@
         }
       });
 
+      // Cargar marcas como chips
+      if (clienteData) {
+        _marcasActuales = _parseMarcas(clienteData.marcas);
+      }
+
       // Modo ver: deshabilitar todos los campos
       var esVer = (modo === 'ver');
       var modal = overlay.querySelector('.bnk-modal');
@@ -296,10 +415,19 @@
         var btnGuardar = _getEl('cliGuardar');
         if (btnGuardar) btnGuardar.style.display = esVer ? 'none' : '';
       }
+      // Disable chips wrap in view mode
+      var chipsWrap = _getEl('cliMarcasWrap');
+      if (chipsWrap) {
+        if (esVer) chipsWrap.classList.add('disabled');
+        else chipsWrap.classList.remove('disabled');
+      }
 
       var pct = calcCompletitud(clienteData);
       _actualizarCirculo(pct);
     }
+
+    // Renderizar chips de marcas
+    _renderChips();
 
     // Mostrar primer tab
     _activarTab('cliTabGeneral');
@@ -386,6 +514,8 @@
     inputs.forEach(function (el) { el.disabled = false; });
     var btnGuardar = _getEl('cliGuardar');
     if (btnGuardar) btnGuardar.style.display = '';
+    var chipsWrap = _getEl('cliMarcasWrap');
+    if (chipsWrap) chipsWrap.classList.remove('disabled');
   }
 
   // ── Activar tab en el modal (con fade) ──
@@ -473,6 +603,9 @@
     Object.keys(CAMPO_ID).forEach(function (campo) {
       data[campo] = _getVal(CAMPO_ID[campo]).trim();
     });
+
+    // Marcas como array
+    data.marcas = _marcasActuales.slice();
 
     // Agregar fecha de edición
     data.fechaEdicion = new Date().toISOString().slice(0, 10);
@@ -611,7 +744,8 @@
         if (window.BNKSort && _sortKey) data = BNKSort.apply(data, _sortKey, _sortDir);
         var headers = ['No. Cliente', 'Empresa', 'Marcas', 'Cuenta Activa', 'Tipo Persona', 'Contacto', 'Correo', 'Teléfono', 'RFC', 'Fecha Alta', 'Últ. Edición'];
         var rows = data.map(function (c) {
-          return [c.id, c.empresa || '', c.marcas || '', c.cuentaActiva || '', c.tipoPersona || '',
+          var marcasStr = Array.isArray(c.marcas) ? c.marcas.join(', ') : (c.marcas || '');
+          return [c.id, c.empresa || '', marcasStr, c.cuentaActiva || '', c.tipoPersona || '',
             c.personaContacto || '', c.correoContacto || '', c.telefonoContacto || '',
             c.rfc || '', c.fechaAlta || '', c.fechaEdicion || ''];
         });
@@ -694,6 +828,41 @@
     _setupModalTabs();
     _setupFiltros();
     _setupTablaAcciones();
+    _setupChipsEvents();
+
+    // Inyectar warning de duplicados bajo cliEmpresa
+    var empresaGroup = _getEl('cliEmpresa') ? _getEl('cliEmpresa').closest('.bnk-form-group') : null;
+    if (empresaGroup && !_getEl('cliDupWarn')) {
+      var warn = document.createElement('div');
+      warn.className = 'bnk-dup-warn';
+      warn.id = 'cliDupWarn';
+      empresaGroup.appendChild(warn);
+    }
+
+    // Detección de duplicados al escribir empresa
+    var cliEmpresa = _getEl('cliEmpresa');
+    if (cliEmpresa) {
+      cliEmpresa.addEventListener('blur', function () {
+        _checkDuplicado(cliEmpresa.value);
+      });
+    }
+
+    // Click en warning abre el registro existente
+    var dupWarn = _getEl('cliDupWarn');
+    if (dupWarn) {
+      dupWarn.addEventListener('click', function () {
+        var dupId = dupWarn.getAttribute('data-dup-id');
+        if (!dupId) return;
+        cerrarModal();
+        setTimeout(function () {
+          var cliente = null;
+          for (var i = 0; i < _clientes.length; i++) {
+            if (_clientes[i].id === dupId) { cliente = _clientes[i]; break; }
+          }
+          if (cliente) abrirModal(cliente, 'editar');
+        }, 300);
+      });
+    }
   }
 
   // ── Inicializar con BNK_AUTH.onReady ──
@@ -713,6 +882,7 @@
     cerrarModal:       cerrarModal,
     guardarCliente:    guardarCliente,
     eliminarCliente:   eliminarCliente,
+    parseMarcas:       _parseMarcas,
     getData:           function () { return _clientes; },
     openDetail:        function (clienteId) {
       var cliente = null;

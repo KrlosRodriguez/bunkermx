@@ -129,6 +129,7 @@
             <th class="sortable" data-key="folio">FOLIO</th>
             <th class="sortable" data-key="fecha">FECHA</th>
             <th class="sortable" data-key="cliente">CLIENTE</th>
+            <th class="sortable" data-key="marca">MARCA</th>
             <th>EVENTO</th>
             <th>TIPO</th>
             <th>DETALLE</th>
@@ -177,6 +178,10 @@
               <input type="text" class="bnk-input" id="mntCliente" placeholder="Buscar cliente..." autocomplete="off">
             </div>
             <div class="bnk-autocomplete" id="mntAutoCliente"></div>
+            <div class="bnk-marca-wrap" id="mntMarcaWrap">
+              <label class="bnk-marca-label">MARCA</label>
+              <select class="bnk-marca-select" id="mntMarca"><option value="">— Sin marca —</option></select>
+            </div>
           </div>
           <div class="bnk-form-group">
             <label class="bnk-label">AGENCIA / PRODUCTORA</label>
@@ -309,6 +314,10 @@
               <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
             </div>
             <div class="bnk-autocomplete" id="bnkAutoEmpresa"></div>
+            <div class="bnk-marca-wrap" id="bnkMarcaWrap">
+              <label class="bnk-marca-label">MARCA</label>
+              <select class="bnk-marca-select" id="bnkMarca"><option value="">— Sin marca —</option></select>
+            </div>
           </div>
           <div class="bnk-form-group">
             <label class="bnk-label">CONTACTO</label>
@@ -520,7 +529,11 @@
           <div class="modal-tab-content active" id="cliTabGeneral">
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">EMPRESA *</label><input type="text" class="bnk-input" id="cliEmpresa"></div>
-              <div class="bnk-form-group"><label class="bnk-label">MARCAS</label><input type="text" class="bnk-input" id="cliMarcas"></div>
+              <div class="bnk-form-group"><label class="bnk-label">MARCAS</label>
+                <div class="bnk-chips-wrap" id="cliMarcasWrap">
+                  <input type="text" class="bnk-chips-input" id="cliMarcasInput" placeholder="Escribe y presiona Enter...">
+                </div>
+              </div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO PERSONA</label>
                 <select class="bnk-input" id="cliTipoPersona"><option value="">—</option><option value="Física">Física</option><option value="Moral">Moral</option></select>
               </div>

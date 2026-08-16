@@ -253,11 +253,11 @@
     var btnMNT = document.getElementById('cotBtnNuevaMNT');
     var btnBNK = document.getElementById('cotBtnNuevaBNK');
     if (btnMNT) btnMNT.addEventListener('click', function () {
-      var tab = document.querySelector('[data-tab="sec-cotizar-mnt"]');
+      var tab = document.querySelector('[data-tab="cotizar-mnt"]');
       if (tab) tab.click();
     });
     if (btnBNK) btnBNK.addEventListener('click', function () {
-      var tab = document.querySelector('[data-tab="sec-cotizar-bnk"]');
+      var tab = document.querySelector('[data-tab="cotizar-bnk"]');
       if (tab) tab.click();
     });
   }
