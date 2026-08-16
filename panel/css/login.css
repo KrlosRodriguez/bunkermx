@@ -1,9 +1,9 @@
 /* login.css — Pantalla de login panel BUNKER */
 :root {
   --bk: #0a0a0a;
-  --gold: rgba(198,163,80,1);
-  --gold-dim: rgba(198,163,80,.5);
-  --gold-glow: rgba(198,163,80,.15);
+  --gold: rgba(0,255,65,1);
+  --gold-dim: rgba(0,255,65,.5);
+  --gold-glow: rgba(0,255,65,.1);
   --wh: #fff;
   --wh-dim: rgba(255,255,255,.4);
   --err: #e74c3c;
@@ -54,7 +54,7 @@ body.login-page {
   width: 100%;
   padding: .7rem .8rem;
   background: rgba(255,255,255,.05);
-  border: 1px solid rgba(198,163,80,.2);
+  border: 1px solid rgba(0,255,65,.2);
   color: var(--wh);
   font-family: 'Barlow', sans-serif;
   font-size: 1rem;

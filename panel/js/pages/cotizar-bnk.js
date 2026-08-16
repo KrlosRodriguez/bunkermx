@@ -52,7 +52,31 @@
     var dropdown = document.getElementById('bnkAutoEmpresa');
     if (!input || !dropdown) return;
 
+    var _acIndex = -1;
+
+    function _acItems() { return dropdown.querySelectorAll('.bnk-ac-item'); }
+
+    function _acHighlight(idx) {
+      var items = _acItems();
+      items.forEach(function (it) { it.classList.remove('bnk-ac-active'); });
+      if (idx >= 0 && idx < items.length) {
+        items[idx].classList.add('bnk-ac-active');
+        items[idx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function _acSelect(item) {
+      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
+      document.getElementById('bnkEmpresa').value = item.getAttribute('data-empresa') || '';
+      document.getElementById('bnkContacto').value = item.getAttribute('data-contacto') || '';
+      document.getElementById('bnkTelefono').value = item.getAttribute('data-telefono') || '';
+      document.getElementById('bnkCorreo').value = item.getAttribute('data-correo') || '';
+      dropdown.classList.remove('visible');
+      _acIndex = -1;
+    }
+
     input.addEventListener('input', function () {
+      _acIndex = -1;
       var val = input.value.trim().toLowerCase();
       if (val.length < 2) { dropdown.classList.remove('visible'); return; }
 
@@ -77,19 +101,37 @@
       dropdown.classList.add('visible');
     });
 
+    input.addEventListener('keydown', function (e) {
+      if (!dropdown.classList.contains('visible')) return;
+      var items = _acItems();
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _acIndex = Math.min(_acIndex + 1, items.length - 1);
+        _acHighlight(_acIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _acIndex = Math.max(_acIndex - 1, 0);
+        _acHighlight(_acIndex);
+      } else if (e.key === 'Enter') {
+        if (_acIndex >= 0 && _acIndex < items.length) {
+          e.preventDefault();
+          _acSelect(items[_acIndex]);
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.classList.remove('visible');
+        _acIndex = -1;
+      }
+    });
+
     dropdown.addEventListener('click', function (e) {
       var item = e.target.closest('.bnk-ac-item');
-      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
-      document.getElementById('bnkEmpresa').value = item.getAttribute('data-empresa') || '';
-      document.getElementById('bnkContacto').value = item.getAttribute('data-contacto') || '';
-      document.getElementById('bnkTelefono').value = item.getAttribute('data-telefono') || '';
-      document.getElementById('bnkCorreo').value = item.getAttribute('data-correo') || '';
-      dropdown.classList.remove('visible');
+      _acSelect(item);
     });
 
     document.addEventListener('click', function (e) {
       if (!e.target.closest('#bnkEmpresa') && !e.target.closest('#bnkAutoEmpresa')) {
         dropdown.classList.remove('visible');
+        _acIndex = -1;
       }
     });
   }
@@ -128,6 +170,35 @@
       // Auto-add row if all deleted
       var remaining = document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row');
       if (remaining.length === 0) _agregarFila();
+    });
+
+    // Keyboard nav: Enter moves to next input in row; Tab on last input of last row adds new row
+    var rowInputs = row.querySelectorAll('select, input');
+    rowInputs.forEach(function (field, fieldIdx) {
+      field.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var next = rowInputs[fieldIdx + 1];
+          if (next) { next.focus(); }
+        } else if (e.key === 'Tab' && !e.shiftKey) {
+          // Check if this is the last focusable field in the row
+          var isLastField = (fieldIdx === rowInputs.length - 1);
+          if (!isLastField) return; // let default Tab work
+          var allRows = document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row');
+          var isLastRow = (allRows[allRows.length - 1] === row);
+          if (isLastRow) {
+            e.preventDefault();
+            _agregarFila();
+            // Focus the first field of the newly added row
+            var newRows = document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row');
+            var newRow = newRows[newRows.length - 1];
+            if (newRow) {
+              var firstField = newRow.querySelector('select, input');
+              if (firstField) firstField.focus();
+            }
+          }
+        }
+      });
     });
   }
 

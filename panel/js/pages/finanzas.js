@@ -131,7 +131,29 @@
     var dropdown = document.getElementById(autoId);
     if (!input || !dropdown) return;
 
+    var _acIndex = -1;
+
+    function _acItems() { return dropdown.querySelectorAll('.bnk-ac-item'); }
+
+    function _acHighlight(idx) {
+      var items = _acItems();
+      items.forEach(function (it) { it.classList.remove('bnk-ac-active'); });
+      if (idx >= 0 && idx < items.length) {
+        items[idx].classList.add('bnk-ac-active');
+        items[idx].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function _acSelect(item) {
+      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
+      input.value = item.getAttribute('data-cot-folio') || '';
+      document.getElementById(hiddenId).value = item.getAttribute('data-cot-id') || '';
+      dropdown.classList.remove('visible');
+      _acIndex = -1;
+    }
+
     input.addEventListener('input', function () {
+      _acIndex = -1;
       var val = input.value.trim().toLowerCase();
       if (val.length < 2) { dropdown.classList.remove('visible'); return; }
       var matches = _cotizaciones.filter(function (c) {
@@ -146,17 +168,37 @@
       dropdown.classList.add('visible');
     });
 
+    input.addEventListener('keydown', function (e) {
+      if (!dropdown.classList.contains('visible')) return;
+      var items = _acItems();
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _acIndex = Math.min(_acIndex + 1, items.length - 1);
+        _acHighlight(_acIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _acIndex = Math.max(_acIndex - 1, 0);
+        _acHighlight(_acIndex);
+      } else if (e.key === 'Enter') {
+        if (_acIndex >= 0 && _acIndex < items.length) {
+          e.preventDefault();
+          _acSelect(items[_acIndex]);
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.classList.remove('visible');
+        _acIndex = -1;
+      }
+    });
+
     dropdown.addEventListener('click', function (e) {
       var item = e.target.closest('.bnk-ac-item');
-      if (!item || item.classList.contains('bnk-ac-new')) { dropdown.classList.remove('visible'); return; }
-      input.value = item.getAttribute('data-cot-folio') || '';
-      document.getElementById(hiddenId).value = item.getAttribute('data-cot-id') || '';
-      dropdown.classList.remove('visible');
+      _acSelect(item);
     });
 
     document.addEventListener('click', function (e) {
       if (!e.target.closest('#' + inputId) && !e.target.closest('#' + autoId)) {
         dropdown.classList.remove('visible');
+        _acIndex = -1;
       }
     });
   }

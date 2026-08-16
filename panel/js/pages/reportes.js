@@ -56,6 +56,9 @@
     if (periodoEl) periodoEl.addEventListener('change', function () {
       if (_loaded) _render();
     });
+
+    var refreshBtn = document.getElementById('repRefresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', function () { load(); });
   }
 
   function _getFiltered() {

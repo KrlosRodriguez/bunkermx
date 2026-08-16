@@ -16,6 +16,12 @@
   --red:  #FF4455;
   --ylw:  #F0C040;
   --blu:  #00D4FF;
+  --btn-py-sm: 6px;
+  --btn-px-sm: 14px;
+  --btn-py-md: 10px;
+  --btn-px-md: 24px;
+  --btn-py-lg: 12px;
+  --btn-px-lg: 28px;
 }
 
 html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(0,255,65,.18) var(--bk)}
@@ -35,7 +41,7 @@ body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;font-s
 .panel-user{display:flex;align-items:center;gap:12px}
 .panel-role-badge{padding:2px 10px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;
   border:1px solid rgba(0,255,65,.3);color:var(--g);background:rgba(0,255,65,.06)}
-.panel-logout-btn{padding:8px 20px;background:transparent;border:1px solid var(--bd);color:var(--g);
+.panel-logout-btn{padding:var(--btn-py-sm) var(--btn-px-md);background:transparent;border:1px solid var(--bd);color:var(--g);
   font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .3s}
 .panel-logout-btn:hover{background:rgba(0,255,65,.08);border-color:rgba(0,255,65,.3)}
 
@@ -57,14 +63,14 @@ body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;font-s
 .panel-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:3px;color:var(--g)}
 
 /* ── BUTTONS ── */
-.panel-btn-primary{padding:12px 28px;background:rgba(0,255,65,.08);border:1px solid var(--g);color:var(--g);
+.panel-btn-primary{padding:var(--btn-py-lg) var(--btn-px-lg);background:rgba(0,255,65,.08);border:1px solid var(--g);color:var(--g);
   font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all .3s}
 .panel-btn-primary:hover{background:rgba(0,255,65,.18);box-shadow:0 0 12px rgba(0,255,65,.15)}
 .panel-btn-primary:disabled{opacity:.5;cursor:wait}
-.panel-btn-secondary{padding:10px 24px;background:transparent;border:1px solid var(--bd);color:var(--tx);
+.panel-btn-secondary{padding:var(--btn-py-md) var(--btn-px-md);background:transparent;border:1px solid var(--bd);color:var(--tx);
   font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .3s}
 .panel-btn-secondary:hover{background:rgba(255,255,255,.05);color:var(--wh)}
-.panel-btn-icon{padding:8px 14px;background:transparent;border:1px solid var(--bd);color:var(--g);
+.panel-btn-icon{padding:var(--btn-py-sm) var(--btn-px-sm);background:transparent;border:1px solid var(--bd);color:var(--g);
   font-size:16px;cursor:pointer;transition:all .3s}
 .panel-btn-icon:hover{background:rgba(0,255,65,.08);border-color:rgba(0,255,65,.3)}
 
@@ -342,6 +348,7 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .bnk-ac-item{padding:8px 12px;font-size:13px;cursor:pointer;transition:background .2s}
 .bnk-ac-item:hover{background:rgba(240,192,64,.08)}
 .bnk-ac-new{color:var(--ylw);font-style:italic}
+.bnk-ac-item.bnk-ac-active{background:rgba(0,255,65,.08);color:var(--g)}
 
 /* Conceptos table */
 .bnk-conceptos-header{display:grid;grid-template-columns:140px 1fr 60px 80px 110px 110px 36px;gap:6px;padding:6px 0;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx);border-bottom:1px solid var(--bd)}
