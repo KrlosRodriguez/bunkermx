@@ -17,7 +17,7 @@
           { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'none'; script-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://us-central1-bunker-panel.cloudfunctions.net; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+            "value": "default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://us-central1-bunker-panel.cloudfunctions.net; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
           }
         ]
       },
