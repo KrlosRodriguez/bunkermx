@@ -321,7 +321,7 @@
       var fechaEdSafe = _escapeHTML(c.fechaEdicion || '\u2014');
 
       html += '<tr>'
-        + '<td><span class="dash-table col-folio">' + idSafe + '</span></td>'
+        + '<td><span class="dash-table col-folio" data-cli-pop="' + idSafe + '" style="cursor:pointer">' + idSafe + '</span></td>'
         + '<td><span class="status-pct ' + pctClass + '">' + pct + '%</span></td>'
         + '<td>' + empresaSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + marcasSafe + '</td>'
@@ -770,6 +770,14 @@
 
     // Delegación de eventos en tbody
     document.addEventListener('click', function (e) {
+      // Popover on folio click
+      var folioPop = e.target.closest('[data-cli-pop]');
+      if (folioPop && folioPop.closest('#cliBody')) {
+        e.stopPropagation();
+        _openClientePopover(folioPop.getAttribute('data-cli-pop'), folioPop);
+        return;
+      }
+
       var btn = e.target.closest('.tbl-action');
       if (!btn) return;
 
@@ -862,6 +870,89 @@
           if (cliente) abrirModal(cliente, 'editar');
         }, 300);
       });
+    }
+  }
+
+  // ══════════════════════════════════════
+  // CLIENTE POPOVER (cotizaciones vinculadas)
+  // ══════════════════════════════════════
+  function _openClientePopover(clienteId, anchorEl) {
+    var pop = document.getElementById('entityPopover');
+    if (!pop) return;
+
+    var cliente = null;
+    for (var i = 0; i < _clientes.length; i++) {
+      if (_clientes[i].id === clienteId) { cliente = _clientes[i]; break; }
+    }
+    if (!cliente) return;
+
+    var empresa = cliente.empresa || '';
+    var folio = clienteId;
+    var cuentaActiva = String(cliente.cuentaActiva) === 'Sí';
+    var estado = cuentaActiva ? 'Activo' : 'Inactivo';
+
+    document.getElementById('entPopFolio').textContent = folio;
+    document.getElementById('entPopTipoLabel').textContent = 'CLIENTE';
+    document.getElementById('entPopNombre').textContent = empresa;
+    var estadoEl = document.getElementById('entPopEstado');
+    estadoEl.textContent = estado;
+    estadoEl.className = 'estado-badge ' + (cuentaActiva ? 'estado-Cerrada' : 'estado-Perdida');
+
+    // Cargar cotizaciones vinculadas por nombre de empresa
+    var listEl = document.getElementById('entPopCotList');
+    var countEl = document.getElementById('entPopCotCount');
+    listEl.innerHTML = '<div class="entity-popover-empty">Cargando...</div>';
+    countEl.textContent = '...';
+
+    BNK_DB.cotizaciones.list().then(function (allCots) {
+      var empresaLower = empresa.toLowerCase();
+      var vinculadas = allCots.filter(function (cot) {
+        var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
+        return cotEmpresa === empresaLower || cotEmpresa.indexOf(empresaLower) !== -1 || empresaLower.indexOf(cotEmpresa) !== -1;
+      });
+
+      countEl.textContent = vinculadas.length;
+      if (vinculadas.length === 0) {
+        listEl.innerHTML = '<div class="entity-popover-empty">Sin cotizaciones vinculadas</div>';
+        return;
+      }
+
+      var html = '';
+      vinculadas.forEach(function (cot) {
+        var cotEstado = cot.estado || 'Recorrido';
+        if (cotEstado === 'Nueva') cotEstado = 'Recorrido';
+        var fuente = cot.fuente || 'MNT';
+        html += '<div class="entity-popover-cot" data-ent-cot="' + _escapeHTML(cot.id) + '">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center">'
+          + '<span class="entity-popover-cot-folio">' + _escapeHTML(cot.folio || '') + '</span>'
+          + '<span class="tipo-badge tipo-' + fuente + '" style="font-size:10px">' + fuente + '</span>'
+          + '</div>'
+          + '<div class="entity-popover-cot-detail">'
+          + '<div class="entity-popover-cot-row"><span>EVENTO</span><span class="val">' + _escapeHTML(cot.evento || '\u2014') + '</span></div>'
+          + '<div class="entity-popover-cot-row"><span>TOTAL</span><span class="val">$' + (Number(cot.total) || 0).toLocaleString('es-MX') + '</span></div>'
+          + '<div class="entity-popover-cot-row"><span>ESTADO</span><span class="val">' + _escapeHTML(cotEstado) + '</span></div>'
+          + '<div class="entity-popover-cot-row"><span>DETALLE</span><span class="val">' + _escapeHTML(cot.espacios || cot.sede || 'Servicios') + '</span></div>'
+          + '</div>'
+          + '</div>';
+      });
+      listEl.innerHTML = html;
+    }).catch(function () {
+      countEl.textContent = '0';
+      listEl.innerHTML = '<div class="entity-popover-empty">Error al cargar cotizaciones</div>';
+    });
+
+    // Position
+    var rect = anchorEl.getBoundingClientRect();
+    pop.style.top = (rect.bottom + 4) + 'px';
+    pop.style.left = rect.left + 'px';
+    pop.classList.add('visible');
+
+    var popRect = pop.getBoundingClientRect();
+    if (popRect.right > window.innerWidth - 16) {
+      pop.style.left = Math.max(8, window.innerWidth - 16 - popRect.width) + 'px';
+    }
+    if (popRect.bottom > window.innerHeight - 16) {
+      pop.style.top = (rect.top - popRect.height - 4) + 'px';
     }
   }
 
