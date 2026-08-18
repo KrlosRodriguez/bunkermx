@@ -12,7 +12,7 @@ BUNKER Creatividad Empresarial corporate website + panel operativo interno.
 ## How to Run
 
 - **Sitio público**: Open `index.html` directly in a browser, or serve it with any static file server (e.g. `python -m http.server 5500` or VS Code Live Server). There is no build, lint, or test command.
-- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican **manualmente** en la consola de Firebase (no por CLI).
+- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican con `firebase deploy --only firestore:rules --project bunker-panel`.
 
 ## Architecture
 
@@ -82,15 +82,15 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cuentasCobrar
+- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar
 - **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
 
 **Módulos por tab (`panel/js/pages/`):**
-- **`cotizaciones.js`** (~180 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js)
+- **`cotizaciones.js`** (~500 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js), popover de folio (BNK vinculadas, indicadores partner/proveedor, crear BNK), modales de vinculación partner/proveedor
 - **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
 - **`cotizar-bnk.js`** (~430 lines) — formulario de servicios/producción, filas dinámicas de conceptos, autocomplete catálogo, plantillas de condiciones comerciales, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
-- **`pipeline.js`** (~195 lines) — tablero kanban de seguimiento con timeline y notas
+- **`pipeline.js`** (~205 lines) — tablero kanban de seguimiento con timeline y notas, indicador de folios BNK vinculados en cards MNT
 - **`clientes.js`** (~895 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud, chips UI para marcas, cotizaciones vinculadas
 - **`proveedores.js`** (~1064 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor
 - **`calendario.js`** (~140 lines) — calendario mensual de eventos por espacio, soporta múltiples fechas MNT via desgloseVenues
@@ -118,7 +118,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 - **Sitio público**: se actualiza por GitHub → cPanel automático. **No tocar cPanel nunca.**
 - **Panel**: `firebase deploy --only hosting --project bunker-panel`
-- **Reglas Firestore**: publicar manualmente en Firebase Console → Firestore → Reglas → pegar `firestore.rules` → Publicar
+- **Reglas Firestore**: `firebase deploy --only firestore:rules --project bunker-panel`
 - **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
 - **`firebase.json`** — hosting con `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
 - **`.firebaserc`** — proyecto default: `bunker-panel`
@@ -135,6 +135,9 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las cotizaciones nuevas se crean con estado `'Recorrido'`. El estado legacy `'Nueva'` se mapea a `'Recorrido'` en todos los módulos (pipeline, cotizaciones, reportes, finanzas)
 - **Campos de fecha en cotizaciones**: `fecha` (ISO timestamp de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp de Firestore). Todos los módulos usan `d.fecha || d.createdAt` como fallback para compatibilidad con registros legacy
 - **PDFs regenerables**: los PDFs no se almacenan en storage. Se regeneran on-the-fly desde datos en Firestore via `BNKPdfRebuild.download(cotData)`. MNT usa `desgloseVenues` (JSON), BNK usa `conceptos` (JSON)
+- **Popover de folio**: clic en folio de cotización abre popover compacto con info rápida, BNK vinculadas (1:N via `folioMNT`), indicadores de partners/proveedores, y acciones (crear BNK, PDF, vincular). Patrón: popover para ver, modal para actuar
+- **Vinculación MNT↔BNK**: relación 1:N. BNK tiene campo `folioMNT` que apunta al folio MNT padre. Desde popover MNT se puede crear BNK con datos pre-llenados
+- **cotizacionProveedores**: colección Firestore simétrica a `cotizacionPartners`. Schema: `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`
 
 ## Key Conventions
 

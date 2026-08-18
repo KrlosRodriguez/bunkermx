@@ -2,6 +2,7 @@
   "firestore": { "rules": "firestore.rules" },
   "functions": { "source": "functions" },
   "hosting": {
+    "site": "bunker-panel",
     "public": "panel",
     "ignore": ["**/node_modules/**"],
     "rewrites": [

@@ -131,6 +131,7 @@
     pagos:               collectionAPI('pagos', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     cotizacionPartners:  collectionAPI('cotizacionPartners'),
     cuentasCobrar:       collectionAPI('cuentasCobrar', { orderBy: { field: 'createdAt', dir: 'desc' } }),
+    cotizacionProveedores: collectionAPI('cotizacionProveedores'),
     actividad:           actividadAPI,
     tareas:              tareasAPI
   };

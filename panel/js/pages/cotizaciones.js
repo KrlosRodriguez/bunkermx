@@ -11,6 +11,13 @@
   var _firstLoad = true;
   var _canEdit = false;
 
+  // Datos vinculados (para popover)
+  var _cotPartners = [];
+  var _cotProveedores = [];
+  var _partners = [];
+  var _proveedores = [];
+  var _pagos = [];
+
   function init() {
     _canEdit = BNK_AUTH.canEdit('cotizaciones');
     _bindFilters();
@@ -18,6 +25,8 @@
     _bindSortHeaders();
     _bindPagination();
     _bindShortcuts();
+    _bindPopover();
+    _bindVincModals();
 
     var cotLoading = document.getElementById('cotLoading');
     var cotTable = document.getElementById('cotTable2');
@@ -45,6 +54,26 @@
         var icon = cotEmpty.querySelector('.dash-empty-icon');
         if (icon) icon.textContent = '\u26A0';
       }
+    });
+
+    // Cargar datos vinculados
+    _loadVinculados();
+  }
+
+  function _loadVinculados() {
+    function _safe(p) { return p.catch(function () { return []; }); }
+    Promise.all([
+      _safe(BNK_DB.cotizacionPartners.list()),
+      _safe(BNK_DB.cotizacionProveedores.list()),
+      _safe(BNK_DB.partners.list()),
+      _safe(BNK_DB.proveedores.list()),
+      _safe(BNK_DB.pagos.list())
+    ]).then(function (r) {
+      _cotPartners = r[0];
+      _cotProveedores = r[1];
+      _partners = r[2];
+      _proveedores = r[3];
+      _pagos = r[4];
     });
   }
 
@@ -162,7 +191,7 @@
       var fechaFormatted = _formatDate(d.fecha || d.createdAt);
 
       html += '<tr data-id="' + _esc(d.id) + '">'
-        + '<td class="col-folio">' + _esc(d.folio) + '</td>'
+        + '<td class="col-folio" data-pop-id="' + _esc(d.id) + '" style="cursor:pointer">' + _esc(d.folio) + '</td>'
         + '<td>' + _esc(fechaFormatted) + '</td>'
         + '<td>' + _esc(d.cliente) + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + _esc(d.marca || '\u2014') + '</td>'
@@ -335,8 +364,16 @@
       }
     });
 
-    // Download PDF
+    // Download PDF & Delete
     tbody.addEventListener('click', function (e) {
+      // Popover on folio click
+      var folioTd = e.target.closest('[data-pop-id]');
+      if (folioTd) {
+        e.stopPropagation();
+        _openPopover(folioTd.getAttribute('data-pop-id'), folioTd);
+        return;
+      }
+
       var pdfBtn = e.target.closest('[data-cot-pdf]');
       if (pdfBtn) {
         var id = pdfBtn.getAttribute('data-cot-pdf');
@@ -356,6 +393,411 @@
       var id2 = delBtn.getAttribute('data-cot-del');
       _deleteCotizacion(id2);
     });
+  }
+
+  // ══════════════════════════════════════════
+  // POPOVER
+  // ══════════════════════════════════════════
+  var _popoverCotId = null;
+
+  function _bindPopover() {
+    // Close popover on click outside
+    document.addEventListener('click', function (e) {
+      var pop = document.getElementById('cotPopover');
+      if (!pop || !pop.classList.contains('visible')) return;
+      if (pop.contains(e.target)) return;
+      if (e.target.closest('[data-pop-id]')) return;
+      _closePopover();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') _closePopover();
+    });
+
+    document.getElementById('popClose').addEventListener('click', _closePopover);
+
+    // Crear BNK action
+    document.getElementById('popCrearBnk').addEventListener('click', function () {
+      var cot = _data.find(function (d) { return d.id === _popoverCotId; });
+      if (!cot) return;
+      _closePopover();
+      _navegarCrearBnk(cot);
+    });
+
+    // PDF action
+    document.getElementById('popPdf').addEventListener('click', function () {
+      var cot = _data.find(function (d) { return d.id === _popoverCotId; });
+      if (cot && window.BNKPdfRebuild) {
+        BNKPdfRebuild.download(cot);
+        BNKToast.ok('PDF generado: ' + (cot.folio || _popoverCotId));
+      }
+      _closePopover();
+    });
+
+    // Vincular partner
+    document.getElementById('popVincPartner').addEventListener('click', function () {
+      var cotId = _popoverCotId;
+      var cot = _data.find(function (d) { return d.id === cotId; });
+      _closePopover();
+      if (cot) _openVincModal('partner', cot);
+    });
+
+    // Vincular proveedor
+    document.getElementById('popVincProveedor').addEventListener('click', function () {
+      var cotId = _popoverCotId;
+      var cot = _data.find(function (d) { return d.id === cotId; });
+      _closePopover();
+      if (cot) _openVincModal('proveedor', cot);
+    });
+  }
+
+  function _openPopover(cotId, anchorEl) {
+    var cot = _data.find(function (d) { return d.id === cotId; });
+    if (!cot) return;
+
+    _popoverCotId = cotId;
+    var pop = document.getElementById('cotPopover');
+
+    // Fill info
+    var estado = cot.estado || 'Recorrido';
+    if (estado === 'Nueva') estado = 'Recorrido';
+    var fuente = cot.fuente || 'MNT';
+
+    document.getElementById('popFolio').textContent = cot.folio || cotId;
+    var tipoBadge = document.getElementById('popTipo');
+    tipoBadge.textContent = fuente;
+    tipoBadge.className = 'tipo-badge tipo-' + fuente;
+    document.getElementById('popCliente').textContent = cot.cliente || '\u2014';
+    document.getElementById('popEvento').textContent = cot.evento || '\u2014';
+    document.getElementById('popTotal').textContent = _formatMXN(cot.total);
+    var estadoEl = document.getElementById('popEstado');
+    estadoEl.textContent = estado;
+    estadoEl.className = 'estado-badge estado-' + estado.replace(/\s/g, '');
+
+    // BNK vinculadas (solo para MNT)
+    var bnkSection = document.getElementById('popBnkSection');
+    var crearBnkBtn = document.getElementById('popCrearBnk');
+    if (fuente === 'MNT') {
+      bnkSection.style.display = '';
+      crearBnkBtn.style.display = '';
+      var bnkList = _data.filter(function (d) { return d.folioMNT === cot.folio && d.fuente === 'BNK'; });
+      var listEl = document.getElementById('popBnkList');
+      if (bnkList.length === 0) {
+        listEl.innerHTML = '<div class="cot-popover-bnk-empty">Sin cotizaciones BNK vinculadas</div>';
+      } else {
+        listEl.innerHTML = bnkList.map(function (b) {
+          return '<div class="cot-popover-bnk-item" data-scroll-folio="' + _esc(b.folio) + '">'
+            + '<span class="bnk-folio">' + _esc(b.folio) + '</span>'
+            + '<span class="bnk-total">' + _formatMXN(b.total) + '</span>'
+            + '</div>';
+        }).join('');
+      }
+    } else {
+      bnkSection.style.display = 'none';
+      crearBnkBtn.style.display = 'none';
+    }
+
+    // Partners count
+    var partnersCount = _cotPartners.filter(function (cp) { return cp.cotizacionId === cotId; }).length;
+    document.getElementById('popPartnersCount').textContent = partnersCount;
+    var chipP = document.getElementById('popChipPartners');
+    chipP.classList.toggle('has-items', partnersCount > 0);
+
+    // Proveedores count (from cotizacionProveedores + pagos tipo proveedor)
+    var provFromJoin = _cotProveedores.filter(function (cp) { return cp.cotizacionId === cotId; });
+    var provFromPagos = _pagos.filter(function (p) { return p.cotizacionId === cotId && p.tipo === 'proveedor'; });
+    var provIds = {};
+    provFromJoin.forEach(function (p) { provIds[p.proveedorId] = true; });
+    provFromPagos.forEach(function (p) { provIds[p.destinatarioId] = true; });
+    var provCount = Object.keys(provIds).length;
+    document.getElementById('popProveedoresCount').textContent = provCount;
+    var chipPr = document.getElementById('popChipProveedores');
+    chipPr.classList.toggle('has-items', provCount > 0);
+
+    // Position popover
+    var rect = anchorEl.getBoundingClientRect();
+    var section = document.getElementById('sec-cotizaciones');
+    var sectionRect = section.getBoundingClientRect();
+    pop.style.top = (rect.bottom - sectionRect.top + 4) + 'px';
+    pop.style.left = (rect.left - sectionRect.left) + 'px';
+
+    // Clamp to viewport right
+    pop.classList.add('visible');
+    var popRect = pop.getBoundingClientRect();
+    if (popRect.right > window.innerWidth - 16) {
+      pop.style.left = Math.max(0, (window.innerWidth - 16 - popRect.width - sectionRect.left)) + 'px';
+    }
+  }
+
+  function _closePopover() {
+    var pop = document.getElementById('cotPopover');
+    if (pop) pop.classList.remove('visible');
+    _popoverCotId = null;
+  }
+
+  function _navegarCrearBnk(cotMNT) {
+    // Pre-fill BNK form fields
+    var fields = {
+      bnkFolioMNT: cotMNT.folio,
+      bnkEmpresa: cotMNT.cliente || '',
+      bnkContacto: cotMNT.contacto || '',
+      bnkTelefono: cotMNT.telefono || '',
+      bnkCorreo: cotMNT.correo || '',
+      bnkEvento: cotMNT.evento || '',
+      bnkFechaEvento: cotMNT.fechaEvento || ''
+    };
+    Object.keys(fields).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = fields[id];
+    });
+
+    // Navigate to BNK tab
+    var tab = document.querySelector('[data-tab="cotizar-bnk"]');
+    if (tab) tab.click();
+    BNKToast.ok('Datos copiados de ' + cotMNT.folio);
+  }
+
+  // ══════════════════════════════════════════
+  // BNK LIST — scroll to folio
+  // ══════════════════════════════════════════
+  document.addEventListener('click', function (e) {
+    var item = e.target.closest('[data-scroll-folio]');
+    if (!item) return;
+    var folio = item.getAttribute('data-scroll-folio');
+    _closePopover();
+
+    // Find the row with that folio and scroll to it
+    var rows = document.querySelectorAll('#cotBody2 tr');
+    for (var i = 0; i < rows.length; i++) {
+      var td = rows[i].querySelector('.col-folio');
+      if (td && td.textContent.trim() === folio) {
+        rows[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rows[i].style.outline = '2px solid var(--ylw)';
+        setTimeout(function () { rows[i].style.outline = ''; }, 2000);
+        return;
+      }
+    }
+
+    // If not on current page, search in filtered data and switch page
+    var filtered = _getFiltered();
+    for (var j = 0; j < filtered.length; j++) {
+      if (filtered[j].folio === folio) {
+        _page = Math.floor(j / _perPage) + 1;
+        _render();
+        setTimeout(function () {
+          var rows2 = document.querySelectorAll('#cotBody2 tr');
+          for (var k = 0; k < rows2.length; k++) {
+            var td2 = rows2[k].querySelector('.col-folio');
+            if (td2 && td2.textContent.trim() === folio) {
+              rows2[k].scrollIntoView({ behavior: 'smooth', block: 'center' });
+              rows2[k].style.outline = '2px solid var(--ylw)';
+              setTimeout(function () { rows2[k].style.outline = ''; }, 2000);
+              return;
+            }
+          }
+        }, 100);
+        return;
+      }
+    }
+  });
+
+  // ══════════════════════════════════════════
+  // MODALES DE VINCULACIÓN
+  // ══════════════════════════════════════════
+  var _vincType = ''; // 'partner' or 'proveedor'
+  var _vincCot = null;
+
+  function _bindVincModals() {
+    // Partner modal
+    document.getElementById('vincPartnerClose').addEventListener('click', function () {
+      _modal('vincPartnerOverlay', false);
+    });
+    document.getElementById('vincPartnerOverlay').addEventListener('click', function (e) {
+      if (e.target === this) _modal('vincPartnerOverlay', false);
+    });
+
+    // Proveedor modal
+    document.getElementById('vincProveedorClose').addEventListener('click', function () {
+      _modal('vincProveedorOverlay', false);
+    });
+    document.getElementById('vincProveedorOverlay').addEventListener('click', function (e) {
+      if (e.target === this) _modal('vincProveedorOverlay', false);
+    });
+
+    // Autocomplete partner
+    var pSearch = document.getElementById('vincPartnerSearch');
+    pSearch.addEventListener('input', function () {
+      _renderVincAC('partner', this.value.trim());
+    });
+
+    // Autocomplete proveedor
+    var prSearch = document.getElementById('vincProveedorSearch');
+    prSearch.addEventListener('input', function () {
+      _renderVincAC('proveedor', this.value.trim());
+    });
+
+    // Click on AC items
+    document.getElementById('vincPartnerAC').addEventListener('click', function (e) {
+      var item = e.target.closest('.bnk-ac-item');
+      if (!item) return;
+      _vincularItem('partner', item.getAttribute('data-id'), item.getAttribute('data-name'));
+    });
+    document.getElementById('vincProveedorAC').addEventListener('click', function (e) {
+      var item = e.target.closest('.bnk-ac-item');
+      if (!item) return;
+      _vincularItem('proveedor', item.getAttribute('data-id'), item.getAttribute('data-name'));
+    });
+
+    // Remove linked items (delegated)
+    document.getElementById('vincPartnerList').addEventListener('click', function (e) {
+      var btn = e.target.closest('.vinc-item-del');
+      if (btn) _desvincular('partner', btn.getAttribute('data-vinc-id'));
+    });
+    document.getElementById('vincProveedorList').addEventListener('click', function (e) {
+      var btn = e.target.closest('.vinc-item-del');
+      if (btn) _desvincular('proveedor', btn.getAttribute('data-vinc-id'));
+    });
+  }
+
+  function _openVincModal(tipo, cot) {
+    _vincType = tipo;
+    _vincCot = cot;
+
+    if (tipo === 'partner') {
+      document.getElementById('vincPartnerFolio').textContent = cot.folio || '';
+      document.getElementById('vincPartnerSearch').value = '';
+      document.getElementById('vincPartnerAC').innerHTML = '';
+      _renderVincList('partner');
+      _modal('vincPartnerOverlay', true);
+    } else {
+      document.getElementById('vincProveedorFolio').textContent = cot.folio || '';
+      document.getElementById('vincProveedorSearch').value = '';
+      document.getElementById('vincProveedorAC').innerHTML = '';
+      _renderVincList('proveedor');
+      _modal('vincProveedorOverlay', true);
+    }
+  }
+
+  function _renderVincAC(tipo, query) {
+    var acEl = document.getElementById(tipo === 'partner' ? 'vincPartnerAC' : 'vincProveedorAC');
+    if (!query || query.length < 2) { acEl.innerHTML = ''; acEl.classList.remove('visible'); return; }
+
+    var list = tipo === 'partner' ? _partners : _proveedores;
+    var linked = tipo === 'partner'
+      ? _cotPartners.filter(function (cp) { return cp.cotizacionId === _vincCot.id; }).map(function (cp) { return cp.partnerId; })
+      : _cotProveedores.filter(function (cp) { return cp.cotizacionId === _vincCot.id; }).map(function (cp) { return cp.proveedorId; });
+
+    var q = query.toLowerCase();
+    var matches = list.filter(function (item) {
+      var name = (item.nombre || item.razonSocial || '').toLowerCase();
+      return name.indexOf(q) !== -1 && linked.indexOf(item.id) === -1;
+    }).slice(0, 8);
+
+    if (matches.length === 0) {
+      acEl.innerHTML = '<div class="bnk-ac-item" style="color:var(--tx);font-style:italic">Sin resultados</div>';
+      acEl.classList.add('visible');
+      return;
+    }
+
+    acEl.innerHTML = matches.map(function (item) {
+      var name = item.nombre || item.razonSocial || '';
+      return '<div class="bnk-ac-item" data-id="' + _esc(item.id) + '" data-name="' + _esc(name) + '">' + _esc(name) + '</div>';
+    }).join('');
+    acEl.classList.add('visible');
+  }
+
+  function _vincularItem(tipo, itemId, itemName) {
+    if (!_vincCot || !itemId) return;
+
+    var data = {
+      cotizacionId: _vincCot.id,
+      cotizacionFolio: _vincCot.folio || ''
+    };
+
+    var collection;
+    if (tipo === 'partner') {
+      data.partnerId = itemId;
+      data.partnerNombre = itemName;
+      data.cerrada = false;
+      collection = BNK_DB.cotizacionPartners;
+    } else {
+      data.proveedorId = itemId;
+      data.proveedorNombre = itemName;
+      collection = BNK_DB.cotizacionProveedores;
+    }
+
+    collection.create(data).then(function (created) {
+      BNKToast.ok((tipo === 'partner' ? 'Partner' : 'Proveedor') + ' vinculado: ' + itemName);
+      // Update local cache
+      if (tipo === 'partner') {
+        _cotPartners.push(created);
+      } else {
+        _cotProveedores.push(created);
+      }
+      _renderVincList(tipo);
+      // Clear AC
+      var searchEl = document.getElementById(tipo === 'partner' ? 'vincPartnerSearch' : 'vincProveedorSearch');
+      if (searchEl) searchEl.value = '';
+      var acEl = document.getElementById(tipo === 'partner' ? 'vincPartnerAC' : 'vincProveedorAC');
+      if (acEl) { acEl.innerHTML = ''; acEl.classList.remove('visible'); }
+    }).catch(function (err) {
+      BNKToast.error('Error al vincular: ' + (err && err.message ? err.message : 'desconocido'));
+    });
+  }
+
+  function _desvincular(tipo, vincId) {
+    if (!vincId) return;
+    var collection = tipo === 'partner' ? BNK_DB.cotizacionPartners : BNK_DB.cotizacionProveedores;
+    var cache = tipo === 'partner' ? _cotPartners : _cotProveedores;
+
+    var record = cache.find(function (r) { return r.id === vincId; });
+    var nombre = record ? (record.partnerNombre || record.proveedorNombre || '') : '';
+
+    BNKConfirm.show('¿Desvincular "' + nombre + '" de esta cotización?', 'DESVINCULAR').then(function (ok) {
+      if (!ok) return;
+      collection.delete(vincId).then(function () {
+        BNKToast.ok((tipo === 'partner' ? 'Partner' : 'Proveedor') + ' desvinculado.');
+        // Update local cache
+        if (tipo === 'partner') {
+          _cotPartners = _cotPartners.filter(function (r) { return r.id !== vincId; });
+        } else {
+          _cotProveedores = _cotProveedores.filter(function (r) { return r.id !== vincId; });
+        }
+        _renderVincList(tipo);
+      }).catch(function (err) {
+        BNKToast.error('Error al desvincular: ' + (err && err.message ? err.message : 'desconocido'));
+      });
+    });
+  }
+
+  function _renderVincList(tipo) {
+    var listEl = document.getElementById(tipo === 'partner' ? 'vincPartnerList' : 'vincProveedorList');
+    if (!listEl || !_vincCot) return;
+
+    var items;
+    if (tipo === 'partner') {
+      items = _cotPartners.filter(function (cp) { return cp.cotizacionId === _vincCot.id; });
+    } else {
+      items = _cotProveedores.filter(function (cp) { return cp.cotizacionId === _vincCot.id; });
+    }
+
+    if (items.length === 0) {
+      listEl.innerHTML = '<div class="vinc-empty">Sin ' + (tipo === 'partner' ? 'partners' : 'proveedores') + ' vinculados</div>';
+      return;
+    }
+
+    listEl.innerHTML = items.map(function (item) {
+      var name = item.partnerNombre || item.proveedorNombre || '';
+      return '<div class="vinc-item">'
+        + '<span class="vinc-item-name">' + _esc(name) + '</span>'
+        + '<button class="vinc-item-del" data-vinc-id="' + _esc(item.id) + '">&times;</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  function _modal(id, show) {
+    var el = document.getElementById(id);
+    if (el) { if (show) el.classList.add('visible'); else el.classList.remove('visible'); }
   }
 
   function _deleteCotizacion(id) {

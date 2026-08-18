@@ -99,6 +99,17 @@
           if (estado === 'Negociación' && diasEnEstado > CONFIG.diasEstancada) alertClass = 'pipeline-card--stale';
 
           var tipoBadge = d.fuente === 'BNK' ? 'tipo-BNK' : 'tipo-MNT';
+
+          // BNK vinculadas (solo para MNT)
+          var bnkLine = '';
+          if ((d.fuente || 'MNT') === 'MNT' && d.folio) {
+            var bnkHijas = filtered.filter(function (b) { return b.folioMNT === d.folio && b.fuente === 'BNK'; });
+            if (bnkHijas.length > 0) {
+              var sufijos = bnkHijas.map(function (b) { return (b.folio || '').split('-').pop(); });
+              bnkLine = '<div class="pipeline-card-bnk">BNK: <span>' + sufijos.join(', ') + '</span></div>';
+            }
+          }
+
           html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '">'
             + '<div class="pipeline-card-top">'
             + '<span class="pipeline-card-cliente">' + _esc(d.cliente) + '</span>'
@@ -106,6 +117,7 @@
             + '</div>'
             + '<div class="pipeline-card-folio">' + _esc(d.folio || '') + '</div>'
             + '<div class="pipeline-card-evento">' + _esc(d.evento || '\u2014') + '</div>'
+            + bnkLine
             + '<div class="pipeline-card-footer">'
             + '<span class="pipeline-card-monto">' + _formatMXN(d.total) + '</span>'
             + '<span class="pipeline-card-tiempo">' + _tiempoDisplay(diasEnEstado) + '</span>'

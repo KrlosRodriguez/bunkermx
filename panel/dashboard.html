@@ -150,6 +150,77 @@
         <button class="panel-btn-icon" id="cotNextPage">&rarr;</button>
       </div>
     </div>
+
+    <!-- Popover de folio -->
+    <div class="cot-popover" id="cotPopover">
+      <div class="cot-popover-header">
+        <span class="cot-popover-folio" id="popFolio"></span>
+        <span class="tipo-badge" id="popTipo"></span>
+        <button class="cot-popover-close" id="popClose">&times;</button>
+      </div>
+      <div class="cot-popover-info">
+        <div><span class="bnk-label">CLIENTE</span> <span id="popCliente"></span></div>
+        <div><span class="bnk-label">EVENTO</span> <span id="popEvento"></span></div>
+        <div class="cot-popover-row">
+          <div><span class="bnk-label">TOTAL</span> <span id="popTotal"></span></div>
+          <div><span class="bnk-label">ESTADO</span> <span id="popEstado" class="estado-badge"></span></div>
+        </div>
+      </div>
+      <div class="cot-popover-section" id="popBnkSection">
+        <div class="bnk-label">BNK VINCULADAS</div>
+        <div id="popBnkList" class="cot-popover-bnk-list"></div>
+      </div>
+      <div class="cot-popover-chips">
+        <span class="cot-popover-chip" id="popChipPartners" title="Partners vinculados">&#128101; <span id="popPartnersCount">0</span> Partners</span>
+        <span class="cot-popover-chip" id="popChipProveedores" title="Proveedores vinculados">&#128230; <span id="popProveedoresCount">0</span> Proveedores</span>
+      </div>
+      <div class="cot-popover-actions">
+        <button class="panel-btn-primary panel-btn-sm" id="popCrearBnk">+ CREAR BNK</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popVincPartner">VINCULAR PARTNER</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popVincProveedor">VINCULAR PROVEEDOR</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popPdf">PDF</button>
+      </div>
+    </div>
+
+    <!-- Modal: Vincular Partner -->
+    <div class="bnk-overlay" id="vincPartnerOverlay">
+      <div class="bnk-modal" style="max-width:480px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">VINCULAR PARTNER</h3>
+          <button class="bnk-modal-close" id="vincPartnerClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-label" id="vincPartnerFolio"></div>
+          <div class="bnk-form-group" style="margin-top:12px">
+            <label class="bnk-label">BUSCAR PARTNER</label>
+            <input type="text" class="bnk-input" id="vincPartnerSearch" placeholder="Nombre del partner..." autocomplete="off">
+            <div class="bnk-autocomplete" id="vincPartnerAC"></div>
+          </div>
+          <div class="bnk-label" style="margin-top:16px">PARTNERS VINCULADOS</div>
+          <div id="vincPartnerList" class="vinc-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Vincular Proveedor -->
+    <div class="bnk-overlay" id="vincProveedorOverlay">
+      <div class="bnk-modal" style="max-width:480px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">VINCULAR PROVEEDOR</h3>
+          <button class="bnk-modal-close" id="vincProveedorClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-label" id="vincProveedorFolio"></div>
+          <div class="bnk-form-group" style="margin-top:12px">
+            <label class="bnk-label">BUSCAR PROVEEDOR</label>
+            <input type="text" class="bnk-input" id="vincProveedorSearch" placeholder="Nombre del proveedor..." autocomplete="off">
+            <div class="bnk-autocomplete" id="vincProveedorAC"></div>
+          </div>
+          <div class="bnk-label" style="margin-top:16px">PROVEEDORES VINCULADOS</div>
+          <div id="vincProveedorList" class="vinc-list"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ══════════════════════════════════════════════ -->

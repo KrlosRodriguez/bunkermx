@@ -96,5 +96,9 @@ service cloud.firestore {
     match /cuentasCobrar/{docId} {
       allow read, create, update, delete: if isAdmin();
     }
+
+    match /cotizacionProveedores/{docId} {
+      allow read, create, update, delete: if isAdmin();
+    }
   }
 }
