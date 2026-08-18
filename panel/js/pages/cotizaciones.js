@@ -737,6 +737,7 @@
         _cotProveedores.push(created);
       }
       _renderVincList(tipo);
+      if (window.BNKFinanzas) BNKFinanzas.reload();
       // Clear AC
       var searchEl = document.getElementById(tipo === 'partner' ? 'vincPartnerSearch' : 'vincProveedorSearch');
       if (searchEl) searchEl.value = '';
@@ -766,6 +767,7 @@
           _cotProveedores = _cotProveedores.filter(function (r) { return r.id !== vincId; });
         }
         _renderVincList(tipo);
+        if (window.BNKFinanzas) BNKFinanzas.reload();
       }).catch(function (err) {
         BNKToast.error('Error al desvincular: ' + (err && err.message ? err.message : 'desconocido'));
       });

@@ -1075,4 +1075,8 @@
   BNK_AUTH.onReady(function (user) {
     if (user) init();
   });
+
+  window.BNKFinanzas = {
+    reload: function () { _loadData(); }
+  };
 })();
