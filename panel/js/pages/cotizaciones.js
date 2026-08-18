@@ -514,18 +514,20 @@
     var chipPr = document.getElementById('popChipProveedores');
     chipPr.classList.toggle('has-items', provCount > 0);
 
-    // Position popover
+    // Position popover (fixed)
     var rect = anchorEl.getBoundingClientRect();
-    var section = document.getElementById('sec-cotizaciones');
-    var sectionRect = section.getBoundingClientRect();
-    pop.style.top = (rect.bottom - sectionRect.top + 4) + 'px';
-    pop.style.left = (rect.left - sectionRect.left) + 'px';
+    pop.style.top = (rect.bottom + 4) + 'px';
+    pop.style.left = rect.left + 'px';
 
-    // Clamp to viewport right
     pop.classList.add('visible');
+
+    // Clamp to viewport edges
     var popRect = pop.getBoundingClientRect();
     if (popRect.right > window.innerWidth - 16) {
-      pop.style.left = Math.max(0, (window.innerWidth - 16 - popRect.width - sectionRect.left)) + 'px';
+      pop.style.left = Math.max(8, window.innerWidth - 16 - popRect.width) + 'px';
+    }
+    if (popRect.bottom > window.innerHeight - 16) {
+      pop.style.top = (rect.top - popRect.height - 4) + 'px';
     }
   }
 

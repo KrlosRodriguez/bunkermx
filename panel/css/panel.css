@@ -390,7 +390,7 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 #sec-cotizar-bnk > .bnk-form-wrap > .mnt-step-title{font-size:24px;letter-spacing:5px;color:var(--ylw);margin-bottom:28px;padding-bottom:14px;border-bottom:2px solid rgba(240,192,64,.2)}
 
 /* ── COT POPOVER ── */
-.cot-popover{position:absolute;z-index:900;background:var(--bg);border:1px solid var(--bd);padding:0;min-width:320px;max-width:400px;display:none;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+.cot-popover{position:fixed;z-index:900;background:var(--dk);border:1px solid var(--g);padding:0;min-width:320px;max-width:400px;display:none;box-shadow:0 8px 32px rgba(0,0,0,.8),0 0 1px rgba(0,255,65,.3)}
 .cot-popover.visible{display:block}
 .cot-popover-header{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--bd);background:rgba(0,255,65,.03)}
 .cot-popover-folio{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--g);letter-spacing:1px}
