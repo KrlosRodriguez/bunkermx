@@ -6,6 +6,7 @@
   var _partners = [];
   var _pagos = [];
   var _cotPartners = []; // cotizacionPartners
+  var _cotProveedores = []; // cotizacionProveedores
   var _cotizaciones = [];
   var _proveedores = [];
   var _cuentasCobrar = [];
@@ -47,7 +48,8 @@
       _safe(BNK_DB.cotizacionPartners.list()),
       _safe(BNK_DB.cotizaciones.list()),
       _safe(BNK_DB.proveedores.list()),
-      _safe(BNK_DB.cuentasCobrar.list())
+      _safe(BNK_DB.cuentasCobrar.list()),
+      _safe(BNK_DB.cotizacionProveedores.list())
     ]).then(function (results) {
       _partners = results[0];
       _pagos = results[1];
@@ -55,6 +57,7 @@
       _cotizaciones = results[3];
       _proveedores = results[4];
       _cuentasCobrar = results[5];
+      _cotProveedores = results[6];
       _renderPartners();
       _renderCuentas();
       _renderDispersiones();
@@ -420,7 +423,7 @@
       var cotCount = _cotPartners.filter(function (cp) { return cp.partnerId === p.id; }).length;
       var estado = p.cuentaActiva === 'No' ? 'Inactivo' : 'Activo';
       html += '<tr>'
-        + '<td class="col-folio">' + _esc(p.folio) + '</td>'
+        + '<td class="col-folio" data-ptr-pop="' + _esc(p.id) + '" style="cursor:pointer">' + _esc(p.folio) + '</td>'
         + '<td>' + _esc(p.nombre) + '</td>'
         + '<td>' + _esc(p.contacto || '') + '</td>'
         + '<td>' + _esc(p.correo || '') + '</td>'
@@ -571,6 +574,13 @@
     document.getElementById('finPartnerClose').addEventListener('click', function () { _modal('finPartnerOverlay', false); });
 
     document.getElementById('finPartnersBody').addEventListener('click', function (e) {
+      // Popover on folio click
+      var folioTd = e.target.closest('[data-ptr-pop]');
+      if (folioTd) {
+        e.stopPropagation();
+        _openEntityPopover('partner', folioTd.getAttribute('data-ptr-pop'), folioTd);
+        return;
+      }
       var editBtn = e.target.closest('[data-ptr-edit]');
       if (editBtn) { _openPartnerModal(editBtn.getAttribute('data-ptr-edit')); return; }
       var delBtn = e.target.closest('[data-ptr-del]');
@@ -1071,12 +1081,138 @@
     }
   });
 
+  // ══════════════════════════════════════
+  // ENTITY POPOVER (partner/proveedor cotizaciones)
+  // ══════════════════════════════════════
+  function _openEntityPopover(tipo, entityId, anchorEl) {
+    var pop = document.getElementById('entityPopover');
+    if (!pop) return;
+
+    var entity, folio, nombre, estado, cots, tipoLabel;
+    if (tipo === 'partner') {
+      entity = _partners.find(function (p) { return p.id === entityId; });
+      if (!entity) return;
+      folio = entity.folio || entityId;
+      nombre = entity.nombre || '';
+      estado = entity.cuentaActiva === 'No' ? 'Inactivo' : 'Activo';
+      tipoLabel = 'PARTNER';
+      cots = _cotPartners.filter(function (cp) { return cp.partnerId === entityId; });
+    } else {
+      entity = _proveedores.find(function (p) { return p.id === entityId; });
+      if (!entity) return;
+      folio = entity.id || entityId;
+      nombre = entity.razonSocial || entity.nombreComercial || '';
+      estado = String(entity.cuentaActiva) === 'Sí' ? 'Activo' : 'Inactivo';
+      tipoLabel = 'PROVEEDOR';
+      // Merge cotizacionProveedores + pagos tipo proveedor
+      var provCotMap = {};
+      _cotProveedores.filter(function (cp) { return cp.proveedorId === entityId; })
+        .forEach(function (cp) { provCotMap[cp.cotizacionId] = cp.cotizacionFolio; });
+      _pagos.filter(function (p) { return p.destinatarioId === entityId && p.tipo === 'proveedor'; })
+        .forEach(function (p) { if (!provCotMap[p.cotizacionId]) provCotMap[p.cotizacionId] = p.cotizacionFolio; });
+      cots = Object.keys(provCotMap).map(function (cotId) {
+        return { cotizacionId: cotId, cotizacionFolio: provCotMap[cotId] || cotId };
+      });
+    }
+
+    document.getElementById('entPopFolio').textContent = folio;
+    document.getElementById('entPopTipoLabel').textContent = tipoLabel;
+    document.getElementById('entPopNombre').textContent = nombre;
+    var estadoEl = document.getElementById('entPopEstado');
+    estadoEl.textContent = estado;
+    estadoEl.className = 'estado-badge ' + (estado === 'Activo' ? 'estado-Cerrada' : 'estado-Perdida');
+    document.getElementById('entPopCotCount').textContent = cots.length;
+
+    var listEl = document.getElementById('entPopCotList');
+    if (cots.length === 0) {
+      listEl.innerHTML = '<div class="entity-popover-empty">Sin cotizaciones vinculadas</div>';
+    } else {
+      var html = '';
+      cots.forEach(function (cp) {
+        var cotData = _cotizaciones.find(function (c) { return c.id === cp.cotizacionId; });
+        var cotFolio = cp.cotizacionFolio || (cotData ? cotData.folio : cp.cotizacionId);
+
+        // Pagos para esta combinación
+        var pagosEnt = _pagos.filter(function (pg) {
+          return pg.cotizacionId === cp.cotizacionId && pg.destinatarioId === entityId;
+        });
+        var totalPagado = pagosEnt.reduce(function (s, pg) { return s + (pg.monto || 0); }, 0);
+        var estadoPago = (tipo === 'partner' && cp.cerrada) ? 'Cerrada' : (totalPagado > 0 ? 'Parcial' : 'Pendiente');
+
+        html += '<div class="entity-popover-cot" data-ent-cot="' + _esc(cp.cotizacionId) + '">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center">'
+          + '<span class="entity-popover-cot-folio">' + _esc(cotFolio) + '</span>'
+          + '<span class="estado-badge estado-' + estadoPago + '" style="font-size:10px">' + estadoPago + '</span>'
+          + '</div>';
+
+        // Detail (shown on click)
+        if (cotData) {
+          var cotEstado = cotData.estado || 'Recorrido';
+          if (cotEstado === 'Nueva') cotEstado = 'Recorrido';
+          html += '<div class="entity-popover-cot-detail">'
+            + '<div class="entity-popover-cot-row"><span>CLIENTE</span><span class="val">' + _esc(cotData.cliente || '') + '</span></div>'
+            + '<div class="entity-popover-cot-row"><span>EVENTO</span><span class="val">' + _esc(cotData.evento || '') + '</span></div>'
+            + '<div class="entity-popover-cot-row"><span>TOTAL</span><span class="val">' + _formatMXN(cotData.total) + '</span></div>'
+            + '<div class="entity-popover-cot-row"><span>ESTADO</span><span class="val">' + _esc(cotEstado) + '</span></div>'
+            + '<div class="entity-popover-cot-pago">'
+            + '<span style="font-size:11px;color:var(--tx)">PAGADO</span>'
+            + '<span class="pago-monto">' + _formatMXN(totalPagado) + '</span>'
+            + '</div>'
+            + '</div>';
+        }
+
+        html += '</div>';
+      });
+      listEl.innerHTML = html;
+    }
+
+    // Position
+    var rect = anchorEl.getBoundingClientRect();
+    pop.style.top = (rect.bottom + 4) + 'px';
+    pop.style.left = rect.left + 'px';
+    pop.classList.add('visible');
+
+    // Clamp
+    var popRect = pop.getBoundingClientRect();
+    if (popRect.right > window.innerWidth - 16) {
+      pop.style.left = Math.max(8, window.innerWidth - 16 - popRect.width) + 'px';
+    }
+    if (popRect.bottom > window.innerHeight - 16) {
+      pop.style.top = (rect.top - popRect.height - 4) + 'px';
+    }
+  }
+
+  function _closeEntityPopover() {
+    var pop = document.getElementById('entityPopover');
+    if (pop) pop.classList.remove('visible');
+  }
+
+  // Toggle cotización detail on click
+  document.addEventListener('click', function (e) {
+    var cotEl = e.target.closest('[data-ent-cot]');
+    if (cotEl) {
+      cotEl.classList.toggle('expanded');
+      return;
+    }
+    var pop = document.getElementById('entityPopover');
+    if (!pop || !pop.classList.contains('visible')) return;
+    if (pop.contains(e.target)) return;
+    if (e.target.closest('[data-ptr-pop]') || e.target.closest('[data-prv-pop]')) return;
+    _closeEntityPopover();
+  });
+
+  document.getElementById('entPopClose').addEventListener('click', _closeEntityPopover);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') _closeEntityPopover();
+  });
+
   // ── Init ──
   BNK_AUTH.onReady(function (user) {
     if (user) init();
   });
 
   window.BNKFinanzas = {
-    reload: function () { _loadData(); }
+    reload: function () { _loadData(); },
+    openEntityPopover: _openEntityPopover
   };
 })();

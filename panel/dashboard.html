@@ -1697,6 +1697,22 @@
 
   </section>
 
+<!-- Popover: cotizaciones vinculadas a partner/proveedor -->
+<div class="cot-popover entity-popover" id="entityPopover">
+  <div class="cot-popover-header">
+    <span class="cot-popover-folio" id="entPopFolio"></span>
+    <button class="cot-popover-close" id="entPopClose">&times;</button>
+  </div>
+  <div class="cot-popover-info">
+    <div><span class="bnk-label" id="entPopTipoLabel"></span> <span id="entPopNombre"></span></div>
+    <div><span class="bnk-label">ESTADO</span> <span id="entPopEstado" class="estado-badge"></span></div>
+  </div>
+  <div class="cot-popover-section">
+    <div class="bnk-label">COTIZACIONES VINCULADAS (<span id="entPopCotCount">0</span>)</div>
+    <div id="entPopCotList" class="entity-popover-cots"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- ── TOAST NOTIFICATIONS ── -->

@@ -258,7 +258,7 @@
       var fechaEdSafe       = _escapeHTML(p.fechaEdicion    || '\u2014');
 
       html += '<tr>'
-        + '<td><span class="dash-table col-folio">' + idSafe + '</span></td>'
+        + '<td><span class="dash-table col-folio" data-prv-pop="' + idSafe + '" style="cursor:pointer">' + idSafe + '</span></td>'
         + '<td><span class="status-pct ' + pctClass + '">' + pct + '%</span></td>'
         + '<td>' + razonSocialSafe + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + nombreComSafe + '</td>'
@@ -936,6 +936,16 @@
     if (!prvBody) return;
 
     document.addEventListener('click', function (e) {
+      // Popover on folio click
+      var folioPop = e.target.closest('[data-prv-pop]');
+      if (folioPop && folioPop.closest('#prvBody')) {
+        e.stopPropagation();
+        if (window.BNKFinanzas && BNKFinanzas.openEntityPopover) {
+          BNKFinanzas.openEntityPopover('proveedor', folioPop.getAttribute('data-prv-pop'), folioPop);
+        }
+        return;
+      }
+
       var btn = e.target.closest('.tbl-action');
       if (!btn) return;
 
