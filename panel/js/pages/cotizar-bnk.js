@@ -338,7 +338,8 @@
     // Add individual services
     _allServicios.forEach(function (s) {
       if (s.proveedorId === provId && s.categoria === catSel && !s.bloqueId) {
-        html += '<option value="srv:' + _esc(s.id) + '" data-precio="' + (s.precioCliente || 0)
+        var srvPrecio = (s.precioCliente && parseFloat(s.precioCliente) > 0) ? s.precioCliente : (s.costoUnitario || 0);
+        html += '<option value="srv:' + _esc(s.id) + '" data-precio="' + srvPrecio
           + '" data-costo="' + (s.costoUnitario || 0)
           + '" data-unidad="' + _esc(s.unidad || 'servicio') + '">'
           + _esc(s.servicio) + '</option>';
@@ -389,12 +390,13 @@
     if (!bloque) return;
 
     // Find services in this block
+    // Remove the originating row (if it exists — may be null when called from picker)
     var srvs = _allServicios.filter(function (s) {
       return s.bloqueId === bloqueId && s.proveedorId === provId;
     });
 
     // Replace current row with block services
-    row.remove();
+    if (row) row.remove();
 
     srvs.forEach(function (srv) {
       var id = 'bc' + (_conceptoCounter++);
@@ -410,7 +412,7 @@
         + '</div>'
         + '<input type="number" class="bnk-cant" value="1" min="1" step="1">'
         + '<input type="text" class="bnk-uni" value="' + _esc(srv.unidad || 'servicio') + '">'
-        + '<input type="number" class="bnk-pre" value="' + (srv.precioCliente || 0) + '" min="0" step="0.01">'
+        + '<input type="number" class="bnk-pre" value="' + ((srv.precioCliente && parseFloat(srv.precioCliente) > 0) ? srv.precioCliente : (srv.costoUnitario || 0)) + '" min="0" step="0.01">'
         + '<input type="hidden" class="bnk-costo-prov" value="' + (srv.costoUnitario || 0) + '">'
         + '<input type="hidden" class="bnk-prov-id" value="' + _esc(provId) + '">'
         + '<input type="hidden" class="bnk-prov-nombre" value="' + _esc(provNombre) + '">'
@@ -891,11 +893,114 @@
     document.getElementById('bnkGenerar').textContent = 'GENERAR COTIZACIÓN';
   }
 
+  // ── Bloque picker ──
+  function _openBloquePicker() {
+    var overlay = document.getElementById('bnkBloqueOverlay');
+    var provSel = document.getElementById('bnkBloqueProv');
+
+    // Populate provider select with those that have blocks
+    var provConBloques = {};
+    _allBloques.forEach(function (b) { provConBloques[b.proveedorId] = true; });
+
+    var html = '<option value="">\u2014 Seleccionar proveedor \u2014</option>';
+    _proveedores.forEach(function (p) {
+      if (provConBloques[p.id]) {
+        html += '<option value="' + _esc(p.id) + '">' + _esc(p.razonSocial || p.nombreComercial || p.id) + '</option>';
+      }
+    });
+    provSel.innerHTML = html;
+
+    document.getElementById('bnkBloqueSelect').innerHTML = '<option value="">\u2014 Seleccionar bloque \u2014</option>';
+    document.getElementById('bnkBloquePreview').innerHTML = '';
+    document.getElementById('bnkBloqueAdd').disabled = true;
+
+    overlay.style.display = '';
+    overlay.classList.add('visible');
+  }
+
+  function _setupBloquePicker() {
+    var overlay = document.getElementById('bnkBloqueOverlay');
+    var provSel = document.getElementById('bnkBloqueProv');
+    var bloqueSel = document.getElementById('bnkBloqueSelect');
+    var preview = document.getElementById('bnkBloquePreview');
+    var addBtn = document.getElementById('bnkBloqueAdd');
+    var closeBtn = document.getElementById('bnkBloqueClose');
+
+    function _close() { overlay.classList.remove('visible'); overlay.style.display = 'none'; }
+
+    closeBtn.addEventListener('click', _close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) _close(); });
+
+    provSel.addEventListener('change', function () {
+      var provId = provSel.value;
+      var html = '<option value="">\u2014 Seleccionar bloque \u2014</option>';
+      _allBloques.forEach(function (b) {
+        if (b.proveedorId === provId) {
+          html += '<option value="' + _esc(b.id) + '">' + _esc(b.nombre) + '</option>';
+        }
+      });
+      bloqueSel.innerHTML = html;
+      preview.innerHTML = '';
+      addBtn.disabled = true;
+    });
+
+    bloqueSel.addEventListener('change', function () {
+      var bloqueId = bloqueSel.value;
+      var provId = provSel.value;
+      if (!bloqueId) { preview.innerHTML = ''; addBtn.disabled = true; return; }
+
+      var srvs = _allServicios.filter(function (s) {
+        return s.bloqueId === bloqueId && s.proveedorId === provId;
+      });
+
+      if (srvs.length === 0) {
+        preview.innerHTML = '<em>Sin servicios en este bloque</em>';
+        addBtn.disabled = true;
+        return;
+      }
+
+      var html = '<div style="margin-top:8px;padding:8px;border:1px solid var(--bd);border-radius:4px">';
+      html += '<strong style="color:var(--g);font-size:11px">' + srvs.length + ' servicios:</strong><ul style="margin:4px 0 0 16px;list-style:disc">';
+      srvs.forEach(function (s) {
+        var precio = (s.precioCliente && parseFloat(s.precioCliente) > 0) ? s.precioCliente : (s.costoUnitario || 0);
+        html += '<li>' + _esc(s.servicio) + ' \u2014 ' + _formatMXN(precio) + '</li>';
+      });
+      html += '</ul></div>';
+      preview.innerHTML = html;
+      addBtn.disabled = false;
+    });
+
+    addBtn.addEventListener('click', function () {
+      var provId = provSel.value;
+      var bloqueId = bloqueSel.value;
+      if (!provId || !bloqueId) return;
+
+      var provNombre = '';
+      _proveedores.forEach(function (p) {
+        if (p.id === provId) provNombre = p.razonSocial || p.nombreComercial || '';
+      });
+
+      // Remove last empty row if it exists
+      var rows = document.querySelectorAll('#bnkConceptosBody .bnk-concepto-row');
+      if (rows.length > 0) {
+        var lastRow = rows[rows.length - 1];
+        var lastCon = (lastRow.querySelector('.bnk-con') || {}).value;
+        if (!lastCon || !lastCon.trim()) lastRow.remove();
+      }
+
+      _expandBloque('__picker__', bloqueId, provId, provNombre);
+      _close();
+      BNKToast.ok('Bloque agregado.');
+    });
+  }
+
   // ── Bind ──
   function _bindEvents() {
     _setupAutocomplete();
 
     document.getElementById('bnkAddRow').addEventListener('click', _agregarFila);
+    document.getElementById('bnkAddBloque').addEventListener('click', _openBloquePicker);
+    _setupBloquePicker();
     document.getElementById('bnkPlantilla').addEventListener('change', function () {
       _setCondiciones(this.value);
     });

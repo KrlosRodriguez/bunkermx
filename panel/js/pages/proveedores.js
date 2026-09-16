@@ -77,7 +77,7 @@
   };
 
   // Campos que se excluyen del cálculo de completitud
-  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true };
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true, observaciones: true };
   var CAMPOS_EXTRANJERO = ['bancoExtranjero', 'divisa', 'titularExtranjero', 'cuentaIban', 'swiftBic', 'abaRouting', 'bancoIntermediario', 'swiftIntermediario', 'gastosBancarios'];
 
   // Campos de tipo fecha (usan input type="date", formato YYYY-MM-DD)

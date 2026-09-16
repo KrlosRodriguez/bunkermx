@@ -102,10 +102,21 @@
     var provSrvs = conceptos.filter(function (c) {
       return c.proveedorId === proveedorData.id;
     });
+    // Fallback: if no match by ID, try by provider name
+    if (provSrvs.length === 0) {
+      var provName = (proveedorData.razonSocial || proveedorData.nombreComercial || '').toLowerCase();
+      provSrvs = conceptos.filter(function (c) {
+        return c.proveedorNombre && c.proveedorNombre.toLowerCase() === provName;
+      });
+    }
+    // If still no match, show all conceptos as reference
+    if (provSrvs.length === 0 && conceptos.length > 0) {
+      provSrvs = conceptos;
+    }
 
     if (provSrvs.length === 0) {
       doc.setFontSize(8); doc.setTextColor(SUB_TEXT[0], SUB_TEXT[1], SUB_TEXT[2]);
-      doc.text('(Servicios vinculados manualmente \u2014 sin detalle de conceptos)', margin + 2, y + 4);
+      doc.text('(Sin conceptos registrados en esta cotizaci\u00f3n)', margin + 2, y + 4);
       y += 8;
     } else {
       // Table header

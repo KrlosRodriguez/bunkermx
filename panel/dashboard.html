@@ -476,7 +476,32 @@
           <span></span>
         </div>
         <div id="bnkConceptosBody"></div>
-        <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
+        <div class="bnk-add-buttons">
+          <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
+          <button class="bnk-add-row bnk-add-bloque" id="bnkAddBloque">&#128230; AGREGAR BLOQUE DE PROVEEDOR</button>
+        </div>
+
+        <!-- Bloque picker overlay -->
+        <div id="bnkBloqueOverlay" class="bnk-overlay" style="display:none">
+          <div class="bnk-modal" style="max-width:480px">
+            <div class="bnk-modal-header">
+              <h3>Agregar bloque de proveedor</h3>
+              <button class="bnk-modal-close" id="bnkBloqueClose">&times;</button>
+            </div>
+            <div class="bnk-modal-body" style="padding:16px">
+              <label style="font-size:11px;color:var(--tx2)">PROVEEDOR</label>
+              <select id="bnkBloqueProv" style="width:100%;margin-bottom:12px">
+                <option value="">— Seleccionar proveedor —</option>
+              </select>
+              <label style="font-size:11px;color:var(--tx2)">BLOQUE DE SERVICIOS</label>
+              <select id="bnkBloqueSelect" style="width:100%;margin-bottom:12px">
+                <option value="">— Seleccionar bloque —</option>
+              </select>
+              <div id="bnkBloquePreview" style="font-size:12px;color:var(--tx2);min-height:30px"></div>
+              <button class="btn-gold" id="bnkBloqueAdd" style="width:100%;margin-top:12px" disabled>AGREGAR BLOQUE</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Totales -->
         <div class="bnk-totales">

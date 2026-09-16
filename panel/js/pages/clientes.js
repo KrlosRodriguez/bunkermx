@@ -66,7 +66,7 @@
   };
 
   // Campos que se excluyen del cálculo de completitud
-  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true };
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true, observaciones: true, condicionesPago: true, marcas: true };
   var CAMPOS_EXTRANJERO = ['bancoExtranjero', 'divisa', 'titularExtranjero', 'cuentaIban', 'swiftBic', 'abaRouting', 'bancoIntermediario', 'swiftIntermediario'];
 
   // ── Helpers internos ──

@@ -154,7 +154,7 @@ table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
 .bnk-modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:3px;color:var(--ylw)}
 .bnk-modal-close{background:none;border:none;color:var(--tx);font-size:24px;cursor:pointer;padding:0 4px}
 .bnk-modal-close:hover{color:var(--wh)}
-.bnk-modal-body{padding:24px;max-height:calc(100vh - 160px);overflow-y:auto}
+.bnk-modal-body{padding:24px;max-height:calc(100vh - 160px);overflow-y:auto;overflow-x:hidden}
 .bnk-modal-footer{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid var(--bd)}
 
 /* ── FORM ── */
@@ -355,14 +355,23 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 
 /* Conceptos table */
 .bnk-conceptos-header{display:grid;grid-template-columns:140px 1fr 60px 80px 110px 110px 36px;gap:6px;padding:6px 0;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx);border-bottom:1px solid var(--bd)}
-.bnk-concepto-row{display:grid;grid-template-columns:140px 1fr 60px 80px 110px 110px 36px;gap:6px;padding:6px 0;align-items:center;border-bottom:1px solid rgba(0,255,65,.06)}
+.bnk-concepto-row{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;align-items:center;border-bottom:1px solid rgba(0,255,65,.06)}
+.bnk-concepto-row .bnk-modo-manual{display:flex;gap:6px;flex:1;min-width:0}
+.bnk-concepto-row .bnk-modo-manual select{width:140px;flex-shrink:0}
+.bnk-concepto-row .bnk-modo-manual input[type="text"]{flex:1;min-width:0}
+.bnk-concepto-row .bnk-cant{width:60px;flex-shrink:0}
+.bnk-concepto-row .bnk-uni{width:80px;flex-shrink:0}
+.bnk-concepto-row .bnk-pre{width:110px;flex-shrink:0}
 .bnk-concepto-row select,.bnk-concepto-row input{padding:6px 8px;background:var(--card);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif;font-size:12px;outline:none}
 .bnk-concepto-row .bnk-sub-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--ylw);font-size:14px;text-align:right;padding-right:8px}
 .bnk-concepto-row .bnk-del-btn{background:none;border:1px solid rgba(255,68,85,.3);color:var(--red);font-size:14px;cursor:pointer;padding:4px 8px;transition:all .2s}
 .bnk-concepto-row .bnk-del-btn:hover{background:rgba(255,68,85,.12)}
 
-.bnk-add-row{display:block;width:100%;padding:12px;background:none;border:1px dashed rgba(240,192,64,.25);color:var(--ylw);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;margin-top:12px;transition:all .3s}
+.bnk-add-buttons{display:flex;gap:8px;margin-top:12px}
+.bnk-add-row{flex:1;padding:12px;background:none;border:1px dashed rgba(240,192,64,.25);color:var(--ylw);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .3s}
 .bnk-add-row:hover{background:rgba(240,192,64,.04);border-color:rgba(240,192,64,.5);border-style:solid}
+.bnk-add-bloque{border-color:rgba(0,255,65,.25);color:var(--g)}
+.bnk-add-bloque:hover{background:rgba(0,255,65,.04);border-color:rgba(0,255,65,.5)}
 
 /* Totales */
 .bnk-totales{margin-top:20px;border-top:2px solid var(--bd);padding-top:16px}
@@ -500,11 +509,13 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
   .ctz-card{padding:16px}
   .mnt-step-title{font-size:18px;letter-spacing:2px}
   .bnk-conceptos-header{display:none}
-  .bnk-concepto-row{grid-template-columns:1fr 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
-  .bnk-concepto-row select,.bnk-concepto-row input{width:100%}
+  .bnk-concepto-row{flex-wrap:wrap;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
+  .bnk-concepto-row .bnk-modo-manual,.bnk-concepto-row .bnk-modo-proveedor{flex-basis:100%}
+  .bnk-concepto-row select,.bnk-concepto-row input{width:auto}
+  .bnk-concepto-row .bnk-cant,.bnk-concepto-row .bnk-uni,.bnk-concepto-row .bnk-pre{flex:1}
   .bnk-concepto-row [data-label]::before{content:attr(data-label);display:block;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--tx);margin-bottom:2px}
   .bnk-concepto-row .bnk-sub-val{display:flex;flex-direction:column;align-items:flex-start}
-  .bnk-concepto-row .bnk-del-btn{grid-column:1/-1;justify-self:end}
+  .bnk-concepto-row .bnk-del-btn{margin-left:auto}
   .bnk-shortcut-hint{display:none}
   .mnt-progress-step{font-size:10px;padding:8px 6px;letter-spacing:1px}
   .mnt-progress-step .step-num{margin-right:4px}
