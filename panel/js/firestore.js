@@ -117,6 +117,53 @@
     }
   };
 
+  // ── Bloques de proveedor (subcollection de proveedores) ──
+  function bloquesAPI(proveedorId) {
+    var ref = db.collection('proveedores').doc(proveedorId).collection('bloques');
+    return {
+      list: function () {
+        return ref.orderBy('orden', 'asc').get().then(function (snap) {
+          return snap.docs.map(function (doc) {
+            var d = doc.data(); d.id = doc.id; d.proveedorId = proveedorId; return d;
+          });
+        });
+      },
+      create: function (data) {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.add(data).then(function (r) { data.id = r.id; return data; });
+      },
+      update: function (id, data) {
+        data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.doc(id).update(data);
+      },
+      delete: function (id) { return ref.doc(id).delete(); }
+    };
+  }
+
+  // ── Collection group queries (cross-provider) ──
+  function allServiciosQuery() {
+    return db.collectionGroup('servicios').get().then(function (snap) {
+      return snap.docs.map(function (doc) {
+        var d = doc.data();
+        d.id = doc.id;
+        d.proveedorId = doc.ref.parent.parent.id;
+        return d;
+      });
+    });
+  }
+
+  function allBloquesQuery() {
+    return db.collectionGroup('bloques').get().then(function (snap) {
+      return snap.docs.map(function (doc) {
+        var d = doc.data();
+        d.id = doc.id;
+        d.proveedorId = doc.ref.parent.parent.id;
+        return d;
+      });
+    });
+  }
+
   // ── API pública ──
   window.BNK_DB = {
     cotizaciones:        collectionAPI('cotizaciones'),
@@ -132,6 +179,9 @@
     cotizacionPartners:  collectionAPI('cotizacionPartners'),
     cuentasCobrar:       collectionAPI('cuentasCobrar', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     cotizacionProveedores: collectionAPI('cotizacionProveedores'),
+    bloques:               bloquesAPI,
+    allServicios:          allServiciosQuery,
+    allBloques:            allBloquesQuery,
     actividad:           actividadAPI,
     tareas:              tareasAPI
   };
