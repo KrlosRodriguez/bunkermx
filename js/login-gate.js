@@ -1,7 +1,16 @@
 (function(){
   var KEY = 'bnk_auth';
-  var U = 'krloro92';
-  var P = 'bunker2026Esc';
+  var UH = '4ecc19d28b9cb553bd9de85591ffa6f5665cdeb84ecc1fb4055166042df99f82';
+  var PH = '3770497944926bfd41e0cc4f48d3ae1f4d8262d8c60ed67c7d5503306d04d10e';
+
+  function _sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', buf).then(function (hash) {
+      return Array.from(new Uint8Array(hash)).map(function (b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+    });
+  }
 
   if(sessionStorage.getItem(KEY) === 'granted') return;
 
@@ -67,16 +76,18 @@
       e.preventDefault();
       var u = document.getElementById('lg-user').value.trim();
       var p = document.getElementById('lg-pass').value;
-      if(u === U && p === P){
-        sessionStorage.setItem(KEY, 'granted');
-        ov.remove();
-        st.remove();
-        hideStyle.remove();
-      } else {
-        document.getElementById('lg-error').textContent = '> ACCESO DENEGADO — Credenciales incorrectas';
-        document.getElementById('lg-pass').value = '';
-        document.getElementById('lg-pass').focus();
-      }
+      Promise.all([_sha256(u), _sha256(p)]).then(function (hashes) {
+        if(hashes[0] === UH && hashes[1] === PH){
+          sessionStorage.setItem(KEY, 'granted');
+          ov.remove();
+          st.remove();
+          hideStyle.remove();
+        } else {
+          document.getElementById('lg-error').textContent = '> ACCESO DENEGADO — Credenciales incorrectas';
+          document.getElementById('lg-pass').value = '';
+          document.getElementById('lg-pass').focus();
+        }
+      });
     });
   });
 })();

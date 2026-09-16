@@ -19,6 +19,9 @@
     if (calLoading) calLoading.style.display = '';
     if (calGrid) calGrid.style.display = 'none';
 
+    // Cleanup previous subscription to avoid memory leaks
+    if (_unsubCotizaciones) { _unsubCotizaciones(); _unsubCotizaciones = null; }
+
     _unsubCotizaciones = BNK_DB.cotizaciones.onSnapshot(function (docs) {
       _cotizaciones = docs;
       _dataReady.cotizaciones = true;
@@ -323,7 +326,7 @@
           tabBtn.click();
           // Apply folio to search input to filter the table
           var folio = (bloque.title || '').split(' — ').pop() || '';
-          var searchInput = document.getElementById('ctzSearch');
+          var searchInput = document.getElementById('cotSearch2');
           if (searchInput && folio) {
             searchInput.value = folio;
             searchInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -346,7 +349,7 @@
     // Keyboard navigation
     document.addEventListener('keydown', function (e) {
       var sec = document.getElementById('sec-calendario');
-      if (!sec || sec.style.display === 'none') return;
+      if (!sec || !sec.classList.contains('active')) return;
 
       if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.altKey) {
         var active = document.activeElement;

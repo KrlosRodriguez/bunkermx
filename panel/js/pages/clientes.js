@@ -66,7 +66,8 @@
   };
 
   // Campos que se excluyen del cálculo de completitud
-  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true };
+  var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true, observaciones: true, condicionesPago: true, marcas: true };
+  var CAMPOS_EXTRANJERO = ['bancoExtranjero', 'divisa', 'titularExtranjero', 'cuentaIban', 'swiftBic', 'abaRouting', 'bancoIntermediario', 'swiftIntermediario'];
 
   // ── Helpers internos ──
   function _escapeHTML(str) {
@@ -204,14 +205,28 @@
     if (!obj) return 0;
     var total = 0;
     var llenos = 0;
+    var excluirExtra = obj.noAplicaExtranjero === true ? CAMPOS_EXTRANJERO : [];
     Object.keys(obj).forEach(function (key) {
       if (CAMPOS_EXCLUIDOS[key]) return;
+      if (key === 'noAplicaExtranjero') return;
+      if (excluirExtra.indexOf(key) !== -1) return;
       total++;
       var v = obj[key];
       if (v !== undefined && v !== null && String(v).trim() !== '') llenos++;
     });
     if (total === 0) return 0;
     return Math.round((llenos / total) * 100);
+  }
+
+  function _toggleExtranjeroFields(prefix, disabled) {
+    CAMPOS_EXTRANJERO.forEach(function (campo) {
+      var elId = CAMPO_ID[campo];
+      var el = elId ? document.getElementById(elId) : null;
+      if (el) {
+        el.disabled = disabled;
+        el.style.opacity = disabled ? '0.4' : '1';
+      }
+    });
   }
 
   // ── updateIndicators ──
@@ -422,6 +437,13 @@
         else chipsWrap.classList.remove('disabled');
       }
 
+      // Set noAplicaExtranjero toggle
+      var chkNoAplica = document.getElementById('cliNoAplicaExtranjero');
+      if (chkNoAplica) {
+        chkNoAplica.checked = !!(clienteData && clienteData.noAplicaExtranjero);
+        _toggleExtranjeroFields('cli', chkNoAplica.checked);
+      }
+
       var pct = calcCompletitud(clienteData);
       _actualizarCirculo(pct);
     }
@@ -455,12 +477,12 @@
           var cotEmpresa = String(cot.empresa || cot.cliente || '').toLowerCase();
           return cotEmpresa === empresaNombre || cotEmpresa.indexOf(empresaNombre) !== -1 || empresaNombre.indexOf(cotEmpresa) !== -1;
         });
-        _renderCotizacionesVinculadas(vinculadas);
+        _renderCotizacionesVinculadas(vinculadas, clienteData.id);
       }).catch(function () {
-        _renderCotizacionesVinculadas([]);
+        _renderCotizacionesVinculadas([], clienteData.id);
       });
     } else {
-      _renderCotizacionesVinculadas([]);
+      _renderCotizacionesVinculadas([], clienteData ? clienteData.id : '');
     }
 
     // Hacer visible el overlay
@@ -474,7 +496,7 @@
   }
 
   // ── Renderizar cotizaciones vinculadas ──
-  function _renderCotizacionesVinculadas(vinculadas) {
+  function _renderCotizacionesVinculadas(vinculadas, clienteId) {
     var wrap = _getEl('cliCotizacionesWrap');
     if (!wrap) return;
     var cotHtml = '<div class="bnk-section-label" style="margin-top:16px">COTIZACIONES VINCULADAS: ' + vinculadas.length + '</div>';
@@ -485,12 +507,17 @@
       vinculadas.forEach(function (cot) {
         var folio = _escapeHTML(cot.folio || '');
         var estado = _escapeHTML(cot.estado || '');
+        var esFormal = clienteId && cot.clienteId === clienteId;
+        var badgeHtml = esFormal
+          ? '<span style="font-size:9px;padding:2px 6px;color:var(--g);border:1px solid rgba(0,255,65,.3);background:rgba(0,255,65,.06);margin-left:4px">Vinculada</span>'
+          : '<span style="font-size:9px;padding:2px 6px;color:var(--ylw);border:1px solid rgba(240,192,64,.3);background:rgba(240,192,64,.06);margin-left:4px">Por nombre</span>';
         var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
         if (pdfUrl) {
           cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
         } else {
           cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
         }
+        cotHtml += badgeHtml;
         if (estado) {
           cotHtml += '<span style="font-size:11px;color:var(--tx-muted)">(' + estado + ')</span> ';
         }
@@ -606,6 +633,10 @@
 
     // Marcas como array
     data.marcas = _marcasActuales.slice();
+
+    // No aplica extranjero toggle
+    var chkNoAplica = document.getElementById('cliNoAplicaExtranjero');
+    data.noAplicaExtranjero = chkNoAplica ? chkNoAplica.checked : false;
 
     // Agregar fecha de edición
     data.fechaEdicion = new Date().toISOString().slice(0, 10);
@@ -807,6 +838,12 @@
 
     var btnGuardar = _getEl('cliGuardar');
     if (btnGuardar) btnGuardar.addEventListener('click', guardarCliente);
+
+    // Toggle "No aplica" extranjero
+    var chkNoAplicaCli = document.getElementById('cliNoAplicaExtranjero');
+    if (chkNoAplicaCli) chkNoAplicaCli.addEventListener('change', function () {
+      _toggleExtranjeroFields('cli', this.checked);
+    });
 
     var btnCancel = _getEl('cliCancel');
     if (btnCancel) btnCancel.addEventListener('click', cerrarModal);

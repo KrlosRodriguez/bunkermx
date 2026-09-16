@@ -16,6 +16,11 @@ exports.createUser = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('invalid-argument', 'Faltan campos requeridos');
   }
 
+  const rolesPermitidos = ['admin', 'ventas', 'produccion', 'lectura'];
+  if (!rolesPermitidos.includes(rol)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Rol inválido. Permitidos: ' + rolesPermitidos.join(', '));
+  }
+
   // Crear usuario en Firebase Auth
   const userRecord = await admin.auth().createUser({
     email: email,

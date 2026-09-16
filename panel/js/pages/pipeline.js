@@ -110,7 +110,7 @@
             }
           }
 
-          html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '">'
+          html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '" tabindex="0" role="button">'
             + '<div class="pipeline-card-top">'
             + '<span class="pipeline-card-cliente">' + _esc(d.cliente) + '</span>'
             + '<span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span>'
@@ -151,6 +151,14 @@
       if (!card) return;
       var id = card.getAttribute('data-id');
       _openDetail(id);
+    });
+
+    document.getElementById('pipelineBoard').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var card = e.target.closest('.pipeline-card');
+      if (!card) return;
+      e.preventDefault();
+      _openDetail(card.getAttribute('data-id'));
     });
 
     document.getElementById('pipeDetailClose').addEventListener('click', _closeDetail);

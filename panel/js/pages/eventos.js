@@ -300,7 +300,7 @@
             }
             BNK_DB.eventos.update(eventoId, { estado: 'Ejecutado' }).catch(function () {});
             BNKToast.ok('Evento marcado como Ejecutado.');
-            _renderEventos();
+            _renderList();
           });
         }
       }

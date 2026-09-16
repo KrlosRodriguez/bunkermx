@@ -67,7 +67,8 @@ El backend vive en Google Apps Script y usa Google Sheets como base de datos y G
 Dos estilos de PDF generados client-side con jsPDF 2.5.1, toggle Neon/Corporativa en ambos cotizadores:
 - **MNT (neon/verde)**: fondo `#050905`, acento `#00FF41`
 - **MNT (corporativa)**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`
-- **BNK**: mismas dos paletas, agrupación por categoría, condiciones comerciales con plantillas
+- **BNK**: mismas dos paletas, agrupación por categoría con sub-agrupación por bloque de proveedor, condiciones comerciales con plantillas
+- **Orden de Trabajo (OT)**: paleta corporativa, filtrado por proveedor, agrupación por bloque, sección de notas
 - **Logo embebido**: `BUNKER_LOGO_B64` en `panel/js/logo-data.js` (y `cotizador-munet/js/logo-data.js`)
 - **Regeneración**: `panel/js/pdf-rebuild.js` reconstruye PDFs idénticos desde datos de Firestore (sin necesidad de storage externo)
 
@@ -77,31 +78,32 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 **Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~1871 lines) — dashboard principal con 12 tabs
+- **`panel/dashboard.html`** (~2000 lines) — dashboard principal con 12 tabs
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~133 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar
+- **`panel/js/firestore.js`** (~188 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
 - **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
+- **`panel/js/pdf-workorder.js`** (~193 lines) — genera PDF de Orden de Trabajo para proveedores. `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`. Paleta corporativa, secciones: proveedor, evento, servicios requeridos (agrupados por bloque), notas. Fallback matching por proveedorId → nombre → todos los conceptos
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
 
 **Módulos por tab (`panel/js/pages/`):**
-- **`cotizaciones.js`** (~500 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js), popover de folio (BNK vinculadas, indicadores partner/proveedor, crear BNK), modales de vinculación partner/proveedor
+- **`cotizaciones.js`** (~1157 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js), popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, orden de trabajo), modales de vinculación partner/proveedor/cliente, modal OT (orden de trabajo PDF por proveedor)
 - **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
-- **`cotizar-bnk.js`** (~430 lines) — formulario de servicios/producción, filas dinámicas de conceptos, autocomplete catálogo, plantillas de condiciones comerciales, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
+- **`cotizar-bnk.js`** (~1064 lines) — formulario de servicios/producción, filas dinámicas de conceptos con modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete catálogo, bloques de proveedor expandibles, botón "Agregar Bloque" con modal picker, auto-vinculación de proveedores al guardar, plantillas de condiciones comerciales, PDF dual con agrupación por bloque, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
 - **`pipeline.js`** (~205 lines) — tablero kanban de seguimiento con timeline y notas, indicador de folios BNK vinculados en cards MNT
-- **`clientes.js`** (~895 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud, chips UI para marcas, cotizaciones vinculadas
-- **`proveedores.js`** (~1064 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor
+- **`clientes.js`** (~1024 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud con toggle "No aplica extranjero", chips UI para marcas, cotizaciones vinculadas con badges Vinculada/Por nombre, popover de folio con cotizaciones vinculadas por empresa
+- **`proveedores.js`** (~1337 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), doble precio (costoUnitario + precioCliente), bloques de servicios con precio manual, toggle "No aplica extranjero" para completitud, popover de folio con cotizaciones vinculadas
 - **`calendario.js`** (~140 lines) — calendario mensual de eventos por espacio, soporta múltiples fechas MNT via desgloseVenues
 - **`reportes.js`** (~200 lines) — funnel, gráficos mensuales, top clientes, rendimiento
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
 - **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
 - **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
-- **`finanzas.js`** (~1000 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso)
+- **`finanzas.js`** (~1100 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo
 
 **CSS:**
-- **`panel/css/panel.css`** (~368 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, cards `.ctz-card`, progress bar, calendar, responsive
+- **`panel/css/panel.css`** (~627 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", responsive
 - **`panel/css/login.css`** — estilos del login
 - **`panel/css/pipeline.css`** — estilos del kanban
 - **`panel/css/reportes.css`** — estilos de reportes/gráficos
@@ -120,7 +122,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Panel**: `firebase deploy --only hosting --project bunker-panel`
 - **Reglas Firestore**: `firebase deploy --only firestore:rules --project bunker-panel`
 - **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
-- **`firebase.json`** — hosting con `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
+- **`firebase.json`** — hosting con `site: "bunker-panel"`, `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
 - **`.firebaserc`** — proyecto default: `bunker-panel`
 - **Firebase project ID**: `bunker-panel` (cuenta: admin@vanguardiaysoluciones)
 
@@ -135,9 +137,16 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las cotizaciones nuevas se crean con estado `'Recorrido'`. El estado legacy `'Nueva'` se mapea a `'Recorrido'` en todos los módulos (pipeline, cotizaciones, reportes, finanzas)
 - **Campos de fecha en cotizaciones**: `fecha` (ISO timestamp de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp de Firestore). Todos los módulos usan `d.fecha || d.createdAt` como fallback para compatibilidad con registros legacy
 - **PDFs regenerables**: los PDFs no se almacenan en storage. Se regeneran on-the-fly desde datos en Firestore via `BNKPdfRebuild.download(cotData)`. MNT usa `desgloseVenues` (JSON), BNK usa `conceptos` (JSON)
-- **Popover de folio**: clic en folio de cotización abre popover compacto con info rápida, BNK vinculadas (1:N via `folioMNT`), indicadores de partners/proveedores, y acciones (crear BNK, PDF, vincular). Patrón: popover para ver, modal para actuar
+- **Popover de folio (cotizaciones)**: clic en folio de cotización abre popover compacto con info rápida, BNK vinculadas (1:N via `folioMNT`), indicadores de partners/proveedores, y acciones (crear BNK, PDF, vincular). Patrón: popover para ver, modal para actuar
+- **Popover de folio (entidades)**: clic en folio de cliente, proveedor o partner abre popover `#entityPopover` reutilizable con lista de cotizaciones vinculadas. Cada cotización es expandible (clic toggle clase `.expanded`) para ver evento, total, estado, pagado. Clientes se vinculan por nombre de empresa (fuzzy match). Partners y proveedores por `cotizacionPartners`/`cotizacionProveedores` + `pagos`
 - **Vinculación MNT↔BNK**: relación 1:N. BNK tiene campo `folioMNT` que apunta al folio MNT padre. Desde popover MNT se puede crear BNK con datos pre-llenados
-- **cotizacionProveedores**: colección Firestore simétrica a `cotizacionPartners`. Schema: `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`
+- **cotizacionProveedores**: colección Firestore simétrica a `cotizacionPartners`. Schema: `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`. Auto-creados al guardar cotización BNK con conceptos de proveedor (`autoVinculado: true`)
+- **Vinculación Cliente↔Cotización**: campo `clienteId` + `clienteNombre` en cotización. Modal con auto-match por nombre de empresa (fuzzy). Popover muestra badge "Vinculada" (formal FK) vs "Por nombre" (fuzzy match)
+- **Bloques de proveedor**: subcollection `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Servicios con campo `bloqueId` para agrupar. En cotizador BNK: expandibles via dropdown (📦 prefix) o botón "Agregar Bloque" con modal picker
+- **Doble precio servicios**: cada servicio de proveedor tiene `costoUnitario` (costo real) y `precioCliente` (precio al cliente). Fallback: si `precioCliente` es 0, usa `costoUnitario`
+- **PDF Orden de Trabajo**: `BNKPdfWorkOrder.download(cotData, proveedorData, notas)` — PDF corporativo para enviar al proveedor con servicios filtrados por proveedor, accesible desde popover de cotización BNK
+- **Toggle "No aplica extranjero"**: checkbox en modales de cliente/proveedor que excluye campos bancarios extranjeros del cálculo de completitud. Persiste como `noAplicaExtranjero: true` en el documento
+- **Precio especial MNT**: venues Valeria y Lobby permiten override de precio por cotización en el wizard MNT. Se guarda como `precioEspecial` en `desgloseVenues`
 
 ## Key Conventions
 

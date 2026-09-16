@@ -41,15 +41,20 @@ service cloud.firestore {
     }
 
     match /clientes/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
     }
 
     match /proveedores/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
 
       match /servicios/{srvId} {
+        allow read: if isAuthenticated();
+        allow create, update, delete: if isAdminOrVentas();
+      }
+
+      match /bloques/{bloqueId} {
         allow read: if isAuthenticated();
         allow create, update, delete: if isAdminOrVentas();
       }
@@ -99,6 +104,15 @@ service cloud.firestore {
 
     match /cotizacionProveedores/{docId} {
       allow read, create, update, delete: if isAdmin();
+    }
+
+    // Collection group queries para servicios y bloques
+    match /{path=**}/servicios/{srvId} {
+      allow read: if isAuthenticated();
+    }
+
+    match /{path=**}/bloques/{bloqueId} {
+      allow read: if isAuthenticated();
     }
   }
 }

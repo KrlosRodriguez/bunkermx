@@ -26,11 +26,42 @@
  *   U: Link PDF | V: Estado
  */
 
+// ── AUTENTICACIÓN ──
+// SETUP: En el editor de Apps Script, ve a Configuración del proyecto → Propiedades del script
+// y crea las siguientes propiedades:
+//   API_KEY        → genera una clave segura (ej: openssl rand -hex 32)
+//   SHEET_ID       → ID de tu Google Sheet
+//   DRIVE_FOLDER_ID → ID de la carpeta de Drive para PDFs
+//   NOTIFY_EMAIL   → correos separados por coma
+//
+// En el cliente, envía el header o parámetro: ?key=TU_API_KEY
+
+function _validateApiKey(e) {
+  var key = '';
+  if (e && e.parameter && e.parameter.key) key = e.parameter.key;
+  if (!key && e && e.postData) {
+    try { var body = JSON.parse(e.postData.contents); key = body.apiKey || ''; } catch (ex) {}
+  }
+  var expected = PropertiesService.getScriptProperties().getProperty('API_KEY');
+  if (!expected || !key || key !== expected) {
+    return false;
+  }
+  return true;
+}
+
+function _unauthorizedResponse() {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'error', message: 'Unauthorized — API key inválida o ausente'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
 // ── CONFIGURACIÓN ──
-var SHEET_ID = '1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk';
-var NOTIFY_EMAIL = 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.com';
+// NOTA: Migra estos valores a Propiedades del Script para mayor seguridad.
+// Mientras tanto, se leen de Properties con fallback a constantes.
+var SHEET_ID = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || '1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk';
+var NOTIFY_EMAIL = PropertiesService.getScriptProperties().getProperty('NOTIFY_EMAIL') || 'cotizaciones@bunkermx.com,krloro92@gmail.com,cacho@bunkermx.com';
 var SHEET_NAME = 'Cotizaciones';
-var DRIVE_FOLDER_ID = '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
+var DRIVE_FOLDER_ID = PropertiesService.getScriptProperties().getProperty('DRIVE_FOLDER_ID') || '17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn';
 var SENDER_NAME = 'MUNET Cotizaciones · BUNKER'; // nombre visible del remitente (el email será el de la cuenta desplegadora)
 var SHEET_CLIENTES = 'Clientes';
 var SHEET_BNK = 'CotizacionesBNK';
@@ -120,6 +151,7 @@ function getOrCreateSheet(ss, name, headers, colCount) {
 
 // ── doPost: Recibir cotización ──
 function doPost(e) {
+  if (!_validateApiKey(e)) return _unauthorizedResponse();
   try {
     var data = JSON.parse(e.postData.contents);
 
@@ -1101,6 +1133,7 @@ function seedCatalogo() {
 
 // ── doGet: Devolver cotizaciones para el dashboard ──
 function doGet(e) {
+  if (!_validateApiKey(e)) return _unauthorizedResponse();
   try {
     var params = e ? e.parameter : {};
     var action = params.action || 'list';

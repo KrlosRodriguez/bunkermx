@@ -41,12 +41,12 @@
   <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-bnk">COTIZAR BNK</button>
   <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-pipeline">PIPELINE</button>
   <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura" role="tab" aria-selected="false" aria-controls="sec-clientes">CLIENTES</button>
-  <button class="dash-tab" data-tab="proveedores" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
-  <button class="dash-tab" data-tab="calendario" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
+  <button class="dash-tab" data-tab="proveedores" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
+  <button class="dash-tab" data-tab="calendario" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
   <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-reportes">REPORTES</button>
   <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-catalogo">CATÁLOGO</button>
   <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-eventos">EVENTOS</button>
-  <button class="dash-tab" data-tab="finanzas" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
+  <button class="dash-tab" data-tab="finanzas" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
   <button class="dash-tab" data-tab="usuarios" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-usuarios">USUARIOS</button>
 </nav>
 
@@ -170,6 +170,7 @@
         <div class="bnk-label">BNK VINCULADAS</div>
         <div id="popBnkList" class="cot-popover-bnk-list"></div>
       </div>
+      <div id="popClienteInfo"></div>
       <div class="cot-popover-chips">
         <span class="cot-popover-chip" id="popChipPartners" title="Partners vinculados">&#128101; <span id="popPartnersCount">0</span> Partners</span>
         <span class="cot-popover-chip" id="popChipProveedores" title="Proveedores vinculados">&#128230; <span id="popProveedoresCount">0</span> Proveedores</span>
@@ -178,7 +179,9 @@
         <button class="panel-btn-primary panel-btn-sm" id="popCrearBnk">+ CREAR BNK</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincPartner">VINCULAR PARTNER</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincProveedor">VINCULAR PROVEEDOR</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popVincCliente">&#128100; CLIENTE</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popPdf">PDF</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popOrdenTrabajo">&#128203; OT</button>
       </div>
     </div>
 
@@ -218,6 +221,45 @@
           </div>
           <div class="bnk-label" style="margin-top:16px">PROVEEDORES VINCULADOS</div>
           <div id="vincProveedorList" class="vinc-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Vincular Cliente -->
+    <div id="vincClienteOverlay" class="bnk-overlay">
+      <div class="bnk-modal" style="max-width:450px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">VINCULAR CLIENTE &mdash; <span class="vinc-folio-label"></span></h3>
+          <button class="bnk-modal-close vinc-close">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-form-group" style="position:relative">
+            <input id="vincClienteSearch" class="bnk-input" placeholder="Buscar cliente..." autocomplete="off">
+            <div id="vincClienteAC" class="bnk-autocomplete"></div>
+          </div>
+          <div id="vincClienteResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Orden de Trabajo -->
+    <div id="otOverlay" class="bnk-overlay">
+      <div class="bnk-modal" style="max-width:500px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">ORDEN DE TRABAJO &mdash; <span id="otFolioLabel"></span></h3>
+          <button class="bnk-modal-close" id="otClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PROVEEDOR</label>
+            <select id="otProveedorSel" class="bnk-input"></select>
+          </div>
+          <div id="otPreview" style="font-size:12px;color:var(--tx2);margin:8px 0"></div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NOTAS PARA EL PROVEEDOR</label>
+            <textarea id="otNotas" class="bnk-input" rows="4" placeholder="Instrucciones adicionales..."></textarea>
+          </div>
+          <button id="otDescargar" class="bnk-btn">DESCARGAR PDF</button>
         </div>
       </div>
     </div>
@@ -434,7 +476,32 @@
           <span></span>
         </div>
         <div id="bnkConceptosBody"></div>
-        <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
+        <div class="bnk-add-buttons">
+          <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
+          <button class="bnk-add-row bnk-add-bloque" id="bnkAddBloque">&#128230; AGREGAR BLOQUE DE PROVEEDOR</button>
+        </div>
+
+        <!-- Bloque picker overlay -->
+        <div id="bnkBloqueOverlay" class="bnk-overlay" style="display:none">
+          <div class="bnk-modal" style="max-width:480px">
+            <div class="bnk-modal-header">
+              <h3>Agregar bloque de proveedor</h3>
+              <button class="bnk-modal-close" id="bnkBloqueClose">&times;</button>
+            </div>
+            <div class="bnk-modal-body" style="padding:16px">
+              <label style="font-size:11px;color:var(--tx2)">PROVEEDOR</label>
+              <select id="bnkBloqueProv" style="width:100%;margin-bottom:12px">
+                <option value="">— Seleccionar proveedor —</option>
+              </select>
+              <label style="font-size:11px;color:var(--tx2)">BLOQUE DE SERVICIOS</label>
+              <select id="bnkBloqueSelect" style="width:100%;margin-bottom:12px">
+                <option value="">— Seleccionar bloque —</option>
+              </select>
+              <div id="bnkBloquePreview" style="font-size:12px;color:var(--tx2);min-height:30px"></div>
+              <button class="btn-gold" id="bnkBloqueAdd" style="width:100%;margin-top:12px" disabled>AGREGAR BLOQUE</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Totales -->
         <div class="bnk-totales">
@@ -658,7 +725,7 @@
               <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="cliClabe" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="cliTipoCuenta"></div>
             </div>
-            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-section-label" style="margin-top:20px;display:flex;align-items:center">CUENTA EXTRANJERA <label class="no-aplica-toggle"><input type="checkbox" id="cliNoAplicaExtranjero"> No aplica</label></div>
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="cliDivisa"></div>
@@ -822,7 +889,7 @@
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="prvTipoCuenta"></div>
               <div class="bnk-form-group bnk-form-full"><label class="bnk-label">DIRECCIÓN DEL BANCO</label><input type="text" class="bnk-input" id="prvDireccionBanco"></div>
             </div>
-            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-section-label" style="margin-top:20px;display:flex;align-items:center">CUENTA EXTRANJERA <label class="no-aplica-toggle"><input type="checkbox" id="prvNoAplicaExtranjero"> No aplica</label></div>
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="prvDivisa"></div>
@@ -841,7 +908,7 @@
             <div class="bnk-section-label">CATÁLOGO DE SERVICIOS DEL PROVEEDOR</div>
             <table class="dash-table" id="prvServiciosTable" style="display:none">
               <thead>
-                <tr><th>CATEGORÍA</th><th>SERVICIO</th><th>UNIDAD</th><th>COSTO</th><th>ACCIONES</th></tr>
+                <tr><th>CATEGORÍA</th><th>SERVICIO</th><th>UNIDAD</th><th>COSTO</th><th>PRECIO CLIENTE</th><th>ACCIONES</th></tr>
               </thead>
               <tbody id="prvServiciosBody"></tbody>
             </table>
@@ -849,6 +916,7 @@
               <div class="dash-empty-text" style="font-size:13px">Sin servicios registrados</div>
             </div>
             <button class="bnk-add-row" id="prvAddServicio">+ AGREGAR SERVICIO</button>
+            <button class="bnk-add-row" id="prvAddBloque" style="margin-left:8px">+ AGREGAR BLOQUE</button>
           </div>
 
           <!-- Cotizaciones vinculadas -->
@@ -1144,7 +1212,7 @@
             </div>
             <div class="bnk-form-group" id="usrPassGroup">
               <label class="bnk-label">CONTRASEÑA TEMPORAL *</label>
-              <input type="password" class="bnk-input" id="usrPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+              <input type="password" class="bnk-input" id="usrPass" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
             </div>
           </div>
         </div>
@@ -1206,7 +1274,7 @@
   <!-- FINANZAS -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-finanzas" class="panel-section" role="tabpanel">
-    <link rel="stylesheet" href="css/finanzas.css">
+    <link rel="stylesheet" href="css/finanzas.css?v=7">
 
     <!-- Sub-tabs -->
     <div class="panel-toolbar" style="border-bottom:1px solid var(--bd)">
@@ -1759,32 +1827,6 @@
     });
   });
 
-  // Modal tab switching (clientes)
-  document.querySelectorAll('[data-cli-tab]').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var target = this.getAttribute('data-cli-tab');
-      document.querySelectorAll('[data-cli-tab]').forEach(function (t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      ['general', 'contacto', 'facturacion', 'bancarios'].forEach(function (t) {
-        var el = document.getElementById('cliTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (el) el.style.display = t === target ? '' : 'none';
-      });
-    });
-  });
-
-  // Modal tab switching (proveedores)
-  document.querySelectorAll('[data-prv-tab]').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var target = this.getAttribute('data-prv-tab');
-      document.querySelectorAll('[data-prv-tab]').forEach(function (t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      ['general', 'contacto', 'fiscales', 'bancarios', 'servicios'].forEach(function (t) {
-        var el = document.getElementById('prvTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (el) el.style.display = t === target ? '' : 'none';
-      });
-    });
-  });
-
   // Finanzas sub-tab switching
   document.querySelectorAll('[data-fin-tab]').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -1941,6 +1983,7 @@
 
 <!-- PDF rebuild + Módulos de página -->
 <script src="js/pdf-rebuild.js?v=1"></script>
+<script src="js/pdf-workorder.js?v=1"></script>
 <script src="js/pages/cotizaciones.js?v=7"></script>
 <script src="js/pages/pipeline.js?v=7"></script>
 <script src="js/pages/clientes.js?v=7"></script>
@@ -1952,7 +1995,7 @@
 <script src="js/pages/eventos.js?v=7"></script>
 <script src="js/pages/cotizar-mnt.js?v=7"></script>
 <script src="js/pages/cotizar-bnk.js?v=7"></script>
-<script src="js/pages/finanzas.js"></script>
+<script src="js/pages/finanzas.js?v=7"></script>
 
 </body>
 </html>

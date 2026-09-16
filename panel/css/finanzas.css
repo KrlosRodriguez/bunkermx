@@ -98,3 +98,6 @@
 @media (max-width: 600px) {
   #sec-finanzas .dash-indicators { grid-template-columns: 1fr; }
 }
+
+/* Fixed autocomplete dropdown in payment modal */
+#finPagoCotAuto,#finAsignarCotAuto{position:fixed;z-index:9999}
