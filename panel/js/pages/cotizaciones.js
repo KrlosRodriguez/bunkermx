@@ -17,6 +17,7 @@
   var _partners = [];
   var _proveedores = [];
   var _pagos = [];
+  var _clientes = [];
 
   function init() {
     _canEdit = BNK_AUTH.canEdit('cotizaciones');
@@ -27,6 +28,7 @@
     _bindShortcuts();
     _bindPopover();
     _bindVincModals();
+    _setupVincClienteModal();
 
     var cotLoading = document.getElementById('cotLoading');
     var cotTable = document.getElementById('cotTable2');
@@ -67,13 +69,15 @@
       _safe(BNK_DB.cotizacionProveedores.list()),
       _safe(BNK_DB.partners.list()),
       _safe(BNK_DB.proveedores.list()),
-      _safe(BNK_DB.pagos.list())
+      _safe(BNK_DB.pagos.list()),
+      _safe(BNK_DB.clientes.list())
     ]).then(function (r) {
       _cotPartners = r[0];
       _cotProveedores = r[1];
       _partners = r[2];
       _proveedores = r[3];
       _pagos = r[4];
+      _clientes = r[5];
     });
   }
 
@@ -414,6 +418,10 @@
       if (e.key === 'Escape') _closePopover();
     });
 
+    // Close popover on scroll to avoid floating in wrong position
+    var tableWrap = document.querySelector('#sec-cotizaciones .dash-table-wrap');
+    if (tableWrap) tableWrap.addEventListener('scroll', function () { _closePopover(); }, { passive: true });
+
     document.getElementById('popClose').addEventListener('click', _closePopover);
 
     // Crear BNK action
@@ -448,6 +456,14 @@
       var cot = _data.find(function (d) { return d.id === cotId; });
       _closePopover();
       if (cot) _openVincModal('proveedor', cot);
+    });
+
+    // Vincular cliente
+    document.getElementById('popVincCliente').addEventListener('click', function () {
+      var cotId = _popoverCotId;
+      var cot = _data.find(function (d) { return d.id === cotId; });
+      _closePopover();
+      if (cot) _openVincClienteModal(cot);
     });
   }
 
@@ -513,6 +529,29 @@
     document.getElementById('popProveedoresCount').textContent = provCount;
     var chipPr = document.getElementById('popChipProveedores');
     chipPr.classList.toggle('has-items', provCount > 0);
+
+    // Client auto-match indicator
+    var clienteIndicator = document.getElementById('popClienteInfo');
+    if (clienteIndicator) {
+      var cotEmpresa = (cot.cliente || cot.empresa || '').toLowerCase().trim();
+      var matchedCliente = null;
+      if (cotEmpresa && _clientes) {
+        for (var ci = 0; ci < _clientes.length; ci++) {
+          var cliEmpresa = (_clientes[ci].empresa || _clientes[ci].razonSocial || '').toLowerCase().trim();
+          if (cliEmpresa === cotEmpresa || (cliEmpresa && cotEmpresa && (cliEmpresa.indexOf(cotEmpresa) !== -1 || cotEmpresa.indexOf(cliEmpresa) !== -1))) {
+            matchedCliente = _clientes[ci]; break;
+          }
+        }
+      }
+
+      if (cot.clienteId) {
+        clienteIndicator.innerHTML = '<span class="pop-badge pop-badge--ok">\u2713 Cliente vinculado</span>';
+      } else if (matchedCliente) {
+        clienteIndicator.innerHTML = '<span class="pop-badge pop-badge--warn">Sugerido: ' + _esc(matchedCliente.empresa || matchedCliente.razonSocial) + '</span>';
+      } else {
+        clienteIndicator.innerHTML = '<span class="pop-badge pop-badge--none">Sin cliente</span>';
+      }
+    }
 
     // Position popover (fixed)
     var rect = anchorEl.getBoundingClientRect();
@@ -802,6 +841,142 @@
   function _modal(id, show) {
     var el = document.getElementById(id);
     if (el) { if (show) el.classList.add('visible'); else el.classList.remove('visible'); }
+  }
+
+  // ══════════════════════════════════════════
+  // VINCULAR CLIENTE
+  // ══════════════════════════════════════════
+
+  function _openVincClienteModal(cot) {
+    var overlay = document.getElementById('vincClienteOverlay');
+    if (!overlay) return;
+    overlay.classList.add('visible');
+    var folioLabel = overlay.querySelector('.vinc-folio-label');
+    if (folioLabel) folioLabel.textContent = cot.folio || '';
+
+    var searchInput = document.getElementById('vincClienteSearch');
+    var acDropdown = document.getElementById('vincClienteAC');
+    var resultDiv = document.getElementById('vincClienteResult');
+    if (searchInput) searchInput.value = '';
+    if (acDropdown) acDropdown.classList.remove('visible');
+
+    // Auto-match suggestion
+    var cotEmpresa = (cot.cliente || cot.empresa || '').toLowerCase().trim();
+    var sugerido = null;
+    if (cotEmpresa) {
+      for (var i = 0; i < _clientes.length; i++) {
+        var cliEmpresa = (_clientes[i].empresa || _clientes[i].razonSocial || '').toLowerCase().trim();
+        if (cliEmpresa === cotEmpresa || (cliEmpresa && cotEmpresa && (cliEmpresa.indexOf(cotEmpresa) !== -1 || cotEmpresa.indexOf(cliEmpresa) !== -1))) {
+          sugerido = _clientes[i]; break;
+        }
+      }
+    }
+
+    if (resultDiv) {
+      if (cot.clienteId) {
+        resultDiv.innerHTML = '<div class="vinc-linked">\u2713 Vinculado: <strong>' + _esc(cot.clienteNombre || '') + '</strong>'
+          + ' <button class="bnk-btn bnk-btn--sm bnk-btn--danger" data-desvincular="1">Desvincular</button></div>';
+      } else if (sugerido) {
+        resultDiv.innerHTML = '<div class="vinc-suggestion">'
+          + '<span>Sugerido: <strong>' + _esc(sugerido.empresa || sugerido.razonSocial) + '</strong></span>'
+          + ' <button class="bnk-btn bnk-btn--sm" data-cliente-id="' + _esc(sugerido.id)
+          + '" data-cliente-nombre="' + _esc(sugerido.empresa || sugerido.razonSocial) + '">Vincular</button>'
+          + '</div>';
+      } else {
+        resultDiv.innerHTML = '<p class="vinc-empty">Busca un cliente para vincular.</p>';
+      }
+    }
+
+    // Store current cot for actions
+    overlay._cotId = cot.id;
+    overlay._cotFolio = cot.folio;
+  }
+
+  function _setupVincClienteModal() {
+    var overlay = document.getElementById('vincClienteOverlay');
+    if (!overlay) return;
+
+    // Close
+    var closeBtn = overlay.querySelector('.vinc-close');
+    if (closeBtn) closeBtn.addEventListener('click', function () {
+      overlay.classList.remove('visible');
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('visible');
+    });
+
+    // Search autocomplete
+    var searchInput = document.getElementById('vincClienteSearch');
+    var acDropdown = document.getElementById('vincClienteAC');
+
+    if (searchInput) searchInput.addEventListener('input', function () {
+      var val = searchInput.value.trim().toLowerCase();
+      if (val.length < 2) { if (acDropdown) acDropdown.classList.remove('visible'); return; }
+      var matches = _clientes.filter(function (c) {
+        return ((c.empresa || c.razonSocial || '').toLowerCase().indexOf(val) !== -1);
+      });
+      var html = '';
+      matches.slice(0, 8).forEach(function (c) {
+        html += '<div class="bnk-ac-item" data-cliente-id="' + _esc(c.id)
+          + '" data-cliente-nombre="' + _esc(c.empresa || c.razonSocial) + '">'
+          + _esc(c.empresa || c.razonSocial) + '</div>';
+      });
+      if (acDropdown) {
+        acDropdown.innerHTML = html || '<div class="bnk-ac-item" style="color:var(--tx);font-style:italic">Sin resultados</div>';
+        acDropdown.classList.add('visible');
+      }
+    });
+
+    // Select from AC
+    if (acDropdown) acDropdown.addEventListener('click', function (e) {
+      var item = e.target.closest('.bnk-ac-item');
+      if (!item || !item.getAttribute('data-cliente-id')) return;
+      var clienteId = item.getAttribute('data-cliente-id');
+      var clienteNombre = item.getAttribute('data-cliente-nombre');
+      _vincularCliente(overlay._cotId, clienteId, clienteNombre);
+      acDropdown.classList.remove('visible');
+    });
+
+    // Link from suggestion / unlink
+    var resultDiv = document.getElementById('vincClienteResult');
+    if (resultDiv) resultDiv.addEventListener('click', function (e) {
+      var linkBtn = e.target.closest('[data-cliente-id]');
+      if (linkBtn) {
+        _vincularCliente(overlay._cotId, linkBtn.getAttribute('data-cliente-id'), linkBtn.getAttribute('data-cliente-nombre'));
+        return;
+      }
+      var unlinkBtn = e.target.closest('[data-desvincular]');
+      if (unlinkBtn) {
+        _desvincularCliente(overlay._cotId);
+      }
+    });
+  }
+
+  function _vincularCliente(cotId, clienteId, clienteNombre) {
+    BNK_DB.cotizaciones.update(cotId, {
+      clienteId: clienteId,
+      clienteNombre: clienteNombre
+    }).then(function () {
+      BNKToast.ok('Cliente vinculado.');
+      document.getElementById('vincClienteOverlay').classList.remove('visible');
+    }).catch(function (err) {
+      BNKToast.error('Error: ' + (err && err.message ? err.message : 'desconocido'));
+    });
+  }
+
+  function _desvincularCliente(cotId) {
+    BNKConfirm.show('\u00bfDesvincular cliente de esta cotizaci\u00f3n?', 'DESVINCULAR').then(function (ok) {
+      if (!ok) return;
+      BNK_DB.cotizaciones.update(cotId, {
+        clienteId: firebase.firestore.FieldValue.delete(),
+        clienteNombre: firebase.firestore.FieldValue.delete()
+      }).then(function () {
+        BNKToast.ok('Cliente desvinculado.');
+        document.getElementById('vincClienteOverlay').classList.remove('visible');
+      }).catch(function (err) {
+        BNKToast.error('Error: ' + (err && err.message ? err.message : 'desconocido'));
+      });
+    });
   }
 
   function _deleteCotizacion(id) {
