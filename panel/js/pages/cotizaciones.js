@@ -891,8 +891,21 @@
     if (!provId) { preview.innerHTML = ''; return; }
 
     var conceptos = [];
-    try { conceptos = JSON.parse(_otCot.conceptos || '[]'); } catch (e) {}
+    try {
+      conceptos = Array.isArray(_otCot.conceptos) ? _otCot.conceptos : JSON.parse(_otCot.conceptos || '[]');
+    } catch (e) {}
     var filtered = conceptos.filter(function (c) { return c.proveedorId === provId; });
+    // Fallback: match by provider name
+    if (filtered.length === 0) {
+      var selOpt = document.getElementById('otProveedorSel').selectedOptions[0];
+      var provNombre = selOpt ? selOpt.textContent.trim().toLowerCase() : '';
+      if (provNombre) {
+        filtered = conceptos.filter(function (c) {
+          var cn = (c.proveedorNombre || '').toLowerCase().trim();
+          return cn === provNombre || cn.indexOf(provNombre) !== -1 || provNombre.indexOf(cn) !== -1;
+        });
+      }
+    }
 
     if (filtered.length === 0) {
       preview.innerHTML = '<em>Este proveedor fue vinculado manualmente (sin conceptos detallados).</em>';

@@ -96,18 +96,30 @@
     drawSection('SERVICIOS REQUERIDOS');
 
     var conceptos = [];
-    try { conceptos = JSON.parse(cotData.conceptos || '[]'); } catch (e) { conceptos = []; }
+    try {
+      conceptos = Array.isArray(cotData.conceptos) ? cotData.conceptos : JSON.parse(cotData.conceptos || '[]');
+    } catch (e) { conceptos = []; }
 
     // Filter to this provider's services
     var provSrvs = conceptos.filter(function (c) {
       return c.proveedorId === proveedorData.id;
     });
-    // Fallback: if no match by ID, try by provider name
+    // Fallback: if no match by ID, try by provider name (exact)
     if (provSrvs.length === 0) {
-      var provName = (proveedorData.razonSocial || proveedorData.nombreComercial || '').toLowerCase();
+      var provName = (proveedorData.razonSocial || proveedorData.nombreComercial || '').toLowerCase().trim();
       provSrvs = conceptos.filter(function (c) {
-        return c.proveedorNombre && c.proveedorNombre.toLowerCase() === provName;
+        return c.proveedorNombre && c.proveedorNombre.toLowerCase().trim() === provName;
       });
+    }
+    // Fallback: partial/contains name match
+    if (provSrvs.length === 0) {
+      var provName2 = (proveedorData.razonSocial || proveedorData.nombreComercial || '').toLowerCase().trim();
+      if (provName2) {
+        provSrvs = conceptos.filter(function (c) {
+          var cn = (c.proveedorNombre || '').toLowerCase().trim();
+          return cn.indexOf(provName2) !== -1 || provName2.indexOf(cn) !== -1;
+        });
+      }
     }
     // If still no match, show all conceptos as reference
     if (provSrvs.length === 0 && conceptos.length > 0) {
