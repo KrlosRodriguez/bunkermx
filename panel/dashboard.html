@@ -41,12 +41,12 @@
   <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-bnk">COTIZAR BNK</button>
   <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-pipeline">PIPELINE</button>
   <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas,lectura" role="tab" aria-selected="false" aria-controls="sec-clientes">CLIENTES</button>
-  <button class="dash-tab" data-tab="proveedores" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
-  <button class="dash-tab" data-tab="calendario" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
+  <button class="dash-tab" data-tab="proveedores" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
+  <button class="dash-tab" data-tab="calendario" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
   <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-reportes">REPORTES</button>
   <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-catalogo">CATÁLOGO</button>
   <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-eventos">EVENTOS</button>
-  <button class="dash-tab" data-tab="finanzas" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
+  <button class="dash-tab" data-tab="finanzas" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
   <button class="dash-tab" data-tab="usuarios" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-usuarios">USUARIOS</button>
 </nav>
 
@@ -841,7 +841,7 @@
             <div class="bnk-section-label">CATÁLOGO DE SERVICIOS DEL PROVEEDOR</div>
             <table class="dash-table" id="prvServiciosTable" style="display:none">
               <thead>
-                <tr><th>CATEGORÍA</th><th>SERVICIO</th><th>UNIDAD</th><th>COSTO</th><th>ACCIONES</th></tr>
+                <tr><th>CATEGORÍA</th><th>SERVICIO</th><th>UNIDAD</th><th>COSTO</th><th>PRECIO CLIENTE</th><th>ACCIONES</th></tr>
               </thead>
               <tbody id="prvServiciosBody"></tbody>
             </table>
@@ -849,6 +849,7 @@
               <div class="dash-empty-text" style="font-size:13px">Sin servicios registrados</div>
             </div>
             <button class="bnk-add-row" id="prvAddServicio">+ AGREGAR SERVICIO</button>
+            <button class="bnk-add-row" id="prvAddBloque" style="margin-left:8px">+ AGREGAR BLOQUE</button>
           </div>
 
           <!-- Cotizaciones vinculadas -->
@@ -1144,7 +1145,7 @@
             </div>
             <div class="bnk-form-group" id="usrPassGroup">
               <label class="bnk-label">CONTRASEÑA TEMPORAL *</label>
-              <input type="password" class="bnk-input" id="usrPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+              <input type="password" class="bnk-input" id="usrPass" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
             </div>
           </div>
         </div>
@@ -1206,7 +1207,7 @@
   <!-- FINANZAS -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-finanzas" class="panel-section" role="tabpanel">
-    <link rel="stylesheet" href="css/finanzas.css">
+    <link rel="stylesheet" href="css/finanzas.css?v=7">
 
     <!-- Sub-tabs -->
     <div class="panel-toolbar" style="border-bottom:1px solid var(--bd)">
@@ -1759,32 +1760,6 @@
     });
   });
 
-  // Modal tab switching (clientes)
-  document.querySelectorAll('[data-cli-tab]').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var target = this.getAttribute('data-cli-tab');
-      document.querySelectorAll('[data-cli-tab]').forEach(function (t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      ['general', 'contacto', 'facturacion', 'bancarios'].forEach(function (t) {
-        var el = document.getElementById('cliTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (el) el.style.display = t === target ? '' : 'none';
-      });
-    });
-  });
-
-  // Modal tab switching (proveedores)
-  document.querySelectorAll('[data-prv-tab]').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      var target = this.getAttribute('data-prv-tab');
-      document.querySelectorAll('[data-prv-tab]').forEach(function (t) { t.classList.remove('active'); });
-      this.classList.add('active');
-      ['general', 'contacto', 'fiscales', 'bancarios', 'servicios'].forEach(function (t) {
-        var el = document.getElementById('prvTab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (el) el.style.display = t === target ? '' : 'none';
-      });
-    });
-  });
-
   // Finanzas sub-tab switching
   document.querySelectorAll('[data-fin-tab]').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -1952,7 +1927,7 @@
 <script src="js/pages/eventos.js?v=7"></script>
 <script src="js/pages/cotizar-mnt.js?v=7"></script>
 <script src="js/pages/cotizar-bnk.js?v=7"></script>
-<script src="js/pages/finanzas.js"></script>
+<script src="js/pages/finanzas.js?v=7"></script>
 
 </body>
 </html>

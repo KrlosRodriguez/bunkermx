@@ -16,6 +16,7 @@
   --red:  #FF4455;
   --ylw:  #F0C040;
   --blu:  #00D4FF;
+  --cyan: #00e5ff;
   --btn-py-sm: 6px;
   --btn-px-sm: 14px;
   --btn-py-md: 10px;
@@ -434,6 +435,15 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .entity-popover-cot-pago{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid var(--bd)}
 .entity-popover-cot-pago .pago-monto{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--ylw)}
 .entity-popover-empty{font-size:11px;color:var(--tx);font-style:italic;padding:8px 0}
+
+/* ── BLOQUES DE PROVEEDOR ── */
+.srv-bloque-header { background: var(--card); border-left: 3px solid var(--accent); }
+.srv-bloque-header td { padding: 8px 10px; }
+.srv-bloque-toggle { cursor: pointer; font-size: 10px; }
+.srv-bloque-precio-toggle { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.srv-bloque-precio-row td { padding: 6px 10px; background: var(--bg2); }
+.srv-bloque-precio-input { width: 120px; display: inline-block; }
+.srv-section-header td { padding: 8px 10px; border-top: 1px solid var(--bd); }
 
 /* Pipeline BNK indicator */
 .pipeline-card-bnk{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);letter-spacing:.5px;margin-top:2px}

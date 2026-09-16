@@ -15,6 +15,10 @@
   // Proveedor activo en el modal (para carga de servicios en Tab 5)
   var _proveedorActivoId = null;
 
+  // Bloques state
+  var _bloques = [];
+  var _serviciosPorBloque = {};
+
   // Sort & pagination state
   var _sortKey = 'id';
   var _sortDir = 'asc';
@@ -648,65 +652,139 @@
     if (srvEmpty) srvEmpty.style.display = mostrar ? 'block' : 'none';
   }
 
+  // ── Load bloques for a provider ──
+  function _loadBloques(proveedorId) {
+    return BNK_DB.bloques(proveedorId).list().then(function (bloques) {
+      _bloques = bloques;
+      return bloques;
+    });
+  }
+
   // ── loadServicios (from Firestore subcollection) ──
   function loadServicios(proveedorId) {
     if (!proveedorId) return;
 
     var srvBody = _getEl('prvServiciosBody');
-    if (srvBody) srvBody.innerHTML = '<tr><td colspan="5"><div class="skeleton-loader skeleton-loader--compact"><div class="skeleton-bar"></div></div></td></tr>';
+    if (srvBody) srvBody.innerHTML = '<tr><td colspan="6"><div class="skeleton-loader skeleton-loader--compact"><div class="skeleton-bar"></div></div></td></tr>';
     _mostrarServiciosEmpty(false);
 
-    _serviciosRef(proveedorId).orderBy('categoria', 'asc').get()
-      .then(function (snap) {
-        var servicios = snap.docs.map(function (doc) {
-          var d = doc.data();
-          d.id = doc.id;
-          return d;
-        });
-        _renderServicios(servicios);
-      })
-      .catch(function () {
-        if (srvBody) srvBody.innerHTML = '';
-        _mostrarServiciosEmpty(true);
+    Promise.all([
+      _serviciosRef(proveedorId).orderBy('categoria', 'asc').get(),
+      _loadBloques(proveedorId)
+    ]).then(function (results) {
+      var snap = results[0];
+      var servicios = snap.docs.map(function (doc) {
+        var d = doc.data();
+        d.id = doc.id;
+        return d;
       });
+
+      // Separate into block services and loose services
+      var sueltos = [];
+      _serviciosPorBloque = {};
+      servicios.forEach(function (srv) {
+        if (srv.bloqueId) {
+          if (!_serviciosPorBloque[srv.bloqueId]) _serviciosPorBloque[srv.bloqueId] = [];
+          _serviciosPorBloque[srv.bloqueId].push(srv);
+        } else {
+          sueltos.push(srv);
+        }
+      });
+
+      _renderServiciosConBloques(sueltos);
+    }).catch(function () {
+      if (srvBody) srvBody.innerHTML = '';
+      _mostrarServiciosEmpty(true);
+    });
   }
 
-  // ── Renderizar filas de servicios ──
-  function _renderServicios(servicios) {
+  // ── Renderizar fila individual de servicio ──
+  function _renderServicioRow(srv) {
+    var idSafe   = _escapeHTML(srv.id || '');
+    var catSafe  = _escapeHTML(srv.categoria || '');
+    var srvSafe  = _escapeHTML(srv.servicio || '');
+    var unidSafe = _escapeHTML(srv.unidad || '');
+    var costoFmt = _formatMXN(srv.costoUnitario);
+    var precioFmt = _formatMXN(srv.precioCliente);
+
+    return '<tr data-srv-id="' + idSafe + '">'
+      + '<td>' + catSafe + '</td>'
+      + '<td>' + srvSafe + '</td>'
+      + '<td>' + unidSafe + '</td>'
+      + '<td>' + _escapeHTML(costoFmt) + '</td>'
+      + '<td>' + _escapeHTML(precioFmt) + '</td>'
+      + '<td>'
+      +   '<button class="tbl-action tbl-action--edit srv-edit-btn" data-srv-id="' + idSafe + '" title="Editar">&#9998;</button>'
+      +   '<button class="tbl-action tbl-action--del srv-del-btn" data-srv-id="' + idSafe + '" title="Eliminar">&times;</button>'
+      + '</td>'
+      + '</tr>';
+  }
+
+  // ── Renderizar servicios con bloques ──
+  function _renderServiciosConBloques(sueltos) {
     var srvBody = _getEl('prvServiciosBody');
     if (!srvBody) return;
 
-    if (!servicios || servicios.length === 0) {
-      srvBody.innerHTML = '';
-      _mostrarServiciosEmpty(true);
-      return;
-    }
-
-    _mostrarServiciosEmpty(false);
     var html = '';
-    servicios.forEach(function (s) {
-      var idSafe        = _escapeHTML(s.id        || '');
-      var catSafe       = _escapeHTML(s.categoria  || '');
-      var srvSafe       = _escapeHTML(s.servicio   || '');
-      var unidSafe      = _escapeHTML(s.unidad     || '');
-      var costoFmt      = _formatMXN(s.costoUnitario);
 
-      html += '<tr data-srv-id="' + idSafe + '">'
-        + '<td>' + catSafe + '</td>'
-        + '<td>' + srvSafe + '</td>'
-        + '<td>' + unidSafe + '</td>'
-        + '<td>' + _escapeHTML(costoFmt) + '</td>'
+    // Render each bloque as collapsible section
+    _bloques.forEach(function (bloque) {
+      var bloqueSrvs = _serviciosPorBloque[bloque.id] || [];
+      var subtotal = 0;
+      bloqueSrvs.forEach(function (s) { subtotal += Number(s.costoUnitario) || 0; });
+
+      html += '<tr class="srv-bloque-header" data-bloque-id="' + _escapeHTML(bloque.id) + '">'
+        + '<td colspan="3">'
+        +   '<span class="srv-bloque-toggle">&#9660;</span> '
+        +   '<strong>' + _escapeHTML(bloque.nombre) + '</strong>'
+        + '</td>'
+        + '<td>' + _escapeHTML(_formatMXN(bloque.usaPrecioManual ? bloque.precioManual : subtotal)) + '</td>'
         + '<td>'
-        +   '<button class="tbl-action tbl-action--edit srv-edit-btn" data-srv-id="' + idSafe + '" title="Editar">&#9998;</button>'
-        +   '<button class="tbl-action tbl-action--del srv-del-btn" data-srv-id="' + idSafe + '" title="Eliminar">&times;</button>'
+        +   '<label class="srv-bloque-precio-toggle">'
+        +     '<input type="checkbox" class="srv-bloque-manual-chk" data-bloque-id="' + _escapeHTML(bloque.id) + '"'
+        +       (bloque.usaPrecioManual ? ' checked' : '') + '> Precio especial'
+        +   '</label>'
+        + '</td>'
+        + '<td>'
+        +   '<button class="tbl-action srv-bloque-add-btn" data-bloque-id="' + _escapeHTML(bloque.id) + '" title="Agregar servicio al bloque">+</button>'
+        +   '<button class="tbl-action tbl-action--del srv-bloque-del-btn" data-bloque-id="' + _escapeHTML(bloque.id) + '" title="Eliminar bloque">&times;</button>'
         + '</td>'
         + '</tr>';
+
+      // Price manual input row (hidden unless toggled)
+      if (bloque.usaPrecioManual) {
+        html += '<tr class="srv-bloque-precio-row" data-bloque-id="' + _escapeHTML(bloque.id) + '">'
+          + '<td colspan="6">'
+          +   'Precio manual: <input type="number" class="bnk-input srv-bloque-precio-input" data-bloque-id="' + _escapeHTML(bloque.id) + '" value="' + (bloque.precioManual || 0) + '">'
+          +   ' <button class="tbl-action tbl-action--edit srv-bloque-precio-save" data-bloque-id="' + _escapeHTML(bloque.id) + '">&#10003;</button>'
+          + '</td></tr>';
+      }
+
+      // Render services inside this block
+      bloqueSrvs.forEach(function (srv) {
+        html += _renderServicioRow(srv);
+      });
     });
-    srvBody.innerHTML = html;
+
+    // Render loose services (no bloqueId)
+    if (sueltos.length > 0 && _bloques.length > 0) {
+      html += '<tr class="srv-section-header"><td colspan="6"><strong>Servicios individuales</strong></td></tr>';
+    }
+    sueltos.forEach(function (srv) {
+      html += _renderServicioRow(srv);
+    });
+
+    if (!html) {
+      srvBody.innerHTML = '';
+      _mostrarServiciosEmpty(true);
+    } else {
+      _mostrarServiciosEmpty(false);
+      srvBody.innerHTML = html;
+    }
   }
 
   // ── Agregar fila inline de nuevo servicio ──
-  function _agregarFilaServicio() {
+  function _agregarFilaServicio(bloqueId) {
     var srvBody = _getEl('prvServiciosBody');
     if (!srvBody) return;
 
@@ -718,16 +796,38 @@
     var tr = document.createElement('tr');
     tr.className = 'srv-edit-row';
     tr.setAttribute('data-new', '1');
+    if (bloqueId) tr.setAttribute('data-bloque-id', bloqueId);
     tr.innerHTML =
-        '<td><input type="text" class="bnk-input srv-in-cat"  placeholder="Categoría"></td>'
+        '<td><input type="text" class="bnk-input srv-in-cat"  placeholder="Categor\xEDa"></td>'
       + '<td><input type="text" class="bnk-input srv-in-srv"  placeholder="Servicio"></td>'
       + '<td><input type="text" class="bnk-input srv-in-uni"  placeholder="Unidad"></td>'
       + '<td><input type="text" class="bnk-input srv-in-cost" placeholder="0.00"></td>'
+      + '<td><input type="text" class="bnk-input srv-in-pcliente" placeholder="0.00"></td>'
       + '<td>'
       +   '<button class="tbl-action tbl-action--edit srv-save-new-btn" title="Guardar">&#10003;</button>'
       +   '<button class="tbl-action tbl-action--del srv-cancel-new-btn" title="Cancelar">&times;</button>'
       + '</td>';
-    srvBody.appendChild(tr);
+
+    // Insert after the bloque header if adding to a block
+    if (bloqueId) {
+      var headerRow = srvBody.querySelector('.srv-bloque-header[data-bloque-id="' + bloqueId + '"]');
+      if (headerRow) {
+        // Find last row of this block
+        var next = headerRow.nextElementSibling;
+        while (next && (next.classList.contains('srv-bloque-precio-row') || (next.getAttribute('data-srv-id') && !next.classList.contains('srv-bloque-header') && !next.classList.contains('srv-section-header')))) {
+          next = next.nextElementSibling;
+        }
+        if (next) {
+          srvBody.insertBefore(tr, next);
+        } else {
+          srvBody.appendChild(tr);
+        }
+      } else {
+        srvBody.appendChild(tr);
+      }
+    } else {
+      srvBody.appendChild(tr);
+    }
 
     // Enfocar primer campo
     var firstInput = tr.querySelector('.srv-in-cat');
@@ -748,6 +848,8 @@
     var servicio      = tr.querySelector('.srv-in-srv').value.trim();
     var unidad        = tr.querySelector('.srv-in-uni').value.trim();
     var costoUnitario = tr.querySelector('.srv-in-cost').value.trim();
+    var precioCliente = tr.querySelector('.srv-in-pcliente') ? tr.querySelector('.srv-in-pcliente').value.trim() : '';
+    var bloqueId      = tr.getAttribute('data-bloque-id') || null;
 
     if (!servicio) { BNKToast.warn('El campo Servicio es obligatorio.'); return; }
 
@@ -757,8 +859,10 @@
       servicio:      servicio,
       unidad:        unidad,
       costoUnitario: costoUnitario,
+      precioCliente: precioCliente,
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     };
+    if (bloqueId) data.bloqueId = bloqueId;
 
     var saveBtn = tr.querySelector('.srv-save-new-btn');
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '...'; }
@@ -781,10 +885,11 @@
     if (!tr) return;
 
     var tds = tr.querySelectorAll('td');
-    var catVal  = tds[0].textContent;
-    var srvVal  = tds[1].textContent;
-    var uniVal  = tds[2].textContent;
-    var costRaw = tds[3].textContent.replace(/[$,]/g, '');
+    var catVal    = tds[0].textContent;
+    var srvVal    = tds[1].textContent;
+    var uniVal    = tds[2].textContent;
+    var costRaw   = tds[3].textContent.replace(/[$,]/g, '');
+    var precioRaw = tds[4].textContent.replace(/[$,]/g, '');
 
     tr.className = 'srv-edit-row';
     tr.innerHTML =
@@ -792,6 +897,7 @@
       + '<td><input type="text" class="bnk-input srv-in-srv"  value="' + _escapeHTML(srvVal)  + '"></td>'
       + '<td><input type="text" class="bnk-input srv-in-uni"  value="' + _escapeHTML(uniVal)  + '"></td>'
       + '<td><input type="text" class="bnk-input srv-in-cost" value="' + _escapeHTML(costRaw) + '"></td>'
+      + '<td><input type="text" class="bnk-input srv-in-pcliente" value="' + _escapeHTML(precioRaw) + '"></td>'
       + '<td>'
       +   '<button class="tbl-action tbl-action--edit srv-save-edit-btn" data-srv-id="' + _escapeHTML(srvId) + '" title="Guardar">&#10003;</button>'
       +   '<button class="tbl-action tbl-action--del srv-cancel-edit-btn" data-srv-id="' + _escapeHTML(srvId) + '" title="Cancelar">&times;</button>'
@@ -810,6 +916,7 @@
     var servicio      = tr.querySelector('.srv-in-srv').value.trim();
     var unidad        = tr.querySelector('.srv-in-uni').value.trim();
     var costoUnitario = tr.querySelector('.srv-in-cost').value.trim();
+    var precioCliente = tr.querySelector('.srv-in-pcliente') ? tr.querySelector('.srv-in-pcliente').value.trim() : '';
 
     if (!servicio) { BNKToast.warn('El campo Servicio es obligatorio.'); return; }
 
@@ -818,6 +925,7 @@
       servicio:      servicio,
       unidad:        unidad,
       costoUnitario: costoUnitario,
+      precioCliente: precioCliente,
       updatedAt:     firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -855,6 +963,76 @@
           .catch(function (err) {
             BNKToast.error('Error al eliminar servicio: ' + err.message);
           });
+      });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // BLOQUES CRUD
+  // ══════════════════════════════════════════════════════════
+
+  function _crearBloque() {
+    var proveedorId = _getVal('prvId').trim();
+    if (!proveedorId) { BNKToast.warn('Guarda el proveedor primero.'); return; }
+
+    var nombre = prompt('Nombre del bloque:');
+    if (!nombre || !nombre.trim()) return;
+
+    var orden = _bloques.length + 1;
+    BNK_DB.bloques(proveedorId).create({
+      nombre: nombre.trim(),
+      precioManual: 0,
+      usaPrecioManual: false,
+      orden: orden
+    }).then(function () {
+      BNKToast.ok('Bloque creado.');
+      loadServicios(proveedorId);
+    }).catch(function (err) {
+      BNKToast.error('Error al crear bloque: ' + err.message);
+    });
+  }
+
+  function _eliminarBloque(bloqueId) {
+    BNKConfirm.show('\xBFEliminar este bloque y desvincular sus servicios?')
+      .then(function (ok) {
+        if (!ok) return;
+        var proveedorId = _getVal('prvId').trim() || _proveedorActivoId;
+        if (!proveedorId) return;
+
+        // Unlink services from block
+        var srvs = _serviciosPorBloque[bloqueId] || [];
+        var batch = BNK_FIREBASE.db.batch();
+        srvs.forEach(function (srv) {
+          var ref = BNK_FIREBASE.db.collection('proveedores').doc(proveedorId)
+            .collection('servicios').doc(srv.id);
+          batch.update(ref, { bloqueId: firebase.firestore.FieldValue.delete() });
+        });
+        batch.commit().then(function () {
+          return BNK_DB.bloques(proveedorId).delete(bloqueId);
+        }).then(function () {
+          BNKToast.ok('Bloque eliminado.');
+          loadServicios(proveedorId);
+        }).catch(function (err) {
+          BNKToast.error('Error: ' + err.message);
+        });
+      });
+  }
+
+  function _togglePrecioManualBloque(bloqueId, checked) {
+    var proveedorId = _getVal('prvId').trim() || _proveedorActivoId;
+    if (!proveedorId) return;
+    BNK_DB.bloques(proveedorId).update(bloqueId, { usaPrecioManual: checked })
+      .then(function () { loadServicios(proveedorId); });
+  }
+
+  function _guardarPrecioManualBloque(bloqueId) {
+    var input = document.querySelector('.srv-bloque-precio-input[data-bloque-id="' + bloqueId + '"]');
+    if (!input) return;
+    var proveedorId = _getVal('prvId').trim() || _proveedorActivoId;
+    if (!proveedorId) return;
+    BNK_DB.bloques(proveedorId).update(bloqueId, { precioManual: Number(input.value) || 0 })
+      .then(function () {
+        BNKToast.ok('Precio actualizado.');
+        loadServicios(proveedorId);
       });
   }
 
@@ -977,6 +1155,37 @@
       // Botón "+ Agregar Servicio"
       if (e.target.id === 'prvAddServicio' || e.target.closest('#prvAddServicio')) {
         _agregarFilaServicio();
+        return;
+      }
+
+      // Botón "+ Agregar Bloque"
+      if (e.target.id === 'prvAddBloque' || e.target.closest('#prvAddBloque')) {
+        _crearBloque();
+        return;
+      }
+
+      // Bloque actions
+      var bloqueAddBtn = e.target.closest('.srv-bloque-add-btn');
+      if (bloqueAddBtn) {
+        _agregarFilaServicio(bloqueAddBtn.getAttribute('data-bloque-id'));
+        return;
+      }
+
+      var bloqueDelBtn = e.target.closest('.srv-bloque-del-btn');
+      if (bloqueDelBtn) {
+        _eliminarBloque(bloqueDelBtn.getAttribute('data-bloque-id'));
+        return;
+      }
+
+      var bloquePrecioSave = e.target.closest('.srv-bloque-precio-save');
+      if (bloquePrecioSave) {
+        _guardarPrecioManualBloque(bloquePrecioSave.getAttribute('data-bloque-id'));
+        return;
+      }
+
+      var bloqueManualChk = e.target.closest('.srv-bloque-manual-chk');
+      if (bloqueManualChk) {
+        _togglePrecioManualBloque(bloqueManualChk.getAttribute('data-bloque-id'), bloqueManualChk.checked);
         return;
       }
 
