@@ -170,6 +170,7 @@
         <div class="bnk-label">BNK VINCULADAS</div>
         <div id="popBnkList" class="cot-popover-bnk-list"></div>
       </div>
+      <div id="popClienteInfo"></div>
       <div class="cot-popover-chips">
         <span class="cot-popover-chip" id="popChipPartners" title="Partners vinculados">&#128101; <span id="popPartnersCount">0</span> Partners</span>
         <span class="cot-popover-chip" id="popChipProveedores" title="Proveedores vinculados">&#128230; <span id="popProveedoresCount">0</span> Proveedores</span>
@@ -178,6 +179,7 @@
         <button class="panel-btn-primary panel-btn-sm" id="popCrearBnk">+ CREAR BNK</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincPartner">VINCULAR PARTNER</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincProveedor">VINCULAR PROVEEDOR</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popVincCliente">&#128100; CLIENTE</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popPdf">PDF</button>
       </div>
     </div>
@@ -218,6 +220,23 @@
           </div>
           <div class="bnk-label" style="margin-top:16px">PROVEEDORES VINCULADOS</div>
           <div id="vincProveedorList" class="vinc-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Vincular Cliente -->
+    <div id="vincClienteOverlay" class="bnk-overlay">
+      <div class="bnk-modal" style="max-width:450px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">VINCULAR CLIENTE &mdash; <span class="vinc-folio-label"></span></h3>
+          <button class="bnk-modal-close vinc-close">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-form-group" style="position:relative">
+            <input id="vincClienteSearch" class="bnk-input" placeholder="Buscar cliente..." autocomplete="off">
+            <div id="vincClienteAC" class="bnk-autocomplete"></div>
+          </div>
+          <div id="vincClienteResult"></div>
         </div>
       </div>
     </div>
@@ -658,7 +677,7 @@
               <div class="bnk-form-group"><label class="bnk-label">CLABE</label><input type="text" class="bnk-input" id="cliClabe" autocomplete="off"></div>
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="cliTipoCuenta"></div>
             </div>
-            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-section-label" style="margin-top:20px;display:flex;align-items:center">CUENTA EXTRANJERA <label class="no-aplica-toggle"><input type="checkbox" id="cliNoAplicaExtranjero"> No aplica</label></div>
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="cliBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="cliDivisa"></div>
@@ -822,7 +841,7 @@
               <div class="bnk-form-group"><label class="bnk-label">TIPO CUENTA</label><input type="text" class="bnk-input" id="prvTipoCuenta"></div>
               <div class="bnk-form-group bnk-form-full"><label class="bnk-label">DIRECCIÓN DEL BANCO</label><input type="text" class="bnk-input" id="prvDireccionBanco"></div>
             </div>
-            <div class="bnk-section-label" style="margin-top:20px">CUENTA EXTRANJERA</div>
+            <div class="bnk-section-label" style="margin-top:20px;display:flex;align-items:center">CUENTA EXTRANJERA <label class="no-aplica-toggle"><input type="checkbox" id="prvNoAplicaExtranjero"> No aplica</label></div>
             <div class="bnk-form-grid">
               <div class="bnk-form-group"><label class="bnk-label">BANCO</label><input type="text" class="bnk-input" id="prvBancoExtranjero"></div>
               <div class="bnk-form-group"><label class="bnk-label">DIVISA</label><input type="text" class="bnk-input" id="prvDivisa"></div>

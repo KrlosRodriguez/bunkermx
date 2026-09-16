@@ -67,6 +67,7 @@
 
   // Campos que se excluyen del cálculo de completitud
   var CAMPOS_EXCLUIDOS = { id: true, fechaAlta: true, fechaEdicion: true, _pct: true, createdAt: true, updatedAt: true };
+  var CAMPOS_EXTRANJERO = ['bancoExtranjero', 'divisa', 'titularExtranjero', 'cuentaIban', 'swiftBic', 'abaRouting', 'bancoIntermediario', 'swiftIntermediario'];
 
   // ── Helpers internos ──
   function _escapeHTML(str) {
@@ -204,14 +205,28 @@
     if (!obj) return 0;
     var total = 0;
     var llenos = 0;
+    var excluirExtra = obj.noAplicaExtranjero === true ? CAMPOS_EXTRANJERO : [];
     Object.keys(obj).forEach(function (key) {
       if (CAMPOS_EXCLUIDOS[key]) return;
+      if (key === 'noAplicaExtranjero') return;
+      if (excluirExtra.indexOf(key) !== -1) return;
       total++;
       var v = obj[key];
       if (v !== undefined && v !== null && String(v).trim() !== '') llenos++;
     });
     if (total === 0) return 0;
     return Math.round((llenos / total) * 100);
+  }
+
+  function _toggleExtranjeroFields(prefix, disabled) {
+    CAMPOS_EXTRANJERO.forEach(function (campo) {
+      var elId = CAMPO_ID[campo];
+      var el = elId ? document.getElementById(elId) : null;
+      if (el) {
+        el.disabled = disabled;
+        el.style.opacity = disabled ? '0.4' : '1';
+      }
+    });
   }
 
   // ── updateIndicators ──
@@ -422,6 +437,13 @@
         else chipsWrap.classList.remove('disabled');
       }
 
+      // Set noAplicaExtranjero toggle
+      var chkNoAplica = document.getElementById('cliNoAplicaExtranjero');
+      if (chkNoAplica) {
+        chkNoAplica.checked = !!(clienteData && clienteData.noAplicaExtranjero);
+        _toggleExtranjeroFields('cli', chkNoAplica.checked);
+      }
+
       var pct = calcCompletitud(clienteData);
       _actualizarCirculo(pct);
     }
@@ -611,6 +633,10 @@
 
     // Marcas como array
     data.marcas = _marcasActuales.slice();
+
+    // No aplica extranjero toggle
+    var chkNoAplica = document.getElementById('cliNoAplicaExtranjero');
+    data.noAplicaExtranjero = chkNoAplica ? chkNoAplica.checked : false;
 
     // Agregar fecha de edición
     data.fechaEdicion = new Date().toISOString().slice(0, 10);
@@ -812,6 +838,12 @@
 
     var btnGuardar = _getEl('cliGuardar');
     if (btnGuardar) btnGuardar.addEventListener('click', guardarCliente);
+
+    // Toggle "No aplica" extranjero
+    var chkNoAplicaCli = document.getElementById('cliNoAplicaExtranjero');
+    if (chkNoAplicaCli) chkNoAplicaCli.addEventListener('change', function () {
+      _toggleExtranjeroFields('cli', this.checked);
+    });
 
     var btnCancel = _getEl('cliCancel');
     if (btnCancel) btnCancel.addEventListener('click', cerrarModal);
