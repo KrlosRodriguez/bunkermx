@@ -141,6 +141,15 @@
 
     var _acIndex = -1;
 
+    function _positionAC() {
+      var rect = input.getBoundingClientRect();
+      dropdown.style.position = 'fixed';
+      dropdown.style.top = rect.bottom + 'px';
+      dropdown.style.left = rect.left + 'px';
+      dropdown.style.width = rect.width + 'px';
+      dropdown.style.zIndex = '9999';
+    }
+
     function _acItems() { return dropdown.querySelectorAll('.bnk-ac-item'); }
 
     function _acHighlight(idx) {
@@ -173,8 +182,17 @@
           + _esc(c.folio) + ' \u2014 ' + _esc(c.cliente || c.empresa || '') + '</div>';
       });
       dropdown.innerHTML = html || '<div class="bnk-ac-item bnk-ac-new">Sin resultados</div>';
+      _positionAC();
       dropdown.classList.add('visible');
     });
+
+    // Reposition on modal scroll
+    var modalBody = input.closest('.bnk-modal-body');
+    if (modalBody) {
+      modalBody.addEventListener('scroll', function () {
+        if (dropdown.classList.contains('visible')) _positionAC();
+      }, { passive: true });
+    }
 
     input.addEventListener('keydown', function (e) {
       if (!dropdown.classList.contains('visible')) return;
