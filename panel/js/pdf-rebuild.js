@@ -279,7 +279,42 @@
     Object.keys(grupos).forEach(function (cat) {
       _drawSection(doc, p, cat.toUpperCase(), yRef);
 
+      // Sub-group by bloque within category
+      var bloquesEnCat = {};
+      var sinBloque = [];
       grupos[cat].forEach(function (c) {
+        if (c.bloqueNombre) {
+          if (!bloquesEnCat[c.bloqueNombre]) bloquesEnCat[c.bloqueNombre] = [];
+          bloquesEnCat[c.bloqueNombre].push(c);
+        } else {
+          sinBloque.push(c);
+        }
+      });
+
+      // Render block groups
+      Object.keys(bloquesEnCat).forEach(function (bName) {
+        checkPageBNK(10);
+        doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+        doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
+        doc.text('\u25B8 ' + bName, margin + 2, yRef.y + 4);
+        doc.setFont('helvetica', 'normal'); yRef.y += 6;
+
+        bloquesEnCat[bName].forEach(function (c) {
+          checkPageBNK(7);
+          doc.setFontSize(8); doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
+          doc.text('  ' + (c.concepto || ''), margin + 6, yRef.y + 4);
+          doc.text(String(c.cantidad || 1) + ' ' + (c.unidad || ''), margin + 100, yRef.y + 4);
+          doc.text(_formatMXN(c.precioUnit), W - margin - 35, yRef.y + 4);
+          doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
+          doc.text(_formatMXN(c.subtotal), W - margin - 4, yRef.y + 4, { align: 'right' });
+          doc.setDrawColor(p.BG[0] + 30, p.BG[1] + 30, p.BG[2] + 30);
+          doc.setLineWidth(0.1); doc.line(margin, yRef.y + 6, W - margin, yRef.y + 6);
+          yRef.y += 7;
+        });
+      });
+
+      // Render loose concepts
+      sinBloque.forEach(function (c) {
         checkPageBNK(7);
         doc.setFontSize(8); doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
         doc.text(c.concepto || '', margin + 4, yRef.y + 4);
