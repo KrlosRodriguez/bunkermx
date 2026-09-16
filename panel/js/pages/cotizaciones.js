@@ -18,6 +18,7 @@
   var _proveedores = [];
   var _pagos = [];
   var _clientes = [];
+  var _otCot = null;
 
   function init() {
     _canEdit = BNK_AUTH.canEdit('cotizaciones');
@@ -29,6 +30,7 @@
     _bindPopover();
     _bindVincModals();
     _setupVincClienteModal();
+    _setupOTModal();
 
     var cotLoading = document.getElementById('cotLoading');
     var cotTable = document.getElementById('cotTable2');
@@ -465,6 +467,14 @@
       _closePopover();
       if (cot) _openVincClienteModal(cot);
     });
+
+    // Orden de trabajo
+    document.getElementById('popOrdenTrabajo').addEventListener('click', function () {
+      var cotId = _popoverCotId;
+      var cot = _data.find(function (d) { return d.id === cotId; });
+      _closePopover();
+      if (cot) _openOTModal(cot);
+    });
   }
 
   function _openPopover(cotId, anchorEl) {
@@ -512,6 +522,10 @@
       bnkSection.style.display = 'none';
       crearBnkBtn.style.display = 'none';
     }
+
+    // OT button (only for BNK)
+    var otBtn = document.getElementById('popOrdenTrabajo');
+    if (otBtn) otBtn.style.display = fuente === 'BNK' ? '' : 'none';
 
     // Partners count
     var partnersCount = _cotPartners.filter(function (cp) { return cp.cotizacionId === cotId; }).length;
@@ -844,6 +858,90 @@
   }
 
   // ══════════════════════════════════════════
+  // ORDEN DE TRABAJO
+  // ══════════════════════════════════════════
+
+  function _openOTModal(cot) {
+    _otCot = cot;
+    var overlay = document.getElementById('otOverlay');
+    if (!overlay) return;
+    overlay.classList.add('visible');
+    document.getElementById('otFolioLabel').textContent = cot.folio || '';
+    document.getElementById('otNotas').value = '';
+
+    // Find linked providers
+    var vinculados = (_cotProveedores || []).filter(function (cp) {
+      return cp.cotizacionId === cot.id || cp.cotizacionFolio === cot.folio;
+    });
+
+    var sel = document.getElementById('otProveedorSel');
+    var html = '';
+    vinculados.forEach(function (v) {
+      html += '<option value="' + _esc(v.proveedorId) + '">' + _esc(v.proveedorNombre || v.proveedorId) + '</option>';
+    });
+    sel.innerHTML = html || '<option value="">Sin proveedores vinculados</option>';
+
+    _updateOTPreview();
+  }
+
+  function _updateOTPreview() {
+    if (!_otCot) return;
+    var provId = document.getElementById('otProveedorSel').value;
+    var preview = document.getElementById('otPreview');
+    if (!provId) { preview.innerHTML = ''; return; }
+
+    var conceptos = [];
+    try { conceptos = JSON.parse(_otCot.conceptos || '[]'); } catch (e) {}
+    var filtered = conceptos.filter(function (c) { return c.proveedorId === provId; });
+
+    if (filtered.length === 0) {
+      preview.innerHTML = '<em>Este proveedor fue vinculado manualmente (sin conceptos detallados).</em>';
+    } else {
+      var h = '<strong>Servicios a incluir:</strong><ul style="margin:4px 0;padding-left:18px;font-size:11px">';
+      filtered.forEach(function (c) {
+        h += '<li>' + _esc(c.concepto) + ' \u00d7' + (c.cantidad || 1) + '</li>';
+      });
+      h += '</ul>';
+      preview.innerHTML = h;
+    }
+  }
+
+  function _setupOTModal() {
+    var overlay = document.getElementById('otOverlay');
+    if (!overlay) return;
+    document.getElementById('otClose').addEventListener('click', function () {
+      overlay.classList.remove('visible');
+    });
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) overlay.classList.remove('visible');
+    });
+
+    document.getElementById('otProveedorSel').addEventListener('change', _updateOTPreview);
+
+    document.getElementById('otDescargar').addEventListener('click', function () {
+      if (!_otCot) return;
+      var provId = document.getElementById('otProveedorSel').value;
+      if (!provId) { BNKToast.warn('Selecciona un proveedor.'); return; }
+
+      // Find full provider data
+      var provData = null;
+      for (var i = 0; i < _proveedores.length; i++) {
+        if (_proveedores[i].id === provId) { provData = _proveedores[i]; break; }
+      }
+      if (!provData) { BNKToast.warn('Proveedor no encontrado.'); return; }
+
+      var notas = document.getElementById('otNotas').value.trim();
+      if (window.BNKPdfWorkOrder) {
+        BNKPdfWorkOrder.download(_otCot, provData, notas);
+        overlay.classList.remove('visible');
+        BNKToast.ok('Orden de trabajo generada.');
+      } else {
+        BNKToast.error('Módulo de PDF no disponible.');
+      }
+    });
+  }
+
+  // ══════════════════════════════════════════
   // VINCULAR CLIENTE
   // ══════════════════════════════════════════
 
@@ -1050,6 +1148,10 @@
       // onSnapshot handles live updates — manual refresh not needed
       // but re-render if called externally
       if (_data.length > 0) _render();
+    },
+    openOTModal: function (cotId) {
+      var cot = _data.find(function (d) { return d.id === cotId; });
+      if (cot) _openOTModal(cot);
     }
   };
 })();

@@ -181,6 +181,7 @@
         <button class="panel-btn-secondary panel-btn-sm" id="popVincProveedor">VINCULAR PROVEEDOR</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincCliente">&#128100; CLIENTE</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popPdf">PDF</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popOrdenTrabajo">&#128203; OT</button>
       </div>
     </div>
 
@@ -237,6 +238,28 @@
             <div id="vincClienteAC" class="bnk-autocomplete"></div>
           </div>
           <div id="vincClienteResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Orden de Trabajo -->
+    <div id="otOverlay" class="bnk-overlay">
+      <div class="bnk-modal" style="max-width:500px">
+        <div class="bnk-modal-header">
+          <h3 class="bnk-modal-title">ORDEN DE TRABAJO &mdash; <span id="otFolioLabel"></span></h3>
+          <button class="bnk-modal-close" id="otClose">&times;</button>
+        </div>
+        <div class="bnk-modal-body">
+          <div class="bnk-form-group">
+            <label class="bnk-label">PROVEEDOR</label>
+            <select id="otProveedorSel" class="bnk-input"></select>
+          </div>
+          <div id="otPreview" style="font-size:12px;color:var(--tx2);margin:8px 0"></div>
+          <div class="bnk-form-group">
+            <label class="bnk-label">NOTAS PARA EL PROVEEDOR</label>
+            <textarea id="otNotas" class="bnk-input" rows="4" placeholder="Instrucciones adicionales..."></textarea>
+          </div>
+          <button id="otDescargar" class="bnk-btn">DESCARGAR PDF</button>
         </div>
       </div>
     </div>
@@ -1935,6 +1958,7 @@
 
 <!-- PDF rebuild + Módulos de página -->
 <script src="js/pdf-rebuild.js?v=1"></script>
+<script src="js/pdf-workorder.js?v=1"></script>
 <script src="js/pages/cotizaciones.js?v=7"></script>
 <script src="js/pages/pipeline.js?v=7"></script>
 <script src="js/pages/clientes.js?v=7"></script>
