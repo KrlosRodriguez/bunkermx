@@ -436,6 +436,11 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .entity-popover-cot-pago .pago-monto{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--ylw)}
 .entity-popover-empty{font-size:11px;color:var(--tx);font-style:italic;padding:8px 0}
 
+/* ── PRECIO ESPECIAL MNT ── */
+.mnt-precio-especial { margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.mnt-precio-especial label { font-size: 11px; color: var(--tx2); white-space: nowrap; }
+.mnt-precio-override { width: 100px; font-size: 12px; }
+
 /* ── DUAL MODE BNK COTIZADOR ── */
 .bnk-modo-toggle { background:none; border:1px solid var(--bd); color:var(--tx2); width:28px; height:28px; border-radius:4px; cursor:pointer; flex-shrink:0; font-size:14px; }
 .bnk-modo-toggle:hover { border-color:var(--accent); color:var(--accent); }

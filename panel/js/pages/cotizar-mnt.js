@@ -45,7 +45,9 @@
     var yy = String(now.getFullYear()).slice(-2);
     var mm = String(now.getMonth() + 1).padStart(2, '0');
     var dd = String(now.getDate()).padStart(2, '0');
-    var rand = String(Math.floor(1000 + Math.random() * 9000));
+    var arr = new Uint16Array(1);
+    crypto.getRandomValues(arr);
+    var rand = String(1000 + (arr[0] % 9000)).padStart(4, '0');
     return 'MNT-' + yy + mm + dd + '-' + rand;
   }
 
@@ -102,6 +104,10 @@
       BNKValidate.error(telEl, 'Teléfono o correo requerido');
       BNKValidate.error(correoEl, 'Teléfono o correo requerido');
       BNKToast.warn('Teléfono o correo es requerido.');
+      return false;
+    }
+    if (correoEl.value.trim() && !BNKValidate.email(correoEl)) {
+      BNKToast.warn('Formato de correo inválido.');
       return false;
     }
     return true;
@@ -271,12 +277,20 @@
         disponible = false;
       }
       var isSelected = !!_selected[v.id];
+      var isOverridable = (v.concepto || '').indexOf('VELARIA') !== -1 || (v.concepto || '').indexOf('Velaria') !== -1
+        || (v.concepto || '').indexOf('LOBBY') !== -1 || (v.concepto || '').indexOf('Lobby') !== -1;
+
       html += '<div class="mnt-space-card' + (isSelected ? ' selected' : '') + (disponible ? '' : ' disabled') + '" data-vid="' + v.id + '" tabindex="0" role="button">'
         + '<div class="mnt-space-name" style="color:var(--g)">' + _esc(v.concepto) + '</div>'
         + (v.capacidad ? '<div class="mnt-space-meta">CAP: ' + _esc(String(v.capacidad)) + ' personas</div>' : '')
         + '<div class="mnt-space-meta">' + _esc(v.unidad || 'día') + '</div>'
         + '<div class="mnt-space-price">' + _formatMXN(v.precio) + ' / DÍA</div>'
         + (v.precioWeekend ? '<div class="mnt-space-meta">WKD: ' + _formatMXN(v.precioWeekend) + '</div>' : '')
+        + (isOverridable ? '<div class="mnt-precio-especial">'
+          + '<label>Precio especial:</label>'
+          + '<input type="number" class="bnk-input mnt-precio-override" data-venue="' + _esc(v.id) + '"'
+          + ' placeholder="' + (v.precio || 0) + '" min="0" step="100">'
+          + '</div>' : '')
         + '</div>';
     });
     grid.innerHTML = html;
@@ -300,8 +314,13 @@
         _updateSpaceCount();
         _renderCalendars();
       }
-      card.addEventListener('click', toggle);
+      card.addEventListener('click', function (e) {
+        // Don't toggle when clicking the price override input
+        if (e.target.closest('.mnt-precio-especial')) return;
+        toggle();
+      });
       card.addEventListener('keydown', function (e) {
+        if (e.target.closest('.mnt-precio-especial')) return;
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
       });
     });
@@ -526,7 +545,13 @@
         else diasRegular++;
       });
 
-      var renta = (diasRegular * (venue.precio || 0)) + (diasWeekend * (venue.precioWeekend || venue.precio || 0));
+      // Check for price override (Valeria/Lobby)
+      var overrideInput = document.querySelector('.mnt-precio-override[data-venue="' + vid + '"]');
+      var precioEspecial = overrideInput ? (parseFloat(overrideInput.value) || 0) : 0;
+      var precioRegularEfectivo = precioEspecial > 0 ? precioEspecial : (venue.precio || 0);
+      var precioWeekendEfectivo = precioEspecial > 0 ? precioEspecial : (venue.precioWeekend || venue.precio || 0);
+
+      var renta = (diasRegular * precioRegularEfectivo) + (diasWeekend * precioWeekendEfectivo);
       var montaje = (sel.montajeDays || 0) * (venue.precioMontaje || 0);
 
       rentaTotal += renta;
@@ -539,8 +564,10 @@
         diasTotal: diasRegular + diasWeekend,
         montajeDays: sel.montajeDays || 0,
         eventDays: sel.eventDays.slice().sort(),
-        precioRegular: venue.precio,
-        precioWeekend: venue.precioWeekend || venue.precio,
+        precioRegular: precioRegularEfectivo,
+        precioWeekend: precioWeekendEfectivo,
+        precioOriginal: venue.precio,
+        precioEspecial: precioEspecial > 0 ? precioEspecial : null,
         precioMontaje: venue.precioMontaje || 0,
         renta: renta,
         montaje: montaje,
