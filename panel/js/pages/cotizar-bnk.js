@@ -777,10 +777,15 @@
       creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 
-    BNK_DB.cotizaciones.create(firestoreData).then(function () {
-      doc.save('Cotizacion-BNK-' + folio + '.pdf');
-      BNKToast.ok('Cotización ' + folio + ' generada.');
-      _limpiar();
+    BNK_DB.cotizaciones.create(firestoreData).then(function (saved) {
+      // Auto-link providers
+      var parsedConceptos = JSON.parse(firestoreData.conceptos);
+      return _autoVincularProveedores(saved.id, folio, parsedConceptos).then(function () {
+        doc.save('Cotizacion-BNK-' + folio + '.pdf');
+        BNKToast.ok('Cotización ' + folio + ' generada.');
+        _limpiar();
+        if (window.BNKFinanzas && BNKFinanzas.reload) BNKFinanzas.reload();
+      });
     }).catch(function (err) {
       BNKToast.error('Error al guardar: ' + err.message);
       btn.textContent = 'REINTENTAR';
@@ -788,6 +793,39 @@
       btn.disabled = false;
       if (btn.textContent === 'GENERANDO...') btn.textContent = 'GENERAR COTIZACIÓN';
     });
+  }
+
+  function _autoVincularProveedores(cotizacionId, folio, conceptos) {
+    var provMap = {};
+    conceptos.forEach(function (c) {
+      if (c.modo !== 'proveedor' || !c.proveedorId) return;
+      if (!provMap[c.proveedorId]) {
+        provMap[c.proveedorId] = {
+          proveedorId: c.proveedorId,
+          proveedorNombre: c.proveedorNombre,
+          montoTotal: 0,
+          servicios: []
+        };
+      }
+      provMap[c.proveedorId].montoTotal += (c.costoProveedor || 0) * (c.cantidad || 1);
+      provMap[c.proveedorId].servicios.push(c.concepto + ' x' + c.cantidad);
+    });
+
+    var promises = [];
+    Object.keys(provMap).forEach(function (provId) {
+      var p = provMap[provId];
+      promises.push(BNK_DB.cotizacionProveedores.create({
+        cotizacionId: cotizacionId,
+        cotizacionFolio: folio,
+        proveedorId: p.proveedorId,
+        proveedorNombre: p.proveedorNombre,
+        montoTotal: p.montoTotal,
+        servicios: p.servicios,
+        autoVinculado: true
+      }));
+    });
+
+    return Promise.all(promises);
   }
 
   function _limpiar() {
