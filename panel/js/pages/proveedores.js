@@ -731,7 +731,8 @@
     var srvSafe  = _escapeHTML(srv.servicio || '');
     var unidSafe = _escapeHTML(srv.unidad || '');
     var costoFmt = _formatMXN(srv.costoUnitario);
-    var precioFmt = _formatMXN(srv.precioCliente);
+    var precioVal = (Number(srv.precioCliente) > 0) ? srv.precioCliente : srv.costoUnitario;
+    var precioFmt = _formatMXN(precioVal);
 
     return '<tr data-srv-id="' + idSafe + '">'
       + '<td>' + catSafe + '</td>'
@@ -884,8 +885,8 @@
       categoria:     categoria,
       servicio:      servicio,
       unidad:        unidad,
-      costoUnitario: costoUnitario,
-      precioCliente: precioCliente,
+      costoUnitario: parseFloat(costoUnitario) || 0,
+      precioCliente: parseFloat(precioCliente) || 0,
       createdAt:     firebase.firestore.FieldValue.serverTimestamp()
     };
     if (bloqueId) data.bloqueId = bloqueId;
@@ -950,8 +951,8 @@
       categoria:     categoria,
       servicio:      servicio,
       unidad:        unidad,
-      costoUnitario: costoUnitario,
-      precioCliente: precioCliente,
+      costoUnitario: parseFloat(costoUnitario) || 0,
+      precioCliente: parseFloat(precioCliente) || 0,
       updatedAt:     firebase.firestore.FieldValue.serverTimestamp()
     };
 

@@ -138,6 +138,7 @@
     var input = document.getElementById(inputId);
     var dropdown = document.getElementById(autoId);
     if (!input || !dropdown) return;
+    document.body.appendChild(dropdown);
 
     var _acIndex = -1;
 

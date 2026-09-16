@@ -338,7 +338,7 @@
     // Add individual services
     _allServicios.forEach(function (s) {
       if (s.proveedorId === provId && s.categoria === catSel && !s.bloqueId) {
-        var srvPrecio = (s.precioCliente && parseFloat(s.precioCliente) > 0) ? s.precioCliente : (s.costoUnitario || 0);
+        var srvPrecio = Number(s.precioCliente) > 0 ? s.precioCliente : (Number(s.costoUnitario) > 0 ? s.costoUnitario : 0);
         html += '<option value="srv:' + _esc(s.id) + '" data-precio="' + srvPrecio
           + '" data-costo="' + (s.costoUnitario || 0)
           + '" data-unidad="' + _esc(s.unidad || 'servicio') + '">'
@@ -412,7 +412,7 @@
         + '</div>'
         + '<input type="number" class="bnk-cant" value="1" min="1" step="1">'
         + '<input type="text" class="bnk-uni" value="' + _esc(srv.unidad || 'servicio') + '">'
-        + '<input type="number" class="bnk-pre" value="' + ((srv.precioCliente && parseFloat(srv.precioCliente) > 0) ? srv.precioCliente : (srv.costoUnitario || 0)) + '" min="0" step="0.01">'
+        + '<input type="number" class="bnk-pre" value="' + (Number(srv.precioCliente) > 0 ? srv.precioCliente : (Number(srv.costoUnitario) > 0 ? srv.costoUnitario : 0)) + '" min="0" step="0.01">'
         + '<input type="hidden" class="bnk-costo-prov" value="' + (srv.costoUnitario || 0) + '">'
         + '<input type="hidden" class="bnk-prov-id" value="' + _esc(provId) + '">'
         + '<input type="hidden" class="bnk-prov-nombre" value="' + _esc(provNombre) + '">'
