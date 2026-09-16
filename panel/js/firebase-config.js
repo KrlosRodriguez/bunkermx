@@ -21,6 +21,6 @@
     db: firebase.firestore()
   };
 
-  // Persistencia de sesión — se mantiene al cerrar pestaña
-  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  // Persistencia de sesión — expira al cerrar pestaña/navegador
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION);
 })();
