@@ -625,3 +625,48 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .bnk-idle-overlay.visible{visibility:visible;opacity:1;pointer-events:auto}
 .bnk-idle-msg{font-family:'Barlow Condensed',sans-serif;font-size:20px;letter-spacing:3px;color:var(--ylw)}
 .bnk-idle-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx);letter-spacing:1px}
+
+/* ── Documentos de expediente ── */
+.doc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.doc-header h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:2px;color:var(--wh);margin:0}
+.doc-indicador{font-family:'Space Mono',monospace;font-size:13px;color:var(--tx);background:var(--bk);border:1px solid var(--bd);padding:4px 12px;border-radius:4px}
+.doc-indicador b{color:var(--g)}
+.doc-list{display:flex;flex-direction:column;gap:12px}
+.doc-card{background:var(--card);border:1px solid var(--bd);padding:16px;transition:border-color .2s}
+.doc-card:hover{border-color:rgba(0,255,65,0.25)}
+.doc-card.doc-card--empty{border-style:dashed}
+.doc-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.doc-card-header span{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--wh)}
+.doc-badge-req{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--ylw);border:1px solid var(--ylw);padding:2px 8px;border-radius:2px}
+.doc-archivo{display:flex;align-items:center;gap:10px;padding:8px 0}
+.doc-archivo-icon{font-size:20px;opacity:.7}
+.doc-archivo-name{font-size:13px;color:var(--wh);word-break:break-all}
+.doc-archivo-size{font-size:11px;color:var(--tx);white-space:nowrap}
+.doc-meta{font-size:11px;color:var(--tx);margin-bottom:8px}
+.doc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.doc-actions button{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;padding:4px 12px;border:1px solid var(--bd);background:transparent;color:var(--tx);cursor:pointer;transition:all .2s}
+.doc-actions button:hover{color:var(--wh);border-color:var(--g)}
+.doc-actions button.doc-btn-del{color:var(--red);border-color:var(--red)}
+.doc-actions button.doc-btn-del:hover{background:var(--red);color:var(--bk)}
+.doc-dropzone{border:2px dashed var(--bd);padding:24px;text-align:center;cursor:pointer;transition:all .2s}
+.doc-dropzone:hover,.doc-dropzone.dragover{border-color:var(--g);background:rgba(0,255,65,0.03)}
+.doc-dropzone p{font-size:13px;color:var(--tx);margin:0 0 4px}
+.doc-dropzone small{font-size:11px;color:var(--tx);opacity:.6}
+.doc-dropzone input[type="file"]{display:none}
+.doc-historial{margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);display:none}
+.doc-historial.visible{display:block}
+.doc-historial-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;opacity:.55}
+.doc-historial-item span{font-size:11px;color:var(--tx)}
+.doc-historial-item button{font-size:10px;padding:2px 8px;border:1px solid var(--bd);background:transparent;color:var(--tx);cursor:pointer}
+.doc-libre-row{display:flex;gap:8px;align-items:center}
+.doc-libre-row input{flex:1;font-size:13px;padding:8px 12px;background:var(--bk);border:1px solid var(--bd);color:var(--wh);font-family:'Barlow',sans-serif}
+.doc-libre-row button{white-space:nowrap}
+.doc-progress{width:100%;height:3px;background:var(--bd);margin-top:8px;border-radius:2px;overflow:hidden;display:none}
+.doc-progress.visible{display:block}
+.doc-progress-bar{height:100%;background:var(--g);width:0;transition:width .3s}
+@media(max-width:768px){
+  .doc-card{padding:12px}
+  .doc-header{flex-direction:column;gap:8px;align-items:flex-start}
+  .doc-actions{gap:4px}
+  .doc-actions button{padding:4px 8px;font-size:10px}
+}

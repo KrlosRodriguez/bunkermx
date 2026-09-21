@@ -519,6 +519,13 @@
         document.getElementById('ptrCotizaciones').innerHTML = ch;
       }
     }
+    // Render documentos tab
+    var ptrDocContainer = document.getElementById('ptrTabDocumentos');
+    var ptrDocId = document.getElementById('finPartnerId').value;
+    if (ptrDocContainer && ptrDocId) {
+      BNKDocumentos.render(ptrDocContainer, { entidad: 'partners', entityId: ptrDocId });
+    }
+
     _modal('finPartnerOverlay', true);
   }
 
@@ -566,6 +573,7 @@
     promise.then(function () {
       BNKToast.ok(id ? 'Partner actualizado.' : 'Partner creado.');
       _modal('finPartnerOverlay', false);
+      BNKDocumentos.destroy();
       _loadData();
     }).catch(function (err) {
       BNKToast.error('Error: ' + err.message);
@@ -589,8 +597,8 @@
   function _bindPartnerEvents() {
     document.getElementById('finBtnNuevoPartner').addEventListener('click', function () { _openPartnerModal(null); });
     document.getElementById('finPartnerGuardar').addEventListener('click', _savePartner);
-    document.getElementById('finPartnerCancel').addEventListener('click', function () { _modal('finPartnerOverlay', false); });
-    document.getElementById('finPartnerClose').addEventListener('click', function () { _modal('finPartnerOverlay', false); });
+    document.getElementById('finPartnerCancel').addEventListener('click', function () { _modal('finPartnerOverlay', false); BNKDocumentos.destroy(); });
+    document.getElementById('finPartnerClose').addEventListener('click', function () { _modal('finPartnerOverlay', false); BNKDocumentos.destroy(); });
 
     document.getElementById('finPartnersBody').addEventListener('click', function (e) {
       // Popover on folio click

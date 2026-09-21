@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/auth.js"></script>
@@ -661,6 +662,7 @@
             <button class="modal-tab" data-target="cliTabContacto">CONTACTO</button>
             <button class="modal-tab" data-target="cliTabFacturacion">FACTURACIÓN</button>
             <button class="modal-tab" data-target="cliTabBancarios">BANCARIOS</button>
+            <button class="modal-tab" data-target="cliTabDocumentos">DOCUMENTOS</button>
           </div>
 
           <!-- Tab General -->
@@ -735,6 +737,9 @@
               <div class="bnk-form-group"><label class="bnk-label">ABA/ROUTING</label><input type="text" class="bnk-input" id="cliAbaRouting" autocomplete="off"></div>
             </div>
           </div>
+
+          <!-- Tab Documentos -->
+          <div class="modal-tab-content" id="cliTabDocumentos" style="display:none"></div>
         </div>
         <div class="bnk-modal-footer">
           <button class="panel-btn-secondary" id="cliCancel">CANCELAR</button>
@@ -820,6 +825,7 @@
             <button class="modal-tab" data-target="prvTabFiscales">FISCALES</button>
             <button class="modal-tab" data-target="prvTabBancarios">BANCARIOS</button>
             <button class="modal-tab" data-target="prvTabServicios">SERVICIOS</button>
+            <button class="modal-tab" data-target="prvTabDocumentos">DOCUMENTOS</button>
           </div>
 
           <!-- Tab General -->
@@ -918,6 +924,9 @@
             <button class="bnk-add-row" id="prvAddServicio">+ AGREGAR SERVICIO</button>
             <button class="bnk-add-row" id="prvAddBloque" style="margin-left:8px">+ AGREGAR BLOQUE</button>
           </div>
+
+          <!-- Tab Documentos -->
+          <div class="modal-tab-content" id="prvTabDocumentos" style="display:none"></div>
 
           <!-- Cotizaciones vinculadas -->
           <div id="prvCotizacionesWrap" style="margin-top:16px"></div>
@@ -1659,6 +1668,7 @@
             <button class="modal-tab active" data-ptr-tab="general">GENERAL</button>
             <button class="modal-tab" data-ptr-tab="contacto">CONTACTO</button>
             <button class="modal-tab" data-ptr-tab="bancarios">BANCARIOS</button>
+            <button class="modal-tab" data-ptr-tab="documentos">DOCUMENTOS</button>
           </div>
 
           <!-- Tab General -->
@@ -1703,6 +1713,9 @@
               <div class="bnk-form-group"><label class="bnk-label">SWIFT/BIC</label><input type="text" class="bnk-input" id="ptrSwift"></div>
             </div>
           </div>
+
+          <!-- Tab Documentos -->
+          <div class="modal-tab-content" id="ptrTabDocumentos" style="display:none"></div>
 
           <!-- Cotizaciones vinculadas (solo lectura, fuera de tabs) -->
           <div class="bnk-section-label" style="margin-top:20px">COTIZACIONES VINCULADAS</div>
@@ -1845,7 +1858,7 @@
       var target = this.getAttribute('data-ptr-tab');
       document.querySelectorAll('[data-ptr-tab]').forEach(function (t) { t.classList.remove('active'); });
       this.classList.add('active');
-      ['general', 'contacto', 'bancarios'].forEach(function (t) {
+      ['general', 'contacto', 'bancarios', 'documentos'].forEach(function (t) {
         var el = document.getElementById('ptrTab' + t.charAt(0).toUpperCase() + t.slice(1));
         if (el) el.style.display = t === target ? '' : 'none';
       });
@@ -1984,6 +1997,7 @@
 <!-- PDF rebuild + Módulos de página -->
 <script src="js/pdf-rebuild.js?v=1"></script>
 <script src="js/pdf-workorder.js?v=1"></script>
+<script src="js/pages/documentos.js?v=1"></script>
 <script src="js/pages/cotizaciones.js?v=7"></script>
 <script src="js/pages/pipeline.js?v=7"></script>
 <script src="js/pages/clientes.js?v=7"></script>

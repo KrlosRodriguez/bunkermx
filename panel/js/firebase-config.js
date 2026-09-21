@@ -18,7 +18,8 @@
   window.BNK_FIREBASE = {
     app: firebase.app(),
     auth: firebase.auth(),
-    db: firebase.firestore()
+    db: firebase.firestore(),
+    storage: firebase.storage()
   };
 
   // Persistencia de sesión — expira al cerrar pestaña/navegador
