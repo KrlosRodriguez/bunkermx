@@ -111,6 +111,12 @@
     return div.innerHTML;
   }
 
+  // Valida que una URL sea http/https antes de usarla en href
+  function _safeUrl(url) {
+    if (!url || !/^https?:\/\//i.test(url)) return '#';
+    return _escapeHTML(url);
+  }
+
   function _formatMXN(val) {
     var n = parseFloat(val) || 0;
     return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -454,7 +460,7 @@
         var estado = _escapeHTML(cot.estado || '');
         var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
         if (pdfUrl) {
-          cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
+          cotHtml += '<a href="' + _safeUrl(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
         } else {
           cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
         }

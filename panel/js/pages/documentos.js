@@ -30,6 +30,12 @@
     return div.innerHTML;
   }
 
+  // Valida que una URL sea https:// antes de usarla en data-url o window.open
+  function _safeUrl(url) {
+    if (!url || !/^https:\/\//i.test(url)) return '';
+    return _esc(url);
+  }
+
   function _isAdmin() {
     return BNK_AUTH.currentRole() === 'admin';
   }
@@ -272,7 +278,7 @@
     h += '</div>';
     h += '<div class="doc-meta">Subido: ' + _formatDate(doc.subidoEn) + ' por ' + _esc(doc.subidoPor || '—') + '</div>';
     h += '<div class="doc-actions">';
-    h += '<button data-action="download" data-url="' + _esc(doc.downloadURL) + '">DESCARGAR</button>';
+    h += '<button data-action="download" data-url="' + _safeUrl(doc.downloadURL) + '">DESCARGAR</button>';
     h += '<button data-action="replace" data-tipo="' + tipo + '" data-nombre="' + _esc(tipoNombre) + '">REEMPLAZAR</button>';
     if (historial.length > 0) {
       h += '<button data-action="historial" data-tipo="' + tipo + '">HISTORIAL (' + historial.length + ')</button>';
@@ -291,7 +297,7 @@
       historial.forEach(function (d) {
         h += '<div class="doc-historial-item">';
         h += '<span>' + _formatDate(d.subidoEn) + ' — ' + _esc(d.nombreArchivo) + ' (' + _formatSize(d.tamano) + ')</span>';
-        h += '<button data-action="download" data-url="' + _esc(d.downloadURL) + '">Descargar</button>';
+        h += '<button data-action="download" data-url="' + _safeUrl(d.downloadURL) + '">Descargar</button>';
         h += '</div>';
       });
       h += '</div>';
@@ -386,7 +392,8 @@
     var action = btn.getAttribute('data-action');
 
     if (action === 'download') {
-      window.open(btn.getAttribute('data-url'), '_blank');
+      var dlUrl = btn.getAttribute('data-url') || '';
+      if (/^https:\/\//i.test(dlUrl)) window.open(dlUrl, '_blank');
     }
     if (action === 'replace') {
       var tipo = btn.getAttribute('data-tipo');

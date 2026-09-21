@@ -124,6 +124,12 @@ service cloud.firestore {
       allow read, create, update, delete: if isAdmin();
     }
 
+    match /auditLog/{docId} {
+      allow create: if isAuthenticated();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     // Collection group queries para servicios y bloques
     match /{path=**}/servicios/{srvId} {
       allow read: if isAuthenticated();

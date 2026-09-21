@@ -77,6 +77,12 @@
     return div.innerHTML;
   }
 
+  // Valida que una URL sea http/https antes de usarla en href
+  function _safeUrl(url) {
+    if (!url || !/^https?:\/\//i.test(url)) return '#';
+    return _escapeHTML(url);
+  }
+
   function _getEl(id) {
     return document.getElementById(id);
   }
@@ -520,7 +526,7 @@
           : '<span style="font-size:9px;padding:2px 6px;color:var(--ylw);border:1px solid rgba(240,192,64,.3);background:rgba(240,192,64,.06);margin-left:4px">Por nombre</span>';
         var pdfUrl = cot.pdfUrl || cot.linkPDF || '';
         if (pdfUrl) {
-          cotHtml += '<a href="' + _escapeHTML(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
+          cotHtml += '<a href="' + _safeUrl(pdfUrl) + '" target="_blank" rel="noopener" style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--accent)">' + folio + '</a>';
         } else {
           cotHtml += '<span style="display:inline-block;margin:4px 8px 4px 0;font-size:12px;color:var(--tx-muted)">' + folio + '</span>';
         }
@@ -788,6 +794,17 @@
             c.personaContacto || '', c.correoContacto || '', c.telefonoContacto || '',
             c.rfc || '', c.fechaAlta || '', c.fechaEdicion || ''];
         });
+        // Audit log — fire-and-forget, no bloquea la descarga
+        try {
+          var user = BNK_AUTH.currentUser();
+          BNK_FIREBASE.db.collection('auditLog').add({
+            accion: 'export_csv',
+            modulo: 'clientes',
+            usuario: user ? user.email : 'desconocido',
+            registros: data.length,
+            fecha: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (e) { /* no bloquear descarga si falla el log */ }
         var hoy = new Date().toISOString().slice(0, 10);
         BNKExport.csv('clientes_' + hoy + '.csv', headers, rows);
       });
