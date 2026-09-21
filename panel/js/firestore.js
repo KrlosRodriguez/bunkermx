@@ -164,6 +164,37 @@
     });
   }
 
+  // ── Documentos de expediente (subcollection genérica) ──
+  function documentosAPI(entidad, entityId) {
+    var ref = db.collection(entidad).doc(entityId).collection('documentos');
+    return {
+      list: function () {
+        return ref.orderBy('subidoEn', 'desc').get().then(function (snap) {
+          return snap.docs.map(function (doc) {
+            var d = doc.data(); d.id = doc.id; return d;
+          });
+        });
+      },
+      listByTipo: function (tipo) {
+        return ref.where('tipo', '==', tipo).orderBy('subidoEn', 'desc').get().then(function (snap) {
+          return snap.docs.map(function (doc) {
+            var d = doc.data(); d.id = doc.id; return d;
+          });
+        });
+      },
+      create: function (data) {
+        data.subidoEn = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.add(data).then(function (r) { data.id = r.id; return data; });
+      },
+      update: function (id, data) {
+        return ref.doc(id).update(data);
+      },
+      delete: function (id) {
+        return ref.doc(id).delete();
+      }
+    };
+  }
+
   // ── API pública ──
   window.BNK_DB = {
     cotizaciones:        collectionAPI('cotizaciones'),
@@ -180,6 +211,7 @@
     cuentasCobrar:       collectionAPI('cuentasCobrar', { orderBy: { field: 'createdAt', dir: 'desc' } }),
     cotizacionProveedores: collectionAPI('cotizacionProveedores'),
     bloques:               bloquesAPI,
+    documentos:            documentosAPI,
     allServicios:          allServiciosQuery,
     allBloques:            allBloquesQuery,
     actividad:           actividadAPI,

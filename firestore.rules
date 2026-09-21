@@ -43,11 +43,23 @@ service cloud.firestore {
     match /clientes/{docId} {
       allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
+
+      match /documentos/{docId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated();
+        allow delete: if isAdmin();
+      }
     }
 
     match /proveedores/{docId} {
       allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
+
+      match /documentos/{docId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated();
+        allow delete: if isAdmin();
+      }
 
       match /servicios/{srvId} {
         allow read: if isAuthenticated();
@@ -88,6 +100,12 @@ service cloud.firestore {
     // ── Finanzas: solo admin puede leer y escribir datos bancarios/pagos ──
     match /partners/{docId} {
       allow read, create, update, delete: if isAdmin();
+
+      match /documentos/{docId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAuthenticated();
+        allow delete: if isAdmin();
+      }
     }
 
     match /pagos/{docId} {
@@ -112,6 +130,10 @@ service cloud.firestore {
     }
 
     match /{path=**}/bloques/{bloqueId} {
+      allow read: if isAuthenticated();
+    }
+
+    match /{path=**}/documentos/{docId} {
       allow read: if isAuthenticated();
     }
   }
