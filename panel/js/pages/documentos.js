@@ -245,10 +245,12 @@
     html += '<input type="text" placeholder="Nombre del documento..." id="docLibreNombre">';
     html += '<button class="doc-actions" id="docLibreSubir">SUBIR</button>';
     html += '</div>';
+    html += '<div class="doc-progress"><div class="doc-progress-bar"></div></div>';
     html += '</div>';
 
     html += '</div>'; // .doc-list
 
+    _container.removeEventListener('click', _handleClick);
     _container.innerHTML = html;
     _bindEvents();
   }
