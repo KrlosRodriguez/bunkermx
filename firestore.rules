@@ -36,7 +36,7 @@ service cloud.firestore {
 
       match /actividad/{actId} {
         allow read: if isAuthenticated();
-        allow create: if isAuthenticated();
+        allow create: if isAdminOrVentas();
       }
     }
 
