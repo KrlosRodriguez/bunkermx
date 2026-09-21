@@ -83,7 +83,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~188 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
+- **`panel/js/firestore.js`** (~220 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
 - **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
 - **`panel/js/pdf-workorder.js`** (~193 lines) — genera PDF de Orden de Trabajo para proveedores. `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`. Paleta corporativa, secciones: proveedor, evento, servicios requeridos (agrupados por bloque), notas. Fallback matching por proveedorId → nombre → todos los conceptos
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
@@ -93,8 +93,9 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
 - **`cotizar-bnk.js`** (~1064 lines) — formulario de servicios/producción, filas dinámicas de conceptos con modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete catálogo, bloques de proveedor expandibles, botón "Agregar Bloque" con modal picker, auto-vinculación de proveedores al guardar, plantillas de condiciones comerciales, PDF dual con agrupación por bloque, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
 - **`pipeline.js`** (~205 lines) — tablero kanban de seguimiento con timeline y notas, indicador de folios BNK vinculados en cards MNT
-- **`clientes.js`** (~1024 lines) — CRUD, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud con toggle "No aplica extranjero", chips UI para marcas, cotizaciones vinculadas con badges Vinculada/Por nombre, popover de folio con cotizaciones vinculadas por empresa
-- **`proveedores.js`** (~1337 lines) — CRUD, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), doble precio (costoUnitario + precioCliente), bloques de servicios con precio manual, toggle "No aplica extranjero" para completitud, popover de folio con cotizaciones vinculadas
+- **`documentos.js`** (~437 lines) — módulo compartido `BNKDocumentos` para subida/gestión de documentos de expediente (RFC, INE, comprobante domicilio, etc.). Upload a Firebase Storage, versionado (vigente + historial), drag & drop, validación PDF/JPG/PNG ≤10 MB, admin-only delete, documentos libres. Usado por clientes, proveedores y partners
+- **`clientes.js`** (~1024 lines) — CRUD, modal con 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud con toggle "No aplica extranjero", chips UI para marcas, cotizaciones vinculadas con badges Vinculada/Por nombre, popover de folio con cotizaciones vinculadas por empresa
+- **`proveedores.js`** (~1337 lines) — CRUD, modal con 6 tabs (General, Contacto, Fiscales, Bancarios, Servicios, Documentos), doble precio (costoUnitario + precioCliente), bloques de servicios con precio manual, toggle "No aplica extranjero" para completitud, popover de folio con cotizaciones vinculadas
 - **`calendario.js`** (~140 lines) — calendario mensual de eventos por espacio, soporta múltiples fechas MNT via desgloseVenues
 - **`reportes.js`** (~200 lines) — funnel, gráficos mensuales, top clientes, rendimiento
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
@@ -103,7 +104,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`finanzas.js`** (~1100 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo
 
 **CSS:**
-- **`panel/css/panel.css`** (~627 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", responsive
+- **`panel/css/panel.css`** (~672 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), responsive
 - **`panel/css/login.css`** — estilos del login
 - **`panel/css/pipeline.css`** — estilos del kanban
 - **`panel/css/reportes.css`** — estilos de reportes/gráficos
@@ -114,13 +115,15 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 **Infraestructura:**
 - **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
 - **`functions/index.js`** — Cloud Function `createUser` (requiere plan Blaze)
-- **`firestore.rules`** — reglas de seguridad (se publican manualmente en consola)
+- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners)
+- **`storage.rules`** — reglas de seguridad Firebase Storage (auth requerido, 10 MB max, PDF/JPG/PNG, admin-only delete)
 
 ### Deployment
 
 - **Sitio público**: se actualiza por GitHub → cPanel automático. **No tocar cPanel nunca.**
 - **Panel**: `firebase deploy --only hosting --project bunker-panel`
 - **Reglas Firestore**: `firebase deploy --only firestore:rules --project bunker-panel`
+- **Reglas Storage**: `firebase deploy --only storage --project bunker-panel`
 - **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
 - **`firebase.json`** — hosting con `site: "bunker-panel"`, `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
 - **`.firebaserc`** — proyecto default: `bunker-panel`
@@ -147,6 +150,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **PDF Orden de Trabajo**: `BNKPdfWorkOrder.download(cotData, proveedorData, notas)` — PDF corporativo para enviar al proveedor con servicios filtrados por proveedor, accesible desde popover de cotización BNK
 - **Toggle "No aplica extranjero"**: checkbox en modales de cliente/proveedor que excluye campos bancarios extranjeros del cálculo de completitud. Persiste como `noAplicaExtranjero: true` en el documento
 - **Precio especial MNT**: venues Valeria y Lobby permiten override de precio por cotización en el wizard MNT. Se guarda como `precioEspecial` en `desgloseVenues`
+- **Documentos de expediente**: subcollection `{entidad}/{id}/documentos/{docId}` con archivos en Firebase Storage (`documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`). 7 tipos predefinidos (RFC, domicilio, INE, 32-D, carátula, acta, poder) + documentos libres. Versionado: `vigente: true/false`. Indicador separado `N/M requeridos` (no afecta % completitud). Módulo compartido `BNKDocumentos.render(container, {entidad, entityId})` usado por clientes, proveedores y partners
 
 ## Key Conventions
 
