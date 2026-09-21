@@ -23,6 +23,13 @@
   var _unsubscribe = null;
 
   // ── Helpers ──
+  function _esc(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function _isAdmin() {
     return BNK_AUTH.currentRole() === 'admin';
   }
@@ -227,7 +234,7 @@
 
       html += '<div class="doc-card" data-tipo="' + key + '">';
       html += '<div class="doc-card-header">';
-      html += '<span>' + libre.nombre + ' <small style="opacity:.5">(libre)</small></span>';
+      html += '<span>' + _esc(libre.nombre) + ' <small style="opacity:.5">(libre)</small></span>';
       html += '</div>';
 
       if (vigente) {
@@ -260,13 +267,13 @@
     var icon = doc.contentType === 'application/pdf' ? '📄' : '🖼️';
     h += '<div class="doc-archivo">';
     h += '<span class="doc-archivo-icon">' + icon + '</span>';
-    h += '<span class="doc-archivo-name">' + doc.nombreArchivo + '</span>';
+    h += '<span class="doc-archivo-name">' + _esc(doc.nombreArchivo) + '</span>';
     h += '<span class="doc-archivo-size">' + _formatSize(doc.tamano) + '</span>';
     h += '</div>';
-    h += '<div class="doc-meta">Subido: ' + _formatDate(doc.subidoEn) + ' por ' + (doc.subidoPor || '—') + '</div>';
+    h += '<div class="doc-meta">Subido: ' + _formatDate(doc.subidoEn) + ' por ' + _esc(doc.subidoPor || '—') + '</div>';
     h += '<div class="doc-actions">';
-    h += '<button data-action="download" data-url="' + doc.downloadURL + '">DESCARGAR</button>';
-    h += '<button data-action="replace" data-tipo="' + tipo + '" data-nombre="' + tipoNombre + '">REEMPLAZAR</button>';
+    h += '<button data-action="download" data-url="' + _esc(doc.downloadURL) + '">DESCARGAR</button>';
+    h += '<button data-action="replace" data-tipo="' + tipo + '" data-nombre="' + _esc(tipoNombre) + '">REEMPLAZAR</button>';
     if (historial.length > 0) {
       h += '<button data-action="historial" data-tipo="' + tipo + '">HISTORIAL (' + historial.length + ')</button>';
     }
@@ -283,8 +290,8 @@
       h += '<div class="doc-historial" data-hist="' + tipo + '">';
       historial.forEach(function (d) {
         h += '<div class="doc-historial-item">';
-        h += '<span>' + _formatDate(d.subidoEn) + ' — ' + d.nombreArchivo + ' (' + _formatSize(d.tamano) + ')</span>';
-        h += '<button data-action="download" data-url="' + d.downloadURL + '">Descargar</button>';
+        h += '<span>' + _formatDate(d.subidoEn) + ' — ' + _esc(d.nombreArchivo) + ' (' + _formatSize(d.tamano) + ')</span>';
+        h += '<button data-action="download" data-url="' + _esc(d.downloadURL) + '">Descargar</button>';
         h += '</div>';
       });
       h += '</div>';
