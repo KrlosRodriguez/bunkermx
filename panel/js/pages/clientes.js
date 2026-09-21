@@ -485,6 +485,13 @@
       _renderCotizacionesVinculadas([], clienteData ? clienteData.id : '');
     }
 
+    // Render documentos tab
+    var cliDocContainer = document.getElementById('cliTabDocumentos');
+    var cliDocId = document.getElementById('cliId').value;
+    if (cliDocContainer && cliDocId) {
+      BNKDocumentos.render(cliDocContainer, { entidad: 'clientes', entityId: cliDocId });
+    }
+
     // Hacer visible el overlay
     overlay.classList.add('visible');
 
@@ -532,6 +539,7 @@
     var overlay = _getEl('cliOverlay');
     if (!overlay) return;
     overlay.classList.remove('visible');
+    BNKDocumentos.destroy();
 
     // Cleanup focus trap
     if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
