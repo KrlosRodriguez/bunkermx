@@ -423,6 +423,13 @@
       _renderCotizacionesVinculadas([]);
     }
 
+    // Render documentos tab
+    var prvDocContainer = document.getElementById('prvTabDocumentos');
+    var prvDocId = document.getElementById('prvId').value;
+    if (prvDocContainer && prvDocId) {
+      BNKDocumentos.render(prvDocContainer, { entidad: 'proveedores', entityId: prvDocId });
+    }
+
     // Hacer visible el overlay
     overlay.classList.add('visible');
 
@@ -465,6 +472,7 @@
     var overlay = _getEl('prvOverlay');
     if (!overlay) return;
     overlay.classList.remove('visible');
+    BNKDocumentos.destroy();
     _proveedorActivoId = null;
 
     // Cleanup focus trap
