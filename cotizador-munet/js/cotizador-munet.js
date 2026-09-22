@@ -888,6 +888,16 @@
     } catch (pdfErr) {}
     if (pdfBase64) serverPayload.pdfBase64 = pdfBase64;
 
+    // Honeypot check — bots fill hidden fields
+    var honeypot = document.getElementById('v2Website');
+    if (honeypot && honeypot.value) {
+      setTimeout(function () { onEnvioExitoso(btn, folioEl, folio); }, 1500);
+      return;
+    }
+
+    // Source identifier for server-side validation
+    serverPayload.source = 'cotizador-web';
+
     if (!APPS_SCRIPT_URL) {
       setTimeout(function () { onEnvioExitoso(btn, folioEl, folio); }, 1500);
       return;

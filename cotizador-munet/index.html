@@ -62,6 +62,11 @@
           <label class="v2-field-label" for="v2Contacto">NOMBRE DEL CONTACTO</label>
           <input type="text" class="v2-field-input" id="v2Contacto" placeholder="Persona de contacto">
         </div>
+        <!-- Honeypot anti-bot -->
+        <div class="v2-field" style="position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden" aria-hidden="true">
+          <label for="v2Website">WEBSITE</label>
+          <input type="text" id="v2Website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="v2-field-row">
           <div class="v2-field">
             <label class="v2-field-label" for="v2Telefono">TELÉFONO</label>

@@ -150,10 +150,51 @@ function getOrCreateSheet(ss, name, headers, colCount) {
 }
 
 // ── doPost: Recibir cotización ──
+// ── Rate limiting ──
+function _checkRateLimit(identifier) {
+  var cache = CacheService.getScriptCache();
+  var key = 'rate_' + identifier;
+  var count = cache.get(key);
+  if (count && parseInt(count) >= 5) {
+    return false;
+  }
+  cache.put(key, (parseInt(count || 0) + 1).toString(), 600); // 10 min window
+  return true;
+}
+
+function _rateLimitResponse() {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'error', message: 'Demasiadas solicitudes. Intenta en 10 minutos.'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── Field validation ──
+function _validateCotizacionFields(data) {
+  if (!data.folio || typeof data.folio !== 'string') return 'Folio requerido';
+  if (data.folio.length > 50) return 'Folio demasiado largo';
+  if (data.cliente && data.cliente.length > 200) return 'Nombre de cliente demasiado largo';
+  if (data.contacto && data.contacto.length > 200) return 'Nombre de contacto demasiado largo';
+  if (data.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) return 'Email inválido';
+  if (data.telefono && data.telefono.length > 20) return 'Teléfono demasiado largo';
+  if (data.evento && data.evento.length > 300) return 'Nombre de evento demasiado largo';
+  return null;
+}
+
 function doPost(e) {
   if (!_validateApiKey(e)) return _unauthorizedResponse();
   try {
     var data = JSON.parse(e.postData.contents);
+
+    // Honeypot — bots fill hidden fields
+    if (data.website) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'ok', message: 'Cotización registrada'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Rate limiting (by API key or source)
+    var rateLimitId = (e.parameter && e.parameter.key) || 'anonymous';
+    if (!_checkRateLimit(rateLimitId)) return _rateLimitResponse();
 
     // ── Branch: Cotización BNK ──
     if (data.tipoCotizacion === 'BNK') {
@@ -171,6 +212,20 @@ function doPost(e) {
     // ── Servicios Proveedor POST ──
     if (data.tipoOperacion === 'createServicio') return createServicio(data);
     if (data.tipoOperacion === 'updateServicio') return updateServicio(data);
+
+    // ── MNT cotización: source + field validation ──
+    if (data.source !== 'cotizador-web' && !data.tipoOperacion && data.tipoCotizacion !== 'BNK') {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error', message: 'Fuente no reconocida'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var fieldError = _validateCotizacionFields(data);
+    if (fieldError) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error', message: fieldError
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
 
     var ss = SpreadsheetApp.openById(SHEET_ID);
 
@@ -1135,6 +1190,10 @@ function seedCatalogo() {
 function doGet(e) {
   if (!_validateApiKey(e)) return _unauthorizedResponse();
   try {
+    // Rate limiting
+    var rateLimitId = (e.parameter && e.parameter.key) || 'anonymous_get';
+    if (!_checkRateLimit(rateLimitId)) return _rateLimitResponse();
+
     var params = e ? e.parameter : {};
     var action = params.action || 'list';
 
