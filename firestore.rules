@@ -26,17 +26,18 @@ service cloud.firestore {
 
     match /usuarios/{uid} {
       allow read: if isAdmin() || request.auth.uid == uid;
-      allow write: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','email','rol','activo','createdAt']);
+      allow delete: if isAdmin();
     }
 
     match /cotizaciones/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdminOrVentas();
+      allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['folio','cliente','estado','fecha','fechaEvento','conceptos','total','tipo','clienteId','clienteNombre','folioMNT','marca','desgloseVenues','condiciones','subtotal','iva','descuento','notas','createdAt','fechaCreacion','evento','telefono','email','espacios','precioTotal','origen','estilo','empresa','contacto','eventoTipo','numPersonas','horario','montaje','extras','tipoEvento','reqAdicionales','comentarios','updatedAt','desgloseServicios','descuentoPorcentaje','anticipo','anticipoPorcentaje']);
       allow delete: if isAdmin();
 
       match /actividad/{actId} {
         allow read: if isAuthenticated();
-        allow create: if isAdminOrVentas();
+        allow create: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','texto','usuario','fecha','createdAt']);
       }
     }
 
@@ -46,7 +47,7 @@ service cloud.firestore {
 
       match /documentos/{docId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas();
+        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
         allow delete: if isAdmin();
       }
     }
@@ -57,33 +58,36 @@ service cloud.firestore {
 
       match /documentos/{docId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas();
+        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
         allow delete: if isAdmin();
       }
 
       match /servicios/{srvId} {
         allow read: if isAuthenticated();
-        allow create, update, delete: if isAdminOrVentas();
+        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','categoria','costoUnitario','precioCliente','unidad','descripcion','bloqueId','orden']);
+        allow delete: if isAdminOrVentas();
       }
 
       match /bloques/{bloqueId} {
         allow read: if isAuthenticated();
-        allow create, update, delete: if isAdminOrVentas();
+        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','precioManual','usaPrecioManual','orden']);
+        allow delete: if isAdminOrVentas();
       }
     }
 
     match /catalogo/{docId} {
       allow read: if isAuthenticated();
-      allow create, update, delete: if isAdminOrVentas();
+      allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','categoria','precio','precioWeekend','precioMontaje','descripcion','unidad','activo','orden']);
+      allow delete: if isAdminOrVentas();
     }
 
     match /eventos/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'];
+      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','fecha','espacio','cotizacionId','folio','estado','plantilla','descripcion','createdAt']);
 
       match /tareas/{tareaId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'];
+        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','completada','orden','notas']);
       }
     }
 
@@ -99,29 +103,34 @@ service cloud.firestore {
 
     // ── Finanzas: solo admin puede leer y escribir datos bancarios/pagos ──
     match /partners/{docId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','empresa','email','telefono','rfc','curp','clabe','banco','titular','notas','activo','createdAt','comision','especialidad','swift','iban','noAplicaExtranjero','direccion','cp','ciudad','estado','regimen','usoCfdi','formaPago','metodoPago','domicilioFiscal']);
 
       match /documentos/{docId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdmin();
+        allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
         allow delete: if isAdmin();
       }
     }
 
     match /pagos/{docId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','partnerId','partnerNombre','monto','fecha','concepto','comprobante','notas','createdAt','tipo','estado','parcialidad','totalParcialidades','proveedorId','proveedorNombre']);
     }
 
     match /cotizacionPartners/{docId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','partnerId','partnerNombre','createdAt','autoVinculado']);
     }
 
     match /cuentasCobrar/{docId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['folioProyecto','folioFactura','prefactura','lider','cliente','proyecto','concepto','montoSinIva','fechaIngreso','estado','notas','createdAt','updatedAt']);
     }
 
     match /cotizacionProveedores/{docId} {
-      allow read, create, update, delete: if isAdmin();
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','proveedorId','proveedorNombre','createdAt','autoVinculado']);
     }
 
     match /auditLog/{docId} {

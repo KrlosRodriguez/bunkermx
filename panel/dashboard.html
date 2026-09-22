@@ -13,12 +13,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/guard.js"></script>
 <script src="js/firestore.js?v=2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="js/logo-data.js?v=2"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script defer src="js/logo-data.js?v=2"></script>
 </head>
 <body>
 
@@ -37,16 +38,23 @@
 
 <!-- ── TABS ── -->
 <nav class="panel-tabs" role="tablist" aria-label="Navegación del panel">
+  <!-- Ventas -->
   <button class="dash-tab active" data-tab="cotizaciones" role="tab" aria-selected="true" aria-controls="sec-cotizaciones">COTIZACIONES</button>
   <button class="dash-tab" data-tab="cotizar-mnt" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-mnt">COTIZAR MNT</button>
   <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-bnk">COTIZAR BNK</button>
   <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-pipeline">PIPELINE</button>
+  <span class="tab-separator" aria-hidden="true"></span>
+  <!-- Directorio -->
   <button class="dash-tab" data-tab="clientes" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-clientes">CLIENTES</button>
   <button class="dash-tab" data-tab="proveedores" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-proveedores">PROVEEDORES</button>
+  <span class="tab-separator" aria-hidden="true"></span>
+  <!-- Operaciones -->
   <button class="dash-tab" data-tab="calendario" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-calendario">CALENDARIO</button>
   <button class="dash-tab" data-tab="reportes" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-reportes">REPORTES</button>
   <button class="dash-tab" data-tab="catalogo" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-catalogo">CATÁLOGO</button>
   <button class="dash-tab" data-tab="eventos" data-require-role="admin,ventas,produccion" role="tab" aria-selected="false" aria-controls="sec-eventos">EVENTOS</button>
+  <span class="tab-separator" aria-hidden="true"></span>
+  <!-- Admin -->
   <button class="dash-tab" data-tab="finanzas" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-finanzas">FINANZAS</button>
   <button class="dash-tab" data-tab="usuarios" data-require-role="admin" role="tab" aria-selected="false" aria-controls="sec-usuarios">USUARIOS</button>
 </nav>
@@ -173,16 +181,16 @@
       </div>
       <div id="popClienteInfo"></div>
       <div class="cot-popover-chips">
-        <span class="cot-popover-chip" id="popChipPartners" title="Partners vinculados">&#128101; <span id="popPartnersCount">0</span> Partners</span>
-        <span class="cot-popover-chip" id="popChipProveedores" title="Proveedores vinculados">&#128230; <span id="popProveedoresCount">0</span> Proveedores</span>
+        <span class="cot-popover-chip" id="popChipPartners" title="Partners vinculados"><span role="img" aria-label="Partners">&#128101;</span> <span id="popPartnersCount">0</span> Partners</span>
+        <span class="cot-popover-chip" id="popChipProveedores" title="Proveedores vinculados"><span role="img" aria-label="Proveedores">&#128230;</span> <span id="popProveedoresCount">0</span> Proveedores</span>
       </div>
       <div class="cot-popover-actions">
         <button class="panel-btn-primary panel-btn-sm" id="popCrearBnk">+ CREAR BNK</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincPartner">VINCULAR PARTNER</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popVincProveedor">VINCULAR PROVEEDOR</button>
-        <button class="panel-btn-secondary panel-btn-sm" id="popVincCliente">&#128100; CLIENTE</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popVincCliente"><span role="img" aria-label="Cliente">&#128100;</span> CLIENTE</button>
         <button class="panel-btn-secondary panel-btn-sm" id="popPdf">PDF</button>
-        <button class="panel-btn-secondary panel-btn-sm" id="popOrdenTrabajo">&#128203; OT</button>
+        <button class="panel-btn-secondary panel-btn-sm" id="popOrdenTrabajo"><span role="img" aria-label="Orden de trabajo">&#128203;</span> OT</button>
       </div>
     </div>
 
@@ -479,7 +487,7 @@
         <div id="bnkConceptosBody"></div>
         <div class="bnk-add-buttons">
           <button class="bnk-add-row" id="bnkAddRow">+ AGREGAR CONCEPTO</button>
-          <button class="bnk-add-row bnk-add-bloque" id="bnkAddBloque">&#128230; AGREGAR BLOQUE DE PROVEEDOR</button>
+          <button class="bnk-add-row bnk-add-bloque" id="bnkAddBloque"><span role="img" aria-label="Bloque de proveedor">&#128230;</span> AGREGAR BLOQUE DE PROVEEDOR</button>
         </div>
 
         <!-- Bloque picker overlay -->
@@ -1797,7 +1805,7 @@
 </main>
 
 <!-- ── TOAST NOTIFICATIONS ── -->
-<div class="bnk-toast" id="bnkToast"></div>
+<div class="bnk-toast" id="bnkToast" role="alert" aria-live="assertive"></div>
 
 <!-- ── CONFIRM MODAL (replaces window.confirm) ── -->
 <div class="bnk-confirm-overlay" id="bnkConfirmOverlay">
@@ -1828,17 +1836,28 @@
   var tabs = document.querySelectorAll('.dash-tab');
   var sections = document.querySelectorAll('.panel-section');
 
+  function activateTab(target) {
+    tabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+    sections.forEach(function (s) { s.classList.remove('active'); });
+    var tab = document.querySelector('.dash-tab[data-tab="' + target + '"]');
+    if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
+    var sec = document.getElementById('sec-' + target);
+    if (sec) sec.classList.add('active');
+  }
+
   tabs.forEach(function (tab) {
     tab.addEventListener('click', function () {
       var target = this.getAttribute('data-tab');
-      tabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-      sections.forEach(function (s) { s.classList.remove('active'); });
-      this.classList.add('active');
-      this.setAttribute('aria-selected', 'true');
-      var sec = document.getElementById('sec-' + target);
-      if (sec) sec.classList.add('active');
+      activateTab(target);
+      history.replaceState(null, '', '#' + target);
     });
   });
+
+  // Restore tab from URL hash on load
+  var hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('sec-' + hash)) {
+    activateTab(hash);
+  }
 
   // Finanzas sub-tab switching
   document.querySelectorAll('[data-fin-tab]').forEach(function (tab) {
@@ -1872,18 +1891,25 @@
 
   // Toast system
   window.BNKToast = {
-    _show: function (msg, type) {
+    _show: function (msg, type, retryFn) {
       var el = document.getElementById('bnkToast');
       el.textContent = msg;
+      if (retryFn) {
+        var btn = document.createElement('button');
+        btn.textContent = 'Reintentar';
+        btn.className = 'bnk-toast-retry';
+        btn.onclick = function () { el.classList.remove('visible'); retryFn(); };
+        el.appendChild(btn);
+      }
       el.className = 'bnk-toast bnk-toast--' + type + ' visible';
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(function () {
         el.classList.remove('visible');
-      }, 3000);
+      }, retryFn ? 8000 : 3000);
     },
     ok: function (msg) { this._show(msg, 'ok'); },
     warn: function (msg) { this._show(msg, 'warn'); },
-    error: function (msg) { this._show(msg, 'error'); }
+    error: function (msg, retryFn) { this._show(msg, 'error', retryFn); }
   };
 
   // ── Confirm modal (replaces window.confirm) ──
@@ -1991,6 +2017,24 @@
     });
     reset();
   })();
+
+  // ── Offline/Online indicator ──
+  window.addEventListener('offline', function () {
+    BNKToast.warn('Sin conexión a internet');
+    document.body.classList.add('bnk-offline');
+  });
+  window.addEventListener('online', function () {
+    BNKToast.ok('Conexión restaurada');
+    document.body.classList.remove('bnk-offline');
+  });
+
+  // ── Currency format helper ──
+  window.BNKFmt = {
+    money: function (n) {
+      if (n == null || isNaN(n)) return '$0.00';
+      return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
+    }
+  };
 })();
 </script>
 

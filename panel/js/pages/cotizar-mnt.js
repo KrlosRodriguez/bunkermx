@@ -87,6 +87,15 @@
     if (wizard) wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  // Clickable progress steps (breadcrumbs)
+  document.querySelectorAll('.mnt-progress-step').forEach(function (el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function () {
+      var target = parseInt(this.getAttribute('data-step'));
+      if (target <= _currentStep) _goToStep(target);
+    });
+  });
+
   function _validateStep1() {
     var clienteEl = document.getElementById('mntCliente');
     var eventoEl = document.getElementById('mntEvento');

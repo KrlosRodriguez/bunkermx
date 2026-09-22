@@ -14,6 +14,10 @@
   // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
 
+  // App Check (reCAPTCHA v3) — reemplazar con site key real después de configurar en consola Firebase
+  var appCheck = firebase.appCheck();
+  appCheck.activate('RECAPTCHA_SITE_KEY_PENDIENTE', true);
+
   // Exponer instancias para todos los módulos
   window.BNK_FIREBASE = {
     app: firebase.app(),

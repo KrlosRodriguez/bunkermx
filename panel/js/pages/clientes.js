@@ -460,6 +460,14 @@
     // Mostrar primer tab
     _activarTab('cliTabGeneral');
 
+    // Ocultar tab Bancarios para rol ventas (solo admin puede verlo)
+    var user = BNK_AUTH.currentUser();
+    var isBancariosAllowed = user && user.rol === 'admin';
+    var bancTab = document.querySelector('[data-target="cliTabBancarios"]');
+    if (bancTab) bancTab.style.display = isBancariosAllowed ? '' : 'none';
+    var bancContent = document.getElementById('cliTabBancarios');
+    if (bancContent) bancContent.style.display = isBancariosAllowed ? '' : 'none';
+
     // ── Cotizaciones vinculadas ──
     var wrap = _getEl('cliCotizacionesWrap');
     if (!wrap) {

@@ -117,10 +117,7 @@
     return _escapeHTML(url);
   }
 
-  function _formatMXN(val) {
-    var n = parseFloat(val) || 0;
-    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
+  function _formatMXN(n) { return '$' + (Number(n) || 0).toLocaleString('es-MX'); }
 
   function _getEl(id) {
     return document.getElementById(id);
@@ -393,6 +390,14 @@
 
     // Mostrar primer tab
     _activarTab('prvTabGeneral');
+
+    // Ocultar tab Bancarios para rol ventas (solo admin puede verlo)
+    var user = BNK_AUTH.currentUser();
+    var isBancariosAllowed = user && user.rol === 'admin';
+    var bancTab = document.querySelector('[data-target="prvTabBancarios"]');
+    if (bancTab) bancTab.style.display = isBancariosAllowed ? '' : 'none';
+    var bancContent = document.getElementById('prvTabBancarios');
+    if (bancContent) bancContent.style.display = isBancariosAllowed ? '' : 'none';
 
     // ── Cotizaciones vinculadas ──
     var wrap = _getEl('prvCotizacionesWrap');
