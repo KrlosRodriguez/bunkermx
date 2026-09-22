@@ -14,19 +14,20 @@
   // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // App Check (reCAPTCHA v3) — reemplazar RECAPTCHA_SITE_KEY con la key real de la consola Firebase
-  var RECAPTCHA_SITE_KEY = '6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu';
-  if (RECAPTCHA_SITE_KEY) {
-    var appCheck = firebase.appCheck();
-    appCheck.activate(RECAPTCHA_SITE_KEY, true);
-  }
+  // App Check (reCAPTCHA v3)
+  try {
+    if (typeof firebase.appCheck === 'function') {
+      var appCheck = firebase.appCheck();
+      appCheck.activate('6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu', true);
+    }
+  } catch (e) { /* App Check optional — panel works without it */ }
 
   // Exponer instancias para todos los módulos
   window.BNK_FIREBASE = {
     app: firebase.app(),
     auth: firebase.auth(),
     db: firebase.firestore(),
-    storage: firebase.storage()
+    storage: typeof firebase.storage === 'function' ? firebase.storage() : null
   };
 
   // Persistencia de sesión — expira al cerrar pestaña/navegador
