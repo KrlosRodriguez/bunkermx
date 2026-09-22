@@ -14,14 +14,13 @@
   // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // App Check (reCAPTCHA v3) — desactivado hasta configurar CSP con dominios Google/reCAPTCHA
-  // Para activar: agregar a CSP script-src google.com/recaptcha, connect-src firebaseappcheck, frame-src google.com
-  // try {
-  //   if (typeof firebase.appCheck === 'function') {
-  //     var appCheck = firebase.appCheck();
-  //     appCheck.activate('6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu', true);
-  //   }
-  // } catch (e) { /* App Check optional */ }
+  // App Check (reCAPTCHA v3)
+  try {
+    if (typeof firebase.appCheck === 'function') {
+      var appCheck = firebase.appCheck();
+      appCheck.activate('6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu', true);
+    }
+  } catch (e) { /* App Check optional — panel works without it */ }
 
   // Exponer instancias para todos los módulos
   window.BNK_FIREBASE = {
