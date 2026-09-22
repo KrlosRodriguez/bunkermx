@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 BUNKER Creatividad Empresarial corporate website + panel operativo interno.
 
 - **Sitio público**: multi-page, Spanish-language marketing site. Vanilla HTML/CSS/JS, sin build step. Deployed via **cPanel** (actualizado por GitHub). **NUNCA tocar cPanel** — la última vez rompió los correos.
-- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore + Storage. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`. Protegido con Firebase App Check (reCAPTCHA v3).
+- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore + Storage. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`.
 
 ## How to Run
 
@@ -80,7 +80,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`panel/index.html`** — login page
 - **`panel/dashboard.html`** (~2040 lines) — dashboard principal con 12 tabs agrupados visualmente (Ventas | Directorio | Operaciones | Admin)
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
-- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`) + App Check (reCAPTCHA v3)
+- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`), inicialización de servicios con typeof guards para SDKs opcionales (Storage no se carga en login)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
 - **`panel/js/firestore.js`** (~220 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
@@ -160,16 +160,18 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Wizard breadcrumbs**: progress steps en MNT son clickeables para navegar hacia atrás (click en step ≤ current → `_goToStep(n)`)
 - **Scripts defer**: jsPDF y logo-data.js cargan con `defer` para reducir Time-to-Interactive
 
-### Seguridad (post-auditoría 2026-09-21)
+### Seguridad (post-auditoría 2026-09-22)
 
-- **App Check**: Firebase App Check con reCAPTCHA v3 activo en modo Monitor. Key en `firebase-config.js`. Enforce pendiente después de 1 semana de monitoreo
+- **App Check**: Firebase App Check configurado en consola (reCAPTCHA v3, modo Monitor). **Código cliente desactivado** — activar solo al cambiar a Enforce mode. CSP ya tiene dominios necesarios (`google.com`, `firebaseappcheck.googleapis.com`). SDK comentado en `dashboard.html`
+- **CSP**: `Content-Security-Policy` en `firebase.json` con dominios específicos: Firebase, Google reCAPTCHA, App Check. `frame-src` permite `google.com` (para reCAPTCHA cuando se active)
 - **XSS prevention**: `_esc()` (DOM-based textContent→innerHTML) en documentos.js. `_safeUrl()` para href en clientes.js y proveedores.js
 - **Firestore rules**: `hasOnly()` en todas las colecciones con escritura para prevenir field injection. Roles: admin, ventas, produccion, lectura. Datos sensibles (partners, pagos, finanzas) solo admin
 - **Storage rules**: auth requerido, 10 MB max, PDF/JPG/PNG only (regex anclado), admin-only delete con cross-service Firestore lookup
-- **CSP**: `connect-src` con dominios Firebase específicos (sin wildcard) en `firebase.json`
 - **Apps Script**: API key validation, rate limiting (5 req/10 min via CacheService), field validation, honeypot anti-bot, source header validation
 - **Audit log**: CSV exports logueados a colección `auditLog` en Firestore
 - **Password policy**: mínimo 8 caracteres en Firebase Auth
+- **Cache busting**: scripts con `?v=N` query params en HTML para invalidar CDN cache en deploys. Incrementar versión al modificar JS/CSS
+- **Guard pattern**: `guard.js` oculta `document.documentElement` con `visibility:hidden` hasta que auth resuelve. Si `firebase-config.js` falla, la página queda negra — por eso los typeof guards son críticos
 - **Pendiente**: LFPDPPP (aviso de privacidad + registro de tratamiento de datos — requiere abogado)
 
 ## Key Conventions

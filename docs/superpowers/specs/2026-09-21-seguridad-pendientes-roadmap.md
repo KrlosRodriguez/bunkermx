@@ -7,6 +7,8 @@
 
 **Estado:** P1-P5, P7-P16 = COMPLETADOS (2026-09-22) | P6 = PENDIENTE (requiere abogado)
 
+**Nota P1 (App Check):** Código cliente desactivado post-deploy — App Check + CSP bloqueaba reCAPTCHA causando pantalla negra (Firebase SDK se colgaba esperando token). CSP actualizado con dominios Google/reCAPTCHA/AppCheck. Para reactivar: descomentar SDK en `dashboard.html` + código en `firebase-config.js` + deploy. Monitor mode funciona sin tokens cliente.
+
 ---
 
 ## Resumen de lo ya completado (2026-09-21)
