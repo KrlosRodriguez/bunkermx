@@ -14,13 +14,8 @@
   // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // App Check (reCAPTCHA v3)
-  try {
-    if (typeof firebase.appCheck === 'function') {
-      var appCheck = firebase.appCheck();
-      appCheck.activate('6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu', true);
-    }
-  } catch (e) { /* App Check optional — panel works without it */ }
+  // App Check desactivado — Monitor mode no requiere tokens del cliente.
+  // Reactivar solo cuando se cambie a Enforce mode en Firebase Console.
 
   // Exponer instancias para todos los módulos
   window.BNK_FIREBASE = {
