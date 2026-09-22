@@ -195,6 +195,24 @@
     };
   }
 
+  // ── Actividad global (feed de actividad cross-módulo) ──
+  function logActividad(data) {
+    var user = window.BNK_AUTH ? BNK_AUTH.currentUser() : null;
+    var entry = {
+      tipo: data.tipo || '',
+      entidad: data.entidad || '',
+      entidadId: data.entidadId || '',
+      referencia: data.referencia || '',
+      detalle: data.detalle || '',
+      usuario: user ? user.nombre : 'Sistema',
+      usuarioId: user ? user.uid : '',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    return db.collection('actividadGlobal').add(entry).catch(function (err) {
+      console.warn('logActividad error:', err);
+    });
+  }
+
   // ── API pública ──
   window.BNK_DB = {
     cotizaciones:        collectionAPI('cotizaciones'),
@@ -215,6 +233,8 @@
     allServicios:          allServiciosQuery,
     allBloques:            allBloquesQuery,
     actividad:           actividadAPI,
-    tareas:              tareasAPI
+    tareas:              tareasAPI,
+    actividadGlobal:       collectionAPI('actividadGlobal', { orderBy: { field: 'timestamp', dir: 'desc' } }),
+    logActividad:          logActividad
   };
 })();

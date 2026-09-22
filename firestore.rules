@@ -83,17 +83,19 @@ service cloud.firestore {
 
     match /eventos/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','fecha','espacio','cotizacionId','folio','estado','plantilla','descripcion','createdAt']);
+      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','fecha','espacio','cotizacionId','folio','estado','plantilla','descripcion','createdAt','updatedAt','cliente','fechaEvento','folioCotizacion','tareasCompletadas','tareasTotal']);
 
       match /tareas/{tareaId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','completada','orden','notas']);
+        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','descripcion','completada','orden','notas','responsable','responsableNombre','fechaLimite']);
+        allow delete: if isAdmin();
       }
     }
 
     match /plantillas/{docId} {
       allow read: if isAuthenticated();
-      allow create, update, delete: if isAdmin();
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','tareas','createdAt','updatedAt']);
+      allow delete: if isAdmin();
     }
 
     match /config/{docId} {
@@ -136,6 +138,12 @@ service cloud.firestore {
     match /auditLog/{docId} {
       allow create: if isAuthenticated();
       allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /actividadGlobal/{docId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.keys().hasOnly(['tipo','entidad','entidadId','referencia','detalle','usuario','usuarioId','timestamp']);
       allow update, delete: if false;
     }
 
