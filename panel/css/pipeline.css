@@ -50,6 +50,28 @@
 .pipe-timeline-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx);margin-top:2px}
 .pipe-note-box{border-top:1px solid var(--bd);padding-top:16px}
 
+/* Drag & drop */
+.pipeline-card--dragging{opacity:.4;border:1px dashed var(--g)}
+.pipeline-col--drop-target{background:rgba(0,255,65,.04);outline:2px dashed rgba(0,255,65,.3);outline-offset:-2px}
+.pipeline-card--ghost{position:fixed;pointer-events:none;z-index:9999;width:200px;opacity:.85;transform:rotate(2deg);background:var(--card);border:1px solid var(--g);padding:12px}
+
+/* BNK line */
+.pipeline-card-bnk{font-family:'Space Mono',monospace;font-size:9px;color:var(--blu);margin-bottom:4px}
+.pipeline-card-bnk span{color:var(--wh)}
+
+/* Filters */
+.pipe-filters{display:flex;align-items:center;gap:16px;padding:0 30px 12px;flex-wrap:wrap}
+.pipe-filter-group{display:flex;align-items:center;gap:6px}
+.pipe-tipo-btn{background:transparent;border:1px solid var(--bd);color:var(--tx);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;padding:4px 12px;cursor:pointer;transition:all .2s}
+.pipe-tipo-btn:hover{color:var(--wh);border-color:rgba(0,255,65,.3)}
+.pipe-tipo-btn.active{color:var(--g);border-color:var(--g);background:rgba(0,255,65,.06)}
+.pipe-filter-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx)}
+.pipe-date-input{max-width:130px;font-size:11px;padding:4px 8px}
+.pipe-monto-input{max-width:100px;font-size:11px;padding:4px 8px}
+.pipe-pipeline-total{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pipe-total-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--tx)}
+.pipe-total-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--g)}
+
 /* Responsive */
 @media(max-width:900px){
   .pipeline-board{flex-direction:column;padding:0 16px 16px}
@@ -57,4 +79,6 @@
   .pipeline-col-body{max-height:300px}
   .pipe-detail-grid{grid-template-columns:1fr}
   .pipe-detail-estado-wrap{grid-column:auto}
+  .pipe-filters{padding:0 16px 12px}
+  .pipe-pipeline-total{margin-left:0;width:100%}
 }

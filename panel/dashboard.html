@@ -579,6 +579,28 @@
       </div>
     </div>
 
+    <div class="pipe-filters" id="pipeFilters">
+      <div class="pipe-filter-group">
+        <button class="pipe-tipo-btn active" data-pipe-tipo="todos">TODOS</button>
+        <button class="pipe-tipo-btn" data-pipe-tipo="MNT">MNT</button>
+        <button class="pipe-tipo-btn" data-pipe-tipo="BNK">BNK</button>
+      </div>
+      <div class="pipe-filter-group">
+        <label class="pipe-filter-label">DESDE</label>
+        <input type="date" id="pipeFechaDesde" class="bnk-input pipe-date-input">
+        <label class="pipe-filter-label">HASTA</label>
+        <input type="date" id="pipeFechaHasta" class="bnk-input pipe-date-input">
+      </div>
+      <div class="pipe-filter-group">
+        <label class="pipe-filter-label">MIN $</label>
+        <input type="number" id="pipeMontoMin" class="bnk-input pipe-monto-input" min="0" step="1000" placeholder="0">
+      </div>
+      <div class="pipe-pipeline-total">
+        <span class="pipe-total-label">PIPELINE ACTIVO:</span>
+        <span class="pipe-total-value" id="pipeTotalActivo">$0</span>
+      </div>
+    </div>
+
     <div class="pipeline-board" id="pipelineBoard">
       <div class="dash-loading">CARGANDO PIPELINE...</div>
     </div>
@@ -2048,7 +2070,7 @@
 <script src="js/pdf-workorder.js?v=1"></script>
 <script src="js/pages/documentos.js?v=1"></script>
 <script src="js/pages/cotizaciones.js?v=7"></script>
-<script src="js/pages/pipeline.js?v=7"></script>
+<script src="js/pages/pipeline.js?v=8"></script>
 <script src="js/pages/clientes.js?v=7"></script>
 <script src="js/pages/proveedores.js?v=7"></script>
 <script src="js/pages/calendario.js?v=7"></script>
