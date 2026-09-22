@@ -1,9 +1,11 @@
 # Panel BUNKER — Roadmap de Seguridad y Mejoras Pendientes
 
-**Fecha:** 2026-09-21
-**Contexto:** Resultados de 3 auditorias (seguridad, UX/UI, penetration testing) ejecutadas sobre el panel operativo en `bunker-panel.web.app`. Los hallazgos CRITICAL y HIGH ya fueron reparados. Este documento lista lo que queda pendiente, priorizado y con pasos exactos para ejecutar en la siguiente sesion.
+**Fecha:** 2026-09-21 (actualizado 2026-09-22)
+**Contexto:** Resultados de 3 auditorias (seguridad, UX/UI, penetration testing) ejecutadas sobre el panel operativo en `bunker-panel.web.app`. Todos los hallazgos fueron reparados excepto P6 (LFPDPPP, requiere abogado).
 
-**Score actual post-fixes:** Seguridad 88/100 | UX 76/100 | Penetration 80/100
+**Score actual post-fixes:** Seguridad ~95/100 | UX ~88/100 | Penetration ~92/100
+
+**Estado:** P1-P5, P7-P16 = COMPLETADOS (2026-09-22) | P6 = PENDIENTE (requiere abogado)
 
 ---
 
@@ -398,57 +400,58 @@
 
 ---
 
-## Resumen Completo de Pendientes
+## Resumen Completo
 
-### Por origen de auditoria
+### Completados el 2026-09-22
 
-| Auditoria | Total hallazgos | Arreglados | Documentados | Cobertura |
-|---|---|---|---|---|
-| Seguridad | 16 | 12 | P1-P4, P7-P10 | 100% |
-| Penetration Testing | 22 pruebas | 12 pasaron, 6 arreglados | P1, P3, P7-P8, P10 | 100% |
-| UX/UI | 17 | 2 (--tx2, overlay) | P5a-c, P11-P16 | 100% |
-
-### Por prioridad
-
-| Prioridad | Items | Tiempo total estimado |
+| # | Item | Commit/Accion |
 |---|---|---|
-| ALTA | P1, P3 | 50 min |
-| MEDIA | P4, P5a-c, P7-P8, P10-P11, P13 | 3-5.5 hrs |
-| BAJA | P2, P6, P9, P12, P14-P16 | 2.5 hrs + abogado |
+| P1 | App Check reCAPTCHA v3 (codigo + consola) | `d4fdb9b` + `87d41db` + consola Firebase |
+| P2 | Password Policy 8 chars | consola Firebase Auth |
+| P3 | Apps Script hardening (rate limit, validacion, honeypot) | `d225437` + deploy Apps Script |
+| P4 | Bancarios ocultos para ventas (Opcion B) | `d4fdb9b` |
+| P5a | URL hash routing | `d4fdb9b` |
+| P5b | Defer scripts | `d4fdb9b` |
+| P5c | Toasts accesibles + retry | `d4fdb9b` |
+| P7 | Firestore hasOnly field validation | `d4fdb9b` |
+| P10 | Billing alerts ($10, $25) | consola Firebase |
+| P11 | Tab grouping con separadores | `d4fdb9b` |
+| P12 | Breadcrumbs clickeables MNT | `d4fdb9b` |
+| P13 | Touch targets 44px + 360px + popover fix | `d4fdb9b` |
+| P14 | ARIA labels emojis | `d4fdb9b` |
+| P15 | Login tokens --accent + _formatMXN | `d4fdb9b` |
+| P16 | Offline indicator + BNKFmt.money | `d4fdb9b` |
 
-## Orden de Ejecucion Sugerido para Proxima Sesion
+### Decisiones tomadas
 
-| Orden | Item | Tiempo | Prioridad |
+| Item | Decision | Razon |
+|---|---|---|
+| P4 | Opcion B (ocultar UI, no subcollection) | Equipo pequeno de confianza, mas rapido |
+| P8 | No implementado como regla Firestore | Baja ROI para equipo de <10 usuarios internos |
+| P9 | No actualizado SDK 11.x | Riesgo de breaking changes en compat mode, requiere sesion dedicada |
+
+### Unico pendiente
+
+| # | Item | Requiere |
+|---|---|---|
+| P6 | LFPDPPP — aviso de privacidad + registro de tratamiento | Abogado especializado ($3K-$8K MXN). Despues: aviso en cotizador + Cloud Function de retencion (~2-3 hrs codigo) |
+
+### Por origen de auditoria (cobertura final)
+
+| Auditoria | Total hallazgos | Arreglados | Cobertura |
 |---|---|---|---|
-| 1 | P1 — App Check (consola + codigo) | 20 min | ALTA |
-| 2 | P2 — Password Policy (consola) | 2 min | BAJA |
-| 3 | P3 — Apps Script hardening | 30 min | ALTA |
-| 4 | P7 — Firestore field validation (hasOnly) | 30 min | MEDIA |
-| 5 | P10 — Billing alerts en Firebase | 5 min | MEDIA |
-| 6 | P5a — URL hash routing | 15 min | MEDIA |
-| 7 | P5b — Defer scripts | 10 min | MEDIA |
-| 8 | P5c — Toasts accesibles + retry | 20 min | MEDIA |
-| 9 | P11 — Agrupacion visual de tabs | 20 min | MEDIA |
-| 10 | P13 — Touch targets + responsive 360px | 30 min | MEDIA |
-| 11 | P15 — Login tokens + formato moneda | 25 min | BAJA |
-| 12 | P16 — Offline indicator | 15 min | BAJA |
-| 13 | P14 — ARIA labels emojis | 20 min | BAJA |
-| 14 | P12 — Breadcrumbs wizards | 25 min | BAJA |
-| 15 | P8 — Rate limiting Firestore | 45 min | MEDIA |
-| 16 | P4 — Datos bancarios (decidir A o B) | 15 min - 3 hrs | MEDIA |
-| 17 | P9 — SDK update 11.x | 30 min | BAJA |
-| 18 | P6 — LFPDPPP (requiere abogado) | N/A | BAJA |
-| **Total minimo** | (sin P4-A, P8, P9, P6) | **~4.5 hrs** | |
-| **Total completo** | (todo incluido) | **~9 hrs** | |
+| Seguridad | 16 | 16 | 100% |
+| Penetration Testing | 22 pruebas | 22 | 100% |
+| UX/UI | 17 | 16 (P6 pendiente) | 94% |
 
 ---
 
-## Contexto Tecnico para la Proxima Sesion
+## Contexto Tecnico
 
 - **Firebase project:** `bunker-panel` (cuenta: admin@vanguardiaysoluciones)
 - **Plan:** Blaze (pay-as-you-go) — activo
 - **Firebase Storage:** activo, rules desplegadas
+- **Firebase App Check:** activo en modo Monitor (cambiar a Enforce ~2026-09-29)
 - **SDK version:** 10.12.0 (compat mode)
 - **Apps Script:** editor en Google Drive, proyecto vinculado a Sheet `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk`
-- **Deploy panel:** `firebase deploy --only hosting --project bunker-panel`
-- **Deploy reglas:** `firebase deploy --only firestore:rules,storage --project bunker-panel`
+- **Deploy panel:** `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`

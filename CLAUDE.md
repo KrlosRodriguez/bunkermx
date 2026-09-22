@@ -7,12 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 BUNKER Creatividad Empresarial corporate website + panel operativo interno.
 
 - **Sitio público**: multi-page, Spanish-language marketing site. Vanilla HTML/CSS/JS, sin build step. Deployed via **cPanel** (actualizado por GitHub). **NUNCA tocar cPanel** — la última vez rompió los correos.
-- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`.
+- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore + Storage. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`. Protegido con Firebase App Check (reCAPTCHA v3).
 
 ## How to Run
 
 - **Sitio público**: Open `index.html` directly in a browser, or serve it with any static file server (e.g. `python -m http.server 5500` or VS Code Live Server). There is no build, lint, or test command.
-- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican con `firebase deploy --only firestore:rules --project bunker-panel`.
+- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican con `firebase deploy --only firestore:rules --project bunker-panel`. Deploy completo: `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`.
 
 ## Architecture
 
@@ -47,7 +47,7 @@ Multi-page site with shared core (system.css + system.js) and per-page CSS/JS mo
 - **`js/pages/proveedores.js`** (~859 lines) — módulo Proveedores (IIFE `window.BNKProveedores`): CRUD, tabla con filtros, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor.
 - **`cotizador-munet/js/cotizador-munet.js`** (~1244 lines) — lógica del wizard cotizador (pasos, tarifas, PDF neon, envío a Google Sheets).
 - **`cotizador-munet/js/logo-data.js`** — logos en base64 (BUNKER_LOGO_B64) para embeber en PDFs.
-- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + CRUD completo para Clientes, Proveedores, ServiciosProveedor, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo.
+- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + CRUD completo para Clientes, Proveedores, ServiciosProveedor, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo. Incluye rate limiting (CacheService, 5 req/10 min), validación de campos, honeypot anti-bot, y validación de origen (`source: 'cotizador-web'`).
 
 ### Backend (Google Apps Script)
 
@@ -78,9 +78,9 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 **Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~2000 lines) — dashboard principal con 12 tabs
+- **`panel/dashboard.html`** (~2040 lines) — dashboard principal con 12 tabs agrupados visualmente (Ventas | Directorio | Operaciones | Admin)
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
-- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`)
+- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`) + App Check (reCAPTCHA v3)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
 - **`panel/js/firestore.js`** (~220 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
@@ -104,8 +104,8 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`finanzas.js`** (~1100 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo
 
 **CSS:**
-- **`panel/css/panel.css`** (~672 lines) — estilos base: tokens, header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), responsive
-- **`panel/css/login.css`** — estilos del login
+- **`panel/css/panel.css`** (~715 lines) — estilos base: tokens, header, tabs (con `.tab-separator` entre grupos), buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), toast retry (`.bnk-toast-retry`), offline indicator (`.bnk-offline`), touch targets 44px, breakpoint 360px, popover clipping fix, responsive
+- **`panel/css/login.css`** — estilos del login (tokens: `--accent`, `--accent-dim`, `--accent-glow`)
 - **`panel/css/pipeline.css`** — estilos del kanban
 - **`panel/css/reportes.css`** — estilos de reportes/gráficos
 - **`panel/css/eventos.css`** — estilos de eventos/producción
@@ -115,7 +115,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 **Infraestructura:**
 - **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
 - **`functions/index.js`** — Cloud Function `createUser` (requiere plan Blaze)
-- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners)
+- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners, `hasOnly()` field validation en todas las colecciones con escritura)
 - **`storage.rules`** — reglas de seguridad Firebase Storage (auth requerido, 10 MB max, PDF/JPG/PNG, admin-only delete)
 
 ### Deployment
@@ -133,7 +133,7 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 - **Módulos IIFE**: cada `js/pages/*.js` es un IIFE auto-contenido que se inicializa via `BNK_AUTH.onReady()`
 - **Cards `.ctz-card`**: wrapper visual para secciones de formulario (fondo `var(--card)`, borde `var(--bd)`)
-- **Toast**: `BNKToast.ok/warn/error(msg)` para notificaciones
+- **Toast**: `BNKToast.ok/warn/error(msg, retryFn?)` para notificaciones. `role="alert"` + `aria-live="assertive"`. Error acepta segundo parámetro `retryFn` que muestra botón "Reintentar" (8s timeout vs 3s normal)
 - **Modales**: patrón `.bnk-overlay` + `.bnk-modal` con clase `.visible` para toggle
 - **Autocomplete**: patrón `.bnk-autocomplete` + `.bnk-ac-item` con clase `.visible`
 - **Colores de estado**: clases `.estado-{nombre}` y `.tipo-{MNT|BNK}` para badges
@@ -151,6 +151,26 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **Toggle "No aplica extranjero"**: checkbox en modales de cliente/proveedor que excluye campos bancarios extranjeros del cálculo de completitud. Persiste como `noAplicaExtranjero: true` en el documento
 - **Precio especial MNT**: venues Valeria y Lobby permiten override de precio por cotización en el wizard MNT. Se guarda como `precioEspecial` en `desgloseVenues`
 - **Documentos de expediente**: subcollection `{entidad}/{id}/documentos/{docId}` con archivos en Firebase Storage (`documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`). 7 tipos predefinidos (RFC, domicilio, INE, 32-D, carátula, acta, poder) + documentos libres. Versionado: `vigente: true/false`. Indicador separado `N/M requeridos` (no afecta % completitud). Módulo compartido `BNKDocumentos.render(container, {entidad, entityId})` usado por clientes, proveedores y partners
+- **URL hash routing**: tab activo se refleja en `location.hash` (`#cotizaciones`, `#clientes`). Refresh conserva el tab. `activateTab(target)` + `history.replaceState()`
+- **Tab grouping**: tabs separados en 4 grupos con `.tab-separator` (Ventas | Directorio | Operaciones | Admin)
+- **Datos bancarios restringidos**: tab "Bancarios" oculto (`display:none`) para rol `ventas` en modales de clientes y proveedores. Solo visible para `admin`
+- **Offline indicator**: `window.addEventListener('offline/online')` con toast + clase `.bnk-offline` en `body` (banner rojo en header)
+- **Currency helper**: `BNKFmt.money(n)` — `Intl.NumberFormat('es-MX', {style:'currency', currency:'MXN'})`. Cada módulo también tiene `_formatMXN()` local con `toLocaleString('es-MX')`
+- **ARIA emojis**: emojis funcionales (botones, chips) envueltos en `<span role="img" aria-label="...">`. Emojis decorativos (empty states) sin ARIA
+- **Wizard breadcrumbs**: progress steps en MNT son clickeables para navegar hacia atrás (click en step ≤ current → `_goToStep(n)`)
+- **Scripts defer**: jsPDF y logo-data.js cargan con `defer` para reducir Time-to-Interactive
+
+### Seguridad (post-auditoría 2026-09-21)
+
+- **App Check**: Firebase App Check con reCAPTCHA v3 activo en modo Monitor. Key en `firebase-config.js`. Enforce pendiente después de 1 semana de monitoreo
+- **XSS prevention**: `_esc()` (DOM-based textContent→innerHTML) en documentos.js. `_safeUrl()` para href en clientes.js y proveedores.js
+- **Firestore rules**: `hasOnly()` en todas las colecciones con escritura para prevenir field injection. Roles: admin, ventas, produccion, lectura. Datos sensibles (partners, pagos, finanzas) solo admin
+- **Storage rules**: auth requerido, 10 MB max, PDF/JPG/PNG only (regex anclado), admin-only delete con cross-service Firestore lookup
+- **CSP**: `connect-src` con dominios Firebase específicos (sin wildcard) en `firebase.json`
+- **Apps Script**: API key validation, rate limiting (5 req/10 min via CacheService), field validation, honeypot anti-bot, source header validation
+- **Audit log**: CSV exports logueados a colección `auditLog` en Firestore
+- **Password policy**: mínimo 8 caracteres en Firebase Auth
+- **Pendiente**: LFPDPPP (aviso de privacidad + registro de tratamiento de datos — requiere abogado)
 
 ## Key Conventions
 
