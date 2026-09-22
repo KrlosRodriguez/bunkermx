@@ -44,9 +44,22 @@
 .rendimiento-value{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:700;color:var(--g)}
 .rendimiento-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--tx);margin-top:4px}
 
+/* Category bar inline */
+.cat-bar{height:4px;background:var(--g);margin-top:4px;transition:width .6s ease}
+
+/* Top clientes margin column */
+.top-bar-margen{font-family:'Space Mono',monospace;font-size:10px;width:40px;text-align:right;flex-shrink:0}
+
+/* Chart containers */
+#repChartMensual,#repChartVenues{margin-bottom:16px;max-height:200px}
+
+/* CSV button disabled state */
+#repExportCSV:disabled{opacity:.4;cursor:not-allowed}
+
 @media(max-width:900px){
   .reportes-grid{grid-template-columns:1fr;padding:0 16px 16px}
   .funnel-label{width:80px;font-size:10px}
   .funnel-monto{width:80px;font-size:10px}
   .top-bar-name{width:100px;font-size:11px}
+  #repChartMensual,#repChartVenues{max-height:150px}
 }

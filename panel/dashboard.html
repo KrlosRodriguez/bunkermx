@@ -996,13 +996,13 @@
   <!-- REPORTES (Task 11) -->
   <!-- ══════════════════════════════════════════════ -->
   <section id="sec-reportes" class="panel-section" role="tabpanel">
-    <link rel="stylesheet" href="css/reportes.css?v=7">
+    <link rel="stylesheet" href="css/reportes.css?v=8">
     <!-- KPIs -->
     <div class="dash-indicators" style="grid-template-columns:repeat(4,1fr)">
-      <div class="dash-card"><div class="dash-card-label">COTIZACIONES</div><div class="dash-card-value" id="indRepTotal">0</div></div>
-      <div class="dash-card"><div class="dash-card-label">MONTO CERRADO</div><div class="dash-card-value" id="indRepMonto">$0</div></div>
-      <div class="dash-card"><div class="dash-card-label">TASA CONVERSIÓN</div><div class="dash-card-value" id="indRepTasa">0%</div></div>
-      <div class="dash-card"><div class="dash-card-label">TICKET PROMEDIO</div><div class="dash-card-value" id="indRepTicket">$0</div></div>
+      <div class="dash-card"><div class="dash-card-label">REVENUE CERRADO</div><div class="dash-card-value" id="indRepRevenue">$0</div><div class="dash-card-sub">cotizaciones cerradas</div></div>
+      <div class="dash-card"><div class="dash-card-label">COSTO ESTIMADO</div><div class="dash-card-value" id="indRepCosto">$0</div><div class="dash-card-sub">proveedores BNK</div></div>
+      <div class="dash-card"><div class="dash-card-label">MARGEN BRUTO</div><div class="dash-card-value" id="indRepMargen">$0</div><div class="dash-card-sub" id="indRepMargenPct">0%</div></div>
+      <div class="dash-card"><div class="dash-card-label">TASA CONVERSIÓN</div><div class="dash-card-value" id="indRepTasa">0%</div><div class="dash-card-sub">cerradas / total</div></div>
     </div>
 
     <div class="panel-toolbar">
@@ -1016,13 +1016,16 @@
           <option value="todo">Todo</option>
         </select>
       </div>
+      <button class="panel-btn-secondary" id="repExportCSV" disabled title="Exportar datos a CSV">EXPORTAR CSV</button>
       <button class="panel-btn-secondary" id="repRefresh" title="Actualizar datos">&#8635; ACTUALIZAR</button>
     </div>
     <div id="repLoading" class="dash-loading">CARGANDO REPORTES...</div>
     <div class="reportes-grid" id="repGrid" style="display:none">
       <div class="reporte-card" id="repFunnel"></div>
-      <div class="reporte-card" id="repMensual"></div>
+      <div class="reporte-card" id="repMensual"><div class="reporte-card-title">REVENUE &amp; MARGEN MENSUAL</div><canvas id="repChartMensual" height="200"></canvas><div id="repTablaMensual"></div></div>
+      <div class="reporte-card" id="repCategorias"></div>
       <div class="reporte-card" id="repTopClientes"></div>
+      <div class="reporte-card" id="repVenues"><div class="reporte-card-title">UTILIZACIÓN DE VENUES</div><canvas id="repChartVenues" height="200"></canvas><div id="repTablaVenues"></div></div>
       <div class="reporte-card" id="repRendimiento"></div>
     </div>
     <div id="repEmpty" class="dash-empty" style="display:none">
@@ -2049,7 +2052,7 @@
 <script src="js/pages/clientes.js?v=7"></script>
 <script src="js/pages/proveedores.js?v=7"></script>
 <script src="js/pages/calendario.js?v=7"></script>
-<script src="js/pages/reportes.js?v=7"></script>
+<script src="js/pages/reportes.js?v=8"></script>
 <script src="js/pages/catalogo.js?v=7"></script>
 <script src="js/pages/usuarios.js?v=7"></script>
 <script src="js/pages/eventos.js?v=7"></script>
