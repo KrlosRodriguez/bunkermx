@@ -8,7 +8,7 @@
   'use strict';
 
   /* ── CONFIGURACIÓN ── */
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5jN8Qtu937bhp2XRkmkMwJWfDHjc-9AzYQtgNDhxF1euft0xppwqkorgCGvvkr95T/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYchHD07unFwSuiosU60ijlZSSjlXK2ybpcgEALW-2lwlIUHRk7cVzOff4YW-_6krJ/exec';
 
   /* ── DATOS DE ESPACIOS ── */
   var SPACES = [

@@ -15,7 +15,7 @@
   firebase.initializeApp(firebaseConfig);
 
   // App Check (reCAPTCHA v3) — reemplazar RECAPTCHA_SITE_KEY con la key real de la consola Firebase
-  var RECAPTCHA_SITE_KEY = '';
+  var RECAPTCHA_SITE_KEY = '6LcYpsgtAAAAAHyfy3BNO7EIqoQJrfEZcaG4vAWu';
   if (RECAPTCHA_SITE_KEY) {
     var appCheck = firebase.appCheck();
     appCheck.activate(RECAPTCHA_SITE_KEY, true);
