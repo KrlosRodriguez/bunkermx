@@ -114,6 +114,10 @@
     update: function (eventoId, tareaId, data) {
       return db.collection('eventos').doc(eventoId)
         .collection('tareas').doc(tareaId).update(data);
+    },
+    delete: function (eventoId, tareaId) {
+      return db.collection('eventos').doc(eventoId)
+        .collection('tareas').doc(tareaId).delete();
     }
   };
 

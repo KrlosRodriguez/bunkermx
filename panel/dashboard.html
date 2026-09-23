@@ -1290,6 +1290,8 @@
           <option value="En Producción">En Producción</option>
           <option value="Ejecutado">Ejecutados</option>
         </select>
+        <button class="panel-btn-primary" id="evtBtnNuevo" data-require-role="admin,ventas,produccion">+ NUEVO EVENTO</button>
+        <button class="panel-btn-secondary fin-admin-only" id="evtBtnPlantillas">PLANTILLAS</button>
       </div>
     </div>
     <div id="evtLoading" class="dash-loading">CARGANDO EVENTOS...</div>
@@ -1310,6 +1312,44 @@
       </div>
       <div class="bnk-modal-footer">
         <button class="panel-btn-primary" id="evtPlantillaConfirm">CREAR EVENTO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal crear/editar evento -->
+  <div class="bnk-overlay" id="evtFormOverlay">
+    <div class="bnk-modal" style="max-width:550px">
+      <div class="bnk-modal-header">
+        <span class="bnk-modal-title" id="evtFormTitle">NUEVO EVENTO</span>
+        <button class="bnk-modal-close" id="evtFormClose">&times;</button>
+      </div>
+      <div class="bnk-modal-body">
+        <div class="bnk-form-group"><label class="bnk-label">NOMBRE DEL EVENTO</label><input type="text" id="evtFormNombre" class="bnk-input"></div>
+        <div class="bnk-form-group"><label class="bnk-label">CLIENTE</label><input type="text" id="evtFormCliente" class="bnk-input"></div>
+        <div class="bnk-form-group"><label class="bnk-label">FECHA DEL EVENTO</label><input type="date" id="evtFormFecha" class="bnk-input"></div>
+        <div class="bnk-form-group"><label class="bnk-label">FOLIO COTIZACIÓN (OPCIONAL)</label><input type="text" id="evtFormFolio" class="bnk-input" placeholder="Ej: MNT-260915-1234"></div>
+        <input type="hidden" id="evtFormCotId">
+        <div class="bnk-form-group" id="evtFormPlantillaWrap"><label class="bnk-label">PLANTILLA DE TAREAS</label><select id="evtFormPlantilla" class="bnk-input"><option value="">Sin plantilla (evento vacío)</option></select></div>
+        <div class="bnk-form-group" id="evtFormEstadoWrap" style="display:none"><label class="bnk-label">ESTADO</label><select id="evtFormEstado" class="bnk-input"><option value="En Producción">En Producción</option><option value="Ejecutado">Ejecutado</option></select></div>
+        <input type="hidden" id="evtFormId">
+      </div>
+      <div class="bnk-modal-footer">
+        <button class="panel-btn-secondary" id="evtFormCancel">CANCELAR</button>
+        <button class="panel-btn-primary" id="evtFormGuardar">GUARDAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal CRUD plantillas -->
+  <div class="bnk-overlay" id="evtPlantillaCrudOverlay">
+    <div class="bnk-modal" style="max-width:600px">
+      <div class="bnk-modal-header">
+        <span class="bnk-modal-title">GESTIONAR PLANTILLAS</span>
+        <button class="bnk-modal-close" id="evtPlantillaCrudClose">&times;</button>
+      </div>
+      <div class="bnk-modal-body">
+        <div id="evtPlantillaCrudList"></div>
+        <button class="panel-btn-primary" id="evtPlantillaCrudNueva" style="margin-top:12px">+ NUEVA PLANTILLA</button>
       </div>
     </div>
   </div>
@@ -2077,7 +2117,7 @@
 <script src="js/pages/reportes.js?v=8"></script>
 <script src="js/pages/catalogo.js?v=7"></script>
 <script src="js/pages/usuarios.js?v=7"></script>
-<script src="js/pages/eventos.js?v=7"></script>
+<script src="js/pages/eventos.js?v=8"></script>
 <script src="js/pages/cotizar-mnt.js?v=7"></script>
 <script src="js/pages/cotizar-bnk.js?v=7"></script>
 <script src="js/pages/finanzas.js?v=7"></script>
