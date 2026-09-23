@@ -78,12 +78,12 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 
 **Core:**
 - **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~2040 lines) — dashboard principal con 12 tabs agrupados visualmente (Ventas | Directorio | Operaciones | Admin)
+- **`panel/dashboard.html`** (~2230 lines) — dashboard principal con 12 tabs agrupados visualmente (Ventas | Directorio | Operaciones | Admin). Incluye Chart.js 4.4.0 CDN con SRI integrity hash
 - **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
 - **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`), inicialización de servicios con typeof guards para SDKs opcionales (Storage no se carga en login)
 - **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
 - **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~220 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar. Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor)
+- **`panel/js/firestore.js`** (~245 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar, actividadGlobal (ordered by timestamp desc). Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor), `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })` (helper que auto-fills usuario, usuarioId, timestamp)
 - **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
 - **`panel/js/pdf-workorder.js`** (~193 lines) — genera PDF de Orden de Trabajo para proveedores. `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`. Paleta corporativa, secciones: proveedor, evento, servicios requeridos (agrupados por bloque), notas. Fallback matching por proveedorId → nombre → todos los conceptos
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
@@ -92,30 +92,31 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **`cotizaciones.js`** (~1157 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js), popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, orden de trabajo), modales de vinculación partner/proveedor/cliente, modal OT (orden de trabajo PDF por proveedor)
 - **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
 - **`cotizar-bnk.js`** (~1064 lines) — formulario de servicios/producción, filas dinámicas de conceptos con modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete catálogo, bloques de proveedor expandibles, botón "Agregar Bloque" con modal picker, auto-vinculación de proveedores al guardar, plantillas de condiciones comerciales, PDF dual con agrupación por bloque, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
-- **`pipeline.js`** (~205 lines) — tablero kanban de seguimiento con timeline y notas, indicador de folios BNK vinculados en cards MNT
+- **`pipeline.js`** (~530 lines) — tablero kanban con HTML5 drag & drop + touch support para mover cards entre columnas de estado, filtros (tipo MNT/BNK, rango de fechas, monto mínimo), KPI "PIPELINE ACTIVO" con suma de estados activos, confirmación BNKConfirm para Cancelada/Perdida, fix: BNK children usa `_data` (no `filtered`), snapshot listener con cleanup en `beforeunload`, indicador de folios BNK vinculados en cards MNT, logActividad en cambios de estado
 - **`documentos.js`** (~437 lines) — módulo compartido `BNKDocumentos` para subida/gestión de documentos de expediente (RFC, INE, comprobante domicilio, etc.). Upload a Firebase Storage, versionado (vigente + historial), drag & drop, validación PDF/JPG/PNG ≤10 MB, admin-only delete, documentos libres. Usado por clientes, proveedores y partners
 - **`clientes.js`** (~1024 lines) — CRUD, modal con 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud con toggle "No aplica extranjero", chips UI para marcas, cotizaciones vinculadas con badges Vinculada/Por nombre, popover de folio con cotizaciones vinculadas por empresa
 - **`proveedores.js`** (~1337 lines) — CRUD, modal con 6 tabs (General, Contacto, Fiscales, Bancarios, Servicios, Documentos), doble precio (costoUnitario + precioCliente), bloques de servicios con precio manual, toggle "No aplica extranjero" para completitud, popover de folio con cotizaciones vinculadas
-- **`calendario.js`** (~140 lines) — calendario mensual de eventos por espacio, soporta múltiples fechas MNT via desgloseVenues
-- **`reportes.js`** (~200 lines) — funnel, gráficos mensuales, top clientes, rendimiento
+- **`calendario.js`** (~590 lines) — calendario con 3 vistas (mes/semana/día), toggle MES/SEMANA, click en día abre vista detallada, exportación iCal RFC 5545 (.ics), tooltips enriquecidos (folio, cliente, espacio, total), overflow "+N más" cuando >3 eventos/día, filtros por venue, navegación con flechas y HOY, soporta múltiples fechas MNT via desgloseVenues
+- **`reportes.js`** (~393 lines) — reportes avanzados con márgenes reales: 4 KPIs (revenue cerrado, costo estimado, margen bruto, tasa conversión), Chart.js bar chart (revenue vs costo mensual) + doughnut (utilización venues), top clientes con barras de margen, funnel de conversión, filtro por período (mes/trimestre/año/todo), exportación CSV con BOM UTF-8 + audit log via `BNK_DB.logActividad`. Cálculo de costo: `JSON.parse(cot.conceptos)` → suma `costoProveedor * cantidad`
 - **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
-- **`eventos.js`** (~206 lines) — gestión de producción con checklists por plantilla
+- **`eventos.js`** (~712 lines) — gestión completa de producción: CRUD eventos (crear/editar modal con cliente, fechaEvento, folioCotizacion), checklists con tareas inline editables (responsable dropdown desde usuarios, fechaLimite date input), detección de tareas vencidas (`.checklist-item--overdue`), "+ TAREA" inline add, admin × delete con BNKConfirm, HTML5 drag reorder con batch `orden` update, plantillas CRUD (listar, agregar, editar, eliminar con BNKConfirm), `BNKEventos.crearEvento()` API cross-módulo, logActividad (`evento_creado`, `evento_editado`, `tarea_completada`)
 - **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
-- **`finanzas.js`** (~1100 lines) — módulo FINANZAS con 4 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable: folios proyecto/factura, prefactura, líder, cliente, proyecto, concepto, monto s/IVA, fecha ingreso). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo
+- **`actividad.js`** (~177 lines) — feed de actividad global: bell icon widget en header con badge de actividades no vistas (últimas 24h via `localStorage` key `bnk_last_activity_{uid}`), dropdown con últimas 20 entradas de `BNK_DB.actividadGlobal`, navegación por clic (entry → `activateTab()` al tab relevante), tiempo relativo ("ahora", "hace N min", "hace Nh", "ayer", "hace Nd"), mapas TIPO_ICONS y TIPO_TAB para 13 tipos de actividad. Expone `BNKActividad.load()` y `updateBadge()`
+- **`finanzas.js`** (~1290 lines) — módulo FINANZAS con 5 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable con aging buckets 0-30/30-60/60-90/90+ días, columna DÍAS, badge VENCIDO, `.fin-overdue` row styling), P&L (estado de resultados: ingresos desde cuentasCobrar con fechaIngreso, egresos desde pagos con split proveedor/partner, Chart.js stacked bar mensual, tabla mensual, filtro período). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo. logActividad en pagos, partners y cuentas por cobrar
 
 **CSS:**
-- **`panel/css/panel.css`** (~715 lines) — estilos base: tokens, header, tabs (con `.tab-separator` entre grupos), buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), toast retry (`.bnk-toast-retry`), offline indicator (`.bnk-offline`), touch targets 44px, breakpoint 360px, popover clipping fix, responsive
+- **`panel/css/panel.css`** (~732 lines) — estilos base: tokens, header, tabs (con `.tab-separator` entre grupos), buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), toast retry (`.bnk-toast-retry`), offline indicator (`.bnk-offline`), activity feed (`.act-bell-wrap`, `.act-dropdown`, `.act-entry-*`), touch targets 44px, breakpoint 360px, popover clipping fix, responsive
 - **`panel/css/login.css`** — estilos del login (tokens: `--accent`, `--accent-dim`, `--accent-glow`)
-- **`panel/css/pipeline.css`** — estilos del kanban
-- **`panel/css/reportes.css`** — estilos de reportes/gráficos
-- **`panel/css/eventos.css`** — estilos de eventos/producción
-- **`panel/css/calendario.css`** — estilos del calendario mensual
-- **`panel/css/finanzas.css`** — estilos de finanzas: sub-tabs, partner checks, info grid, dispersión rows
+- **`panel/css/pipeline.css`** — estilos del kanban: drag styles (`.pipeline-card--dragging`, `.pipeline-col--drop-target`, `.pipeline-card--ghost`), filter bar (`.pipeline-filters`), touch drag ghost
+- **`panel/css/reportes.css`** — estilos de reportes: `.cat-bar`, `.top-bar-margen`, chart containers con height fijo, CSV disabled state, KPI widgets grid
+- **`panel/css/eventos.css`** — estilos de eventos/producción: overdue task highlight (`.checklist-item--overdue`), inline editing inputs, drag reorder visual feedback, plantilla CRUD styles
+- **`panel/css/calendario.css`** — estilos del calendario: month grid, week grid (`.cal-week-grid`), day view (`.cal-day-view`), tooltip (`.cal-tooltip`), overflow badge (`.cal-overflow`), view toggle buttons
+- **`panel/css/finanzas.css`** — estilos de finanzas: sub-tabs, partner checks, info grid, dispersión rows, P&L chart height, aging bucket KPIs (`.aging-kpis`), overdue rows (`.fin-overdue`), VENCIDO badge
 
 **Infraestructura:**
 - **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
 - **`functions/index.js`** — Cloud Function `createUser` (requiere plan Blaze)
-- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners, `hasOnly()` field validation en todas las colecciones con escritura)
+- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners, `hasOnly()` field validation en todas las colecciones con escritura, `actividadGlobal` append-only collection con read:auth + create:auth + no update/delete, campos expandidos en `eventos` y `tareas`)
 - **`storage.rules`** — reglas de seguridad Firebase Storage (auth requerido, 10 MB max, PDF/JPG/PNG, admin-only delete)
 
 ### Deployment
@@ -159,16 +160,22 @@ App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
 - **ARIA emojis**: emojis funcionales (botones, chips) envueltos en `<span role="img" aria-label="...">`. Emojis decorativos (empty states) sin ARIA
 - **Wizard breadcrumbs**: progress steps en MNT son clickeables para navegar hacia atrás (click en step ≤ current → `_goToStep(n)`)
 - **Scripts defer**: jsPDF y logo-data.js cargan con `defer` para reducir Time-to-Interactive
+- **Chart.js**: CDN 4.4.0 con SRI integrity hash, cargado con `defer`. Usado en reportes (bar + doughnut) y finanzas P&L (stacked bar). Instancias destruidas antes de re-render (`chart.destroy()`)
+- **HTML5 Drag & Drop**: pipeline cards (dragstart/dragover/drop/dragend) + touch support (touchstart/touchmove/touchend con ghost clone, 10px threshold). Eventos usa drag reorder para tareas con batch `orden` update
+- **Activity feed (bell icon)**: `#actBellBtn` en header con badge `#actBellBadge`, dropdown `#actDropdown`. 13 tipos de actividad instrumentados cross-módulo. Badge cuenta actividades no vistas en últimas 24h via `localStorage`
+- **iCal export**: calendario genera archivo `.ics` RFC 5545 (VCALENDAR/VEVENT con UID, DTSTART, SUMMARY) para importar en Google Calendar, Outlook, etc.
+- **Aging buckets**: finanzas CxC muestra 4 buckets (0-30/30-60/60-90/90+ días) con KPIs y highlight de filas vencidas
+- **Confirm dialog**: `BNKConfirm.show(msg, okLabel, cancelLabel)` — modal de confirmación reutilizable usado en pipeline (Cancelada/Perdida), eventos (delete tarea/plantilla)
 
 ### Seguridad (post-auditoría 2026-09-22)
 
 - **App Check**: Firebase App Check configurado en consola (reCAPTCHA v3, modo Monitor). **Código cliente desactivado** — activar solo al cambiar a Enforce mode. CSP ya tiene dominios necesarios (`google.com`, `firebaseappcheck.googleapis.com`). SDK comentado en `dashboard.html`
-- **CSP**: `Content-Security-Policy` en `firebase.json` con dominios específicos: Firebase, Google reCAPTCHA, App Check. `frame-src` permite `google.com` (para reCAPTCHA cuando se active)
-- **XSS prevention**: `_esc()` (DOM-based textContent→innerHTML) en documentos.js. `_safeUrl()` para href en clientes.js y proveedores.js
+- **CSP**: `Content-Security-Policy` en `firebase.json` con dominios específicos: Firebase, Google reCAPTCHA, App Check, `cdn.jsdelivr.net` (Chart.js CDN). `frame-src` permite `google.com` (para reCAPTCHA cuando se active)
+- **XSS prevention**: `_esc()` (DOM-based textContent→innerHTML) en todos los módulos que generan HTML dinámico (reportes, pipeline, eventos, calendario, actividad, finanzas, cotizaciones, clientes, proveedores, documentos). `_safeUrl()` para href en clientes.js y proveedores.js
 - **Firestore rules**: `hasOnly()` en todas las colecciones con escritura para prevenir field injection. Roles: admin, ventas, produccion, lectura. Datos sensibles (partners, pagos, finanzas) solo admin
 - **Storage rules**: auth requerido, 10 MB max, PDF/JPG/PNG only (regex anclado), admin-only delete con cross-service Firestore lookup
 - **Apps Script**: API key validation, rate limiting (5 req/10 min via CacheService), field validation, honeypot anti-bot, source header validation
-- **Audit log**: CSV exports logueados a colección `auditLog` en Firestore
+- **Audit log**: CSV exports logueados a colección `auditLog` en Firestore. Actividad global logueada a `actividadGlobal` via `BNK_DB.logActividad()` desde todos los módulos (cotizaciones, clientes, proveedores, eventos, finanzas)
 - **Password policy**: mínimo 8 caracteres en Firebase Auth
 - **Cache busting**: scripts con `?v=N` query params en HTML para invalidar CDN cache en deploys. Incrementar versión al modificar JS/CSS
 - **Guard pattern**: `guard.js` oculta `document.documentElement` con `visibility:hidden` hasta que auth resuelve. Si `firebase-config.js` falla, la página queda negra — por eso los typeof guards son críticos
