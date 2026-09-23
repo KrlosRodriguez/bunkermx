@@ -820,6 +820,7 @@
       return _autoVincularProveedores(saved.id, folio, parsedConceptos).then(function () {
         doc.save('Cotizacion-BNK-' + folio + '.pdf');
         BNKToast.ok('Cotización ' + folio + ' generada.');
+        BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: firestoreData.folio, detalle: 'Cotización BNK creada para ' + (firestoreData.empresa || '') });
         _limpiar();
         if (window.BNKFinanzas && BNKFinanzas.reload) BNKFinanzas.reload();
       });

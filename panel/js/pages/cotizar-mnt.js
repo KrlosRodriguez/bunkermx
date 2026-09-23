@@ -875,9 +875,10 @@
       creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 
-    BNK_DB.cotizaciones.create(data).then(function () {
+    BNK_DB.cotizaciones.create(data).then(function (saved) {
       result.doc.save('Cotizacion-MNT-' + folio + '.pdf');
       BNKToast.ok('Cotización ' + folio + ' generada.');
+      BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: data.folio, detalle: 'Cotización MNT creada para ' + (data.cliente || data.empresa) });
       _resetWizard();
     }).catch(function (err) {
       BNKToast.error('Error al guardar: ' + err.message);

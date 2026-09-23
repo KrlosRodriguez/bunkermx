@@ -301,8 +301,9 @@
     var btn = document.getElementById('finPagoGuardar');
     btn.disabled = true; btn.classList.add('processing');
 
-    BNK_DB.pagos.create(data).then(function () {
+    BNK_DB.pagos.create(data).then(function (saved) {
       BNKToast.ok('Pago registrado.');
+      BNK_DB.logActividad({ tipo: 'pago_registrado', entidad: 'pago', entidadId: saved.id, referencia: data.cotizacionFolio || '', detalle: 'Pago de ' + _formatMXN(data.monto) + ' a ' + (data.destinatarioNombre || '') });
       _modal('finPagoOverlay', false);
       _loadData();
     }).catch(function (err) {
@@ -573,8 +574,11 @@
     var btn = document.getElementById('finPartnerGuardar');
     btn.disabled = true; btn.classList.add('processing');
 
-    promise.then(function () {
+    promise.then(function (saved) {
       BNKToast.ok(id ? 'Partner actualizado.' : 'Partner creado.');
+      var isNew = !id;
+      var entityId = isNew ? (saved && saved.id ? saved.id : '') : id;
+      BNK_DB.logActividad({ tipo: isNew ? 'partner_creado' : 'partner_editado', entidad: 'partner', entidadId: entityId, referencia: data.folio || data.nombre || '', detalle: (isNew ? 'Partner creado: ' : 'Partner editado: ') + (data.nombre || '') });
       _modal('finPartnerOverlay', false);
       BNKDocumentos.destroy();
       _loadData();
@@ -1075,8 +1079,11 @@
     var btn = document.getElementById('finCobrarGuardar');
     btn.disabled = true; btn.classList.add('processing');
 
-    promise.then(function () {
+    promise.then(function (saved) {
       BNKToast.ok(id ? 'Cuenta actualizada.' : 'Cuenta por cobrar creada.');
+      if (!id) {
+        BNK_DB.logActividad({ tipo: 'cobrar_registrada', entidad: 'cobrar', entidadId: saved && saved.id ? saved.id : '', referencia: data.folioProyecto || '', detalle: 'Cuenta por cobrar: ' + (data.cliente || '') + ' $' + (data.montoSinIva || 0) });
+      }
       _modal('finCobrarOverlay', false);
       _loadData();
     }).catch(function (err) {

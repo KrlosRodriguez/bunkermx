@@ -706,6 +706,23 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
   .dash-card-value{font-size:24px}
 }
 
+/* ── ACTIVITY BELL ── */
+.act-bell-wrap{position:relative}
+.act-bell{background:transparent;border:1px solid var(--bd);color:var(--tx);cursor:pointer;padding:4px 8px;font-size:16px;transition:all .2s;position:relative}
+.act-bell:hover{color:var(--g);border-color:var(--g)}
+.act-bell-badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:var(--wh);font-family:'Space Mono',monospace;font-size:8px;padding:2px 5px;border-radius:50%;min-width:14px;text-align:center;line-height:1.2}
+.act-dropdown{display:none;position:absolute;top:100%;right:0;width:360px;max-height:420px;background:var(--dk);border:1px solid var(--bd);z-index:1000;overflow:hidden;margin-top:8px}
+.act-dropdown.visible{display:block}
+.act-dropdown-header{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--g);padding:12px 16px;border-bottom:1px solid var(--bd)}
+.act-dropdown-list{max-height:360px;overflow-y:auto}
+.act-dropdown-empty{padding:30px;text-align:center;color:var(--tx);font-size:12px}
+.act-entry{display:flex;gap:10px;padding:10px 16px;cursor:pointer;transition:background .2s;border-bottom:1px solid rgba(0,255,65,.04)}
+.act-entry:hover{background:rgba(0,255,65,.03)}
+.act-entry-icon{font-size:14px;flex-shrink:0;margin-top:2px}
+.act-entry-content{flex:1;min-width:0}
+.act-entry-text{font-size:12px;color:var(--wh);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act-entry-meta{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);margin-top:2px}
+
 /* ── POPOVER CLIPPING FIX (P13) ── */
 .cot-popover{max-width:calc(100vw - 24px)}
 @media(max-width:600px){

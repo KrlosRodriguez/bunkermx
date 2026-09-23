@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=7">
+<link rel="stylesheet" href="css/panel.css?v=8">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -34,6 +34,17 @@
   <div class="panel-user">
     <span id="panelUserName"></span>
     <span id="panelUserRole" class="panel-role-badge"></span>
+    <div class="act-bell-wrap">
+      <button id="actBellBtn" class="act-bell" title="Actividad reciente" aria-label="Ver actividad reciente">
+        <span class="act-bell-icon" role="img" aria-label="campana">&#128276;</span>
+        <span class="act-bell-badge" id="actBellBadge" style="display:none">0</span>
+      </button>
+      <div class="act-dropdown" id="actDropdown">
+        <div class="act-dropdown-header">ACTIVIDAD RECIENTE</div>
+        <div class="act-dropdown-list" id="actDropdownList"></div>
+        <div class="act-dropdown-empty" id="actDropdownEmpty" style="display:none">Sin actividad reciente</div>
+      </div>
+    </div>
     <button id="panelLogout" class="panel-logout-btn" title="Cerrar sesión">SALIR</button>
   </div>
 </header>
@@ -2167,16 +2178,17 @@
 <script src="js/pages/documentos.js?v=1"></script>
 <script src="js/pages/cotizaciones.js?v=7"></script>
 <script src="js/pages/pipeline.js?v=8"></script>
-<script src="js/pages/clientes.js?v=7"></script>
-<script src="js/pages/proveedores.js?v=7"></script>
+<script src="js/pages/clientes.js?v=8"></script>
+<script src="js/pages/proveedores.js?v=8"></script>
 <script src="js/pages/calendario.js?v=7"></script>
 <script src="js/pages/reportes.js?v=8"></script>
 <script src="js/pages/catalogo.js?v=7"></script>
 <script src="js/pages/usuarios.js?v=7"></script>
-<script src="js/pages/eventos.js?v=8"></script>
-<script src="js/pages/cotizar-mnt.js?v=7"></script>
-<script src="js/pages/cotizar-bnk.js?v=7"></script>
-<script src="js/pages/finanzas.js?v=8"></script>
+<script src="js/pages/eventos.js?v=9"></script>
+<script src="js/pages/cotizar-mnt.js?v=8"></script>
+<script src="js/pages/cotizar-bnk.js?v=8"></script>
+<script src="js/pages/finanzas.js?v=9"></script>
+<script src="js/pages/actividad.js?v=8"></script>
 
 </body>
 </html>

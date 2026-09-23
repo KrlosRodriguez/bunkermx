@@ -609,9 +609,11 @@
     }
 
     promise
-      .then(function () {
+      .then(function (saved) {
         if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
         BNKToast.ok('Proveedor guardado correctamente.');
+        var entityId = esNuevo ? (saved && saved.id ? saved.id : '') : id;
+        BNK_DB.logActividad({ tipo: esNuevo ? 'proveedor_creado' : 'proveedor_editado', entidad: 'proveedor', entidadId: entityId, referencia: data.razonSocial || data.nombreComercial || '', detalle: (esNuevo ? 'Proveedor creado: ' : 'Proveedor editado: ') + (data.razonSocial || data.nombreComercial || '') });
         cerrarModal();
         load();
       })

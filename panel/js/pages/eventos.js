@@ -391,7 +391,7 @@
         }
         return Promise.all(promises).then(function () { return newEvt; });
       }).then(function (newEvt) {
-        BNK_DB.logActividad({ tipo: 'crear', entidad: 'evento', entidadId: newEvt.id, referencia: nombre, detalle: 'Evento creado' + (plantilla ? ' desde plantilla ' + plantilla.nombre : '') });
+        BNK_DB.logActividad({ tipo: 'evento_creado', entidad: 'evento', entidadId: newEvt.id, referencia: nombre, detalle: 'Evento creado' + (plantilla ? ' desde plantilla ' + plantilla.nombre : '') });
         BNKToast.ok('Evento creado' + (plantilla ? ' con ' + plantilla.tareas.length + ' tareas.' : '.'));
         _closeFormModal();
         load();
@@ -530,6 +530,9 @@
           btn.disabled = true;
 
           BNK_DB.tareas.update(evt.id, tid, { completada: newState }).then(function () {
+            if (newState) {
+              BNK_DB.logActividad({ tipo: 'tarea_completada', entidad: 'evento', entidadId: evt.id, referencia: evt.folioCotizacion || evt.nombre, detalle: 'Tarea completada en ' + evt.nombre });
+            }
             _updateEventoProgress(evt.id);
             BNK_DB.tareas.list(evt.id).then(function (t2) { _renderChecklist(evt, t2); });
           }).catch(function (err) {
@@ -989,7 +992,7 @@
         }
         return evt;
       }).then(function (newEvt) {
-        BNK_DB.logActividad({ tipo: 'crear', entidad: 'evento', entidadId: newEvt.id, referencia: eventoData.nombre, detalle: 'Evento creado desde pipeline con plantilla ' + plantilla.nombre });
+        BNK_DB.logActividad({ tipo: 'evento_creado', entidad: 'evento', entidadId: newEvt.id, referencia: eventoData.nombre, detalle: 'Evento creado desde pipeline con plantilla ' + plantilla.nombre });
         overlay.classList.remove('visible');
         BNKToast.ok('Evento creado con ' + (plantilla.tareas ? plantilla.tareas.length : 0) + ' tareas.');
         load();

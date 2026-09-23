@@ -675,9 +675,11 @@
     }
 
     promise
-      .then(function () {
+      .then(function (saved) {
         if (btnGuardar) { btnGuardar.textContent = 'GUARDAR'; btnGuardar.disabled = false; }
         BNKToast.ok('Cliente guardado correctamente.');
+        var entityId = esNuevo ? (saved && saved.id ? saved.id : '') : id;
+        BNK_DB.logActividad({ tipo: esNuevo ? 'cliente_creado' : 'cliente_editado', entidad: 'cliente', entidadId: entityId, referencia: data.razonSocial || data.empresa || '', detalle: (esNuevo ? 'Cliente creado: ' : 'Cliente editado: ') + (data.razonSocial || data.empresa || '') });
         cerrarModal();
         load();
       })
