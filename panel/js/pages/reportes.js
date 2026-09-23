@@ -136,11 +136,11 @@
     var tasa = total > 0 ? Math.round((cerradas.length / total) * 100) : 0;
 
     var el = document.getElementById('indRepRevenue');
-    if (el) el.textContent = BNKFmt.money(revenue);
+    if (el) el.textContent = _formatMXN(revenue);
     el = document.getElementById('indRepCosto');
-    if (el) el.textContent = BNKFmt.money(costo);
+    if (el) el.textContent = _formatMXN(costo);
     el = document.getElementById('indRepMargen');
-    if (el) el.textContent = BNKFmt.money(margen);
+    if (el) el.textContent = _formatMXN(margen);
     el = document.getElementById('indRepMargenPct');
     if (el) el.textContent = margenPct + '% margen';
     el = document.getElementById('indRepTasa');

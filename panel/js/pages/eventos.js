@@ -347,7 +347,7 @@
           evtLocal.folioCotizacion = folio;
           evtLocal.estado = estado;
         }
-        BNK_DB.logActividad({ tipo: 'editar', entidad: 'evento', entidadId: evtId, referencia: nombre, detalle: 'Evento actualizado' });
+        BNK_DB.logActividad({ tipo: 'evento_editado', entidad: 'evento', entidadId: evtId, referencia: nombre, detalle: 'Evento actualizado' });
         BNKToast.ok('Evento actualizado.');
         _closeFormModal();
         _renderList();
