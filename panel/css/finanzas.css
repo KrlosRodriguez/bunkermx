@@ -101,3 +101,14 @@
 
 /* Fixed autocomplete dropdown in payment modal */
 #finPagoCotAuto,#finAsignarCotAuto{position:fixed;z-index:9999}
+
+/* P&L chart container */
+#finPlChart{max-height:220px}
+
+/* Aging indicators */
+.fin-aging{margin-bottom:0}
+
+/* Overdue row */
+.fin-overdue{background:rgba(255,68,85,.04)}
+.fin-overdue td{color:var(--red)}
+.fin-vencido-badge{background:rgba(255,68,85,.15);color:var(--red);font-family:'Space Mono',monospace;font-size:9px;padding:2px 6px;letter-spacing:1px}
