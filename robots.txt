@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /panel/
+Disallow: /cotizador-munet/dashboard
+Disallow: /capturas/
+
+Sitemap: https://bunkermx.com/sitemap.xml
