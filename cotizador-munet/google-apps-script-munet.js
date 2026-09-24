@@ -185,10 +185,11 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
 
-    // Honeypot — bots fill hidden fields
+    // Honeypot — bots fill hidden fields; silently discard without revealing logic
     if (data.website) {
+      Utilities.sleep(1500 + Math.floor(Math.random() * 2000));
       return ContentService.createTextOutput(JSON.stringify({
-        status: 'ok', message: 'Cotización registrada'
+        status: 'ok', folio: 'MNT-' + Utilities.formatDate(new Date(), 'America/Mexico_City', 'yyMMdd') + '-0000'
       })).setMimeType(ContentService.MimeType.JSON);
     }
 

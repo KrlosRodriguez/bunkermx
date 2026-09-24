@@ -21,7 +21,7 @@
   --text:        #E2D9C5;
   --text-mid:    rgba(226,217,197,.65);
   --text-dim:    rgba(226,217,197,.6);
-  --text-ghost:  rgba(226,217,197,.35);
+  --text-ghost:  rgba(226,217,197,.5);
 
   /* Accents */
   --gold:        #C6A350;
@@ -1043,4 +1043,18 @@ body.cur-hover .cur-r{
   .boot-screen #boot-sequence{display:none}
   .boot-screen #main-content{opacity:1;visibility:visible}
   .rev{opacity:1;transform:none}
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;color:#000}
+  body::before,body::after,.sys-grid-bg,.scan-sweep,
+  .cur,.cur-r,.page-transition,#binary-rain,
+  .sys-nav,.mob-drawer,.skip-link{display:none}
+  .sys-section{padding:1rem 0}
+  a{color:#000;text-decoration:underline}
+  .hud-btn,.hud-btn--primary{border:1px solid #000;color:#000;background:transparent}
+  .rev{opacity:1;transform:none}
+  img{max-width:100%;filter:none}
+  footer{border-top:1px solid #ccc;padding:1rem 0}
 }

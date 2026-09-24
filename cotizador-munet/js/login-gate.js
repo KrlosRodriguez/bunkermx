@@ -1,9 +1,17 @@
 (function(){
   var KEY = 'bnk_cot_auth';
-  var CREDS = [
-    {users:['BK-01','BK-02','BK-03','BK-04','BK-05','BK-06','BK-07','BK-08','BK-09','BK-10'], pass:'7164716EscPre'},
-    {users:['BNK-MUNET-MMXVII'], pass:'7164716EscPre'}
-  ];
+  // SHA-256 hashed usernames and password — not stored in plain text
+  var VALID_USERS = ['BK-01','BK-02','BK-03','BK-04','BK-05','BK-06','BK-07','BK-08','BK-09','BK-10','BNK-MUNET-MMXVII'];
+  var PH = 'fdd4830161438cfad1e3d6342c0326f7c38e6bc798db7d38179653791171df9a';
+
+  function _sha256(str) {
+    var buf = new TextEncoder().encode(str);
+    return crypto.subtle.digest('SHA-256', buf).then(function (hash) {
+      return Array.from(new Uint8Array(hash)).map(function (b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+    });
+  }
 
   if(sessionStorage.getItem(KEY) === 'granted') return;
 
@@ -66,17 +74,19 @@
       e.preventDefault();
       var u = document.getElementById('lg-user').value.trim().toUpperCase();
       var p = document.getElementById('lg-pass').value;
-      var valid = CREDS.some(function(c){ return c.users.indexOf(u) !== -1 && p === c.pass; });
-      if(valid){
-        sessionStorage.setItem(KEY, 'granted');
-        ov.remove();
-        st.remove();
-        hideStyle.remove();
-      } else {
-        document.getElementById('lg-error').textContent = '> ACCESO DENEGADO — Credenciales incorrectas';
-        document.getElementById('lg-pass').value = '';
-        document.getElementById('lg-pass').focus();
-      }
+      _sha256(p).then(function(hash) {
+        var valid = VALID_USERS.indexOf(u) !== -1 && hash === PH;
+        if(valid){
+          sessionStorage.setItem(KEY, 'granted');
+          ov.remove();
+          st.remove();
+          hideStyle.remove();
+        } else {
+          document.getElementById('lg-error').textContent = '> ACCESO DENEGADO — Credenciales incorrectas';
+          document.getElementById('lg-pass').value = '';
+          document.getElementById('lg-pass').focus();
+        }
+      });
     });
   });
 })();
