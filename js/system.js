@@ -12,14 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let mx = 0, my = 0, rx = 0, ry = 0;
     document.addEventListener('mousemove', e => {
       mx = e.clientX; my = e.clientY;
-      cur.style.left = mx + 'px';
-      cur.style.top = my + 'px';
+      cur.style.transform = 'translate(' + mx + 'px,' + my + 'px) translate(-50%,-50%) rotate(45deg)';
     });
     (function loop() {
       rx += (mx - rx) * .1;
       ry += (my - ry) * .1;
-      curR.style.left = rx + 'px';
-      curR.style.top = ry + 'px';
+      curR.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
       requestAnimationFrame(loop);
     })();
 
@@ -515,7 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chars = '01001011010110100101BNK>>//[OK]SYS0x#_INIT.RUN{}()LOAD';
     const fontSize = 13;
     let columns, drops;
-    let rainActive = true;
+    let rainActive = false;
+    let rainRAF = 0;
 
     function resizeRain() {
       const rect = rainCanvas.parentElement.getBoundingClientRect();
@@ -535,14 +534,21 @@ document.addEventListener('DOMContentLoaded', () => {
     resizeRain();
     window.addEventListener('resize', resizeRain);
 
-    // Pause when not visible
+    // Start/stop RAF loop based on visibility
     const rainObs = new IntersectionObserver(entries => {
-      rainActive = entries[0].isIntersecting;
+      const visible = entries[0].isIntersecting;
+      if (visible && !rainActive) {
+        rainActive = true;
+        rainRAF = requestAnimationFrame(drawRain);
+      } else if (!visible && rainActive) {
+        rainActive = false;
+        cancelAnimationFrame(rainRAF);
+      }
     }, { threshold: 0 });
     rainObs.observe(rainCanvas);
 
     function drawRain() {
-      if (!rainActive) { requestAnimationFrame(drawRain); return; }
+      if (!rainActive) return;
 
       ctx.fillStyle = 'rgba(13,13,13,.12)';
       ctx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
@@ -576,9 +582,8 @@ document.addEventListener('DOMContentLoaded', () => {
           d.isTerra = Math.random() < .08;
         }
       }
-      requestAnimationFrame(drawRain);
+      rainRAF = requestAnimationFrame(drawRain);
     }
-    requestAnimationFrame(drawRain);
   }
 
   // ── PARALLAX SUBTLE ──

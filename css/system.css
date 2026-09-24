@@ -184,12 +184,13 @@ body::after{
 /* ── CUSTOM CURSOR ── */
 .cur{
   position:fixed;
+  top:0;left:0;
   width:20px;height:20px;
   border:1.5px solid var(--gold);
   border-radius:0;
   pointer-events:none;
   z-index:10001;
-  transform:translate(-50%,-50%) rotate(45deg);
+  will-change:transform;
   transition:width .15s,height .15s,border-color .15s;
   mix-blend-mode:difference;
 }
@@ -201,12 +202,13 @@ body::after{
 
 .cur-r{
   position:fixed;
+  top:0;left:0;
   width:40px;height:40px;
   border:1px solid rgba(198,163,80,.2);
   border-radius:50%;
   pointer-events:none;
   z-index:10000;
-  transform:translate(-50%,-50%);
+  will-change:transform;
   transition:width .25s var(--ease-out),height .25s var(--ease-out),border-color .25s;
 }
 
