@@ -532,7 +532,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     resizeRain();
-    window.addEventListener('resize', resizeRain);
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resizeRain, 150);
+    });
 
     // Start/stop RAF loop based on visibility
     const rainObs = new IntersectionObserver(entries => {

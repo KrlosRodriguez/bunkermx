@@ -464,6 +464,13 @@
       + '</div>';
   }
 
+  // Sanitize CSV cell to prevent formula injection (=, +, -, @, tab, CR)
+  function _csvSafe(val) {
+    var s = String(val == null ? '' : val);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
   function _exportCSV() {
     var filtered = _getFiltered();
     if (filtered.length === 0) { BNKToast.warn('Sin datos para exportar.'); return; }
@@ -476,12 +483,12 @@
       var costo = _calcCosto(d);
       var total = parseFloat(d.total) || 0;
       rows.push([
-        '"' + (d.folio || '') + '"',
-        d.fuente || 'MNT',
-        '"' + (d.cliente || d.empresa || '').replace(/"/g, '""') + '"',
-        '"' + (d.evento || '').replace(/"/g, '""') + '"',
-        fecha,
-        d.estado || '',
+        _csvSafe(d.folio || ''),
+        _csvSafe(d.fuente || 'MNT'),
+        _csvSafe(d.cliente || d.empresa || ''),
+        _csvSafe(d.evento || ''),
+        _csvSafe(fecha),
+        _csvSafe(d.estado || ''),
         total.toFixed(2),
         costo.toFixed(2),
         (total - costo).toFixed(2)
