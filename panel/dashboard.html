@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=8">
+<link rel="stylesheet" href="css/panel.css?v=9">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -52,7 +52,7 @@
 <!-- ── TABS ── -->
 <nav class="panel-tabs" role="tablist" aria-label="Navegación del panel">
   <!-- Ventas -->
-  <button class="dash-tab active" data-tab="cotizaciones" role="tab" aria-selected="true" aria-controls="sec-cotizaciones">COTIZACIONES</button>
+  <button class="dash-tab active" data-tab="cotizaciones" role="tab" aria-selected="true" aria-controls="sec-cotizaciones">COTIZACIONES<span class="tab-badge" id="tabBadgeCotizaciones" style="display:none"></span></button>
   <button class="dash-tab" data-tab="cotizar-mnt" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-mnt">COTIZAR MNT</button>
   <button class="dash-tab" data-tab="cotizar-bnk" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-cotizar-bnk">COTIZAR BNK</button>
   <button class="dash-tab" data-tab="pipeline" data-require-role="admin,ventas" role="tab" aria-selected="false" aria-controls="sec-pipeline">PIPELINE</button>
@@ -2194,14 +2194,14 @@
 <script src="js/pages/clientes.js?v=8"></script>
 <script src="js/pages/proveedores.js?v=8"></script>
 <script src="js/pages/calendario.js?v=8"></script>
-<script src="js/pages/reportes.js?v=9"></script>
+<script src="js/pages/reportes.js?v=10"></script>
 <script src="js/pages/catalogo.js?v=7"></script>
 <script src="js/pages/usuarios.js?v=7"></script>
 <script src="js/pages/eventos.js?v=9"></script>
 <script src="js/pages/cotizar-mnt.js?v=8"></script>
 <script src="js/pages/cotizar-bnk.js?v=8"></script>
-<script src="js/pages/finanzas.js?v=9"></script>
-<script src="js/pages/actividad.js?v=8"></script>
+<script src="js/pages/finanzas.js?v=10"></script>
+<script src="js/pages/actividad.js?v=9"></script>
 
 </body>
 </html>

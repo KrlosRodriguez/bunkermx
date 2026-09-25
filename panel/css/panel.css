@@ -54,6 +54,8 @@ body{background:var(--bk);color:var(--wh);font-family:'Barlow',sans-serif;font-s
   font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:-1px;white-space:nowrap;flex-shrink:0}
 .dash-tab:hover{color:var(--wh)}
 .dash-tab.active{color:var(--g);border-bottom-color:var(--g)}
+/* Badge inline (no absoluto: .panel-tabs tiene overflow-x y lo recortaría) */
+.tab-badge{display:inline-block;margin-left:6px;background:var(--red);color:var(--wh);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0;line-height:1;padding:3px 5px;border-radius:8px;min-width:16px;text-align:center;vertical-align:middle}
 
 /* ── SECTIONS ── */
 .panel-main{position:relative;min-height:calc(100vh - 110px)}

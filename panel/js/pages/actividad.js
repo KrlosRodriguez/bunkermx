@@ -49,9 +49,54 @@
       _entries = docs.slice(0, 50);
       _renderDropdown();
       _updateBadge();
+      _updateCotBadge();
     }).catch(function () {
       _entries = [];
     });
+  }
+
+  // ── Badge de cotizaciones nuevas en el tab COTIZACIONES ──
+  function _cotKey() {
+    var user = BNK_AUTH.currentUser();
+    return 'bnk_last_cotizaciones_' + (user ? user.uid : 'anon');
+  }
+
+  function _markCotizacionesVistas() {
+    try { localStorage.setItem(_cotKey(), String(Date.now())); } catch (e) {}
+    var badge = document.getElementById('tabBadgeCotizaciones');
+    if (badge) badge.style.display = 'none';
+  }
+
+  function _updateCotBadge() {
+    var badge = document.getElementById('tabBadgeCotizaciones');
+    if (!badge) return;
+
+    // Si el tab está abierto, lo que llegue ya se está viendo
+    var tab = document.querySelector('.dash-tab[data-tab="cotizaciones"]');
+    if (tab && tab.classList.contains('active')) { _markCotizacionesVistas(); return; }
+
+    var lastSeen = 0;
+    try { lastSeen = parseInt(localStorage.getItem(_cotKey())) || 0; } catch (e) {}
+    // Primera vez: no marcar todo el historial como nuevo
+    if (!lastSeen) { _markCotizacionesVistas(); return; }
+
+    var user = BNK_AUTH.currentUser();
+    var myUid = user ? user.uid : '';
+    var count = 0;
+    _entries.forEach(function (e) {
+      if (e.tipo !== 'cotizacion_creada' || !e.timestamp) return;
+      if (myUid && e.usuarioId === myUid) return; // las propias no son novedad
+      var time = e.timestamp.toDate ? e.timestamp.toDate().getTime() : new Date(e.timestamp).getTime();
+      if (time > lastSeen) count++;
+    });
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.title = count === 1 ? '1 cotización nueva' : count + ' cotizaciones nuevas';
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
   }
 
   function _updateBadge() {
@@ -122,6 +167,9 @@
   }
 
   function _bindEvents() {
+    var cotTab = document.querySelector('.dash-tab[data-tab="cotizaciones"]');
+    if (cotTab) cotTab.addEventListener('click', _markCotizacionesVistas);
+
     var btn = document.getElementById('actBellBtn');
     var dropdown = document.getElementById('actDropdown');
     if (!btn || !dropdown) return;

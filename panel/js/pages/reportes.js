@@ -227,6 +227,11 @@
     var chartMeses = meses.slice().reverse();
     var revenues = chartMeses.map(function (m) { return Math.round(mesesMap[m].revenue); });
     var costos = chartMeses.map(function (m) { return Math.round(mesesMap[m].costo); });
+    // Margen % por mes (null si no hubo revenue, para no pintar un 0 engañoso)
+    var margenes = chartMeses.map(function (m) {
+      var r = mesesMap[m];
+      return r.revenue > 0 ? Math.round(((r.revenue - r.costo) / r.revenue) * 100) : null;
+    });
 
     var canvas = document.getElementById('repChartMensual');
     if (!canvas) return;
@@ -235,6 +240,7 @@
     var styles = getComputedStyle(document.documentElement);
     var colorG = styles.getPropertyValue('--g').trim() || '#00FF41';
     var colorRed = styles.getPropertyValue('--red').trim() || '#FF4455';
+    var colorYlw = styles.getPropertyValue('--ylw').trim() || '#F0C040';
     var colorTx = styles.getPropertyValue('--tx').trim() || '#777';
 
     _chartMensual = new Chart(canvas, {
@@ -242,17 +248,25 @@
       data: {
         labels: chartMeses.map(function (m) { return m.substring(5); }),
         datasets: [
-          { label: 'Revenue', data: revenues, backgroundColor: colorG + '66', borderColor: colorG, borderWidth: 1 },
-          { label: 'Costo', data: costos, backgroundColor: colorRed + '66', borderColor: colorRed, borderWidth: 1 }
+          { type: 'line', label: 'Margen %', data: margenes, yAxisID: 'yPct', borderColor: colorYlw, backgroundColor: colorYlw, borderWidth: 2, pointRadius: 3, tension: 0.3, spanGaps: true, order: 0 },
+          { label: 'Revenue', data: revenues, backgroundColor: colorG + '66', borderColor: colorG, borderWidth: 1, order: 1 },
+          { label: 'Costo', data: costos, backgroundColor: colorRed + '66', borderColor: colorRed, borderWidth: 1, order: 1 }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: colorTx, font: { family: 'Space Mono', size: 10 } } } },
+        plugins: {
+          legend: { labels: { color: colorTx, font: { family: 'Space Mono', size: 10 } } },
+          tooltip: { callbacks: { label: function (ctx) {
+            if (ctx.dataset.yAxisID === 'yPct') return 'Margen: ' + ctx.parsed.y + '%';
+            return ctx.dataset.label + ': ' + _formatMXN(ctx.parsed.y);
+          } } }
+        },
         scales: {
           x: { ticks: { color: colorTx, font: { family: 'Space Mono', size: 9 } }, grid: { color: 'rgba(255,255,255,.03)' } },
-          y: { ticks: { color: colorTx, font: { family: 'Space Mono', size: 9 }, callback: function (v) { return '$' + (v / 1000).toFixed(0) + 'k'; } }, grid: { color: 'rgba(255,255,255,.06)' } }
+          y: { ticks: { color: colorTx, font: { family: 'Space Mono', size: 9 }, callback: function (v) { return '$' + (v / 1000).toFixed(0) + 'k'; } }, grid: { color: 'rgba(255,255,255,.06)' } },
+          yPct: { position: 'right', suggestedMin: 0, suggestedMax: 100, ticks: { color: colorYlw, font: { family: 'Space Mono', size: 9 }, callback: function (v) { return v + '%'; } }, grid: { drawOnChartArea: false } }
         }
       }
     });
