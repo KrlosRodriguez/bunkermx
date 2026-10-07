@@ -1,201 +1,241 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para Claude Code (claude.ai/code) al trabajar en este repositorio.
 
 ## Project Overview
 
-BUNKER Creatividad Empresarial corporate website + panel operativo interno.
+BUNKER Creatividad Empresarial: sitio público corporativo + panel operativo interno. Tres subsistemas con despliegues independientes:
 
-- **Sitio público**: multi-page, Spanish-language marketing site. Vanilla HTML/CSS/JS, sin build step. Deployed via **cPanel** (actualizado por GitHub). **NUNCA tocar cPanel** — la última vez rompió los correos.
-- **Panel operativo** (`/panel/`): app interna con Firebase Auth + Firestore + Storage. Deployed via **Firebase Hosting** como app independiente en `bunker-panel.web.app`. Solo sirve archivos de `/panel/`.
+| Subsistema | Ruta | Stack | Deploy |
+|---|---|---|---|
+| **Sitio público** | raíz (`index.html`, `esencia.html`, …) | HTML/CSS/JS vanilla, sin build | GitHub → **cPanel** (`.cpanel.yml`) |
+| **Panel operativo** | `/panel/` | Firebase Auth + Firestore + Storage | **Firebase Hosting** (`bunker-panel.web.app`) |
+| **Cotizador MNT legacy** | `/cotizador-munet/` | HTML/JS + Google Apps Script + Sheets | GitHub → cPanel (junto al sitio público) |
+
+**NUNCA tocar cPanel desde el panel de control** — la última vez rompió los correos. El despliegue del sitio público es automático vía Git.
 
 ## How to Run
 
-- **Sitio público**: Open `index.html` directly in a browser, or serve it with any static file server (e.g. `python -m http.server 5500` or VS Code Live Server). There is no build, lint, or test command.
-- **Panel**: `firebase deploy --only hosting --project bunker-panel` (solo despliega `/panel/`). Las reglas de Firestore se publican con `firebase deploy --only firestore:rules --project bunker-panel`. Deploy completo: `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`.
+- **Sitio público**: `python -m http.server 5500` o Live Server desde la raíz. Ojo: el sitio usa **URLs limpias** (`/esencia`, no `/esencia.html`) resueltas por `.htaccess` en Apache; `python -m http.server` no las resuelve, así que en local hay que abrir `esencia.html` directamente o usar un server con rewrite.
+- **Panel**: `firebase deploy --only hosting --project bunker-panel`. No hay servidor local configurado; se prueba en producción o con `firebase emulators`.
+- **Reglas**: `firebase deploy --only firestore:rules --project bunker-panel` / `--only storage`.
+- **Deploy completo panel**: `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`.
+- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (plan Blaze, Node 18).
+- No hay build, lint ni tests en ningún subsistema.
 
-## Architecture
+---
 
-Multi-page site with shared core (system.css + system.js) and per-page CSS/JS modules.
+## Sitio público (raíz)
 
-### Pages (HTML)
+Multi-page en español, core compartido (`system.css` + `system.js`) + módulos por página.
 
-- **`index.html`** (~408 lines) — landing/dashboard: Hero, Ticker, Números, Contacto, Footer.
-- **`esencia.html`** — Manifiesto, filosofía y propósito.
-- **`servicios.html`** — Producción, giras, venues, audiovisual, streaming.
-- **`talento.html`** — Directorio del equipo BUNKER.
-- **`proyectos.html`** — Archivo de trayectoria y proyectos.
-- **`munet.html`** — Subsistema MUNET (espacios, Pasatono).
-- **`hub.html`** — Hub Empresarial BUNKER.
-- **`cotizador-munet/index.html`** — Cotizador wizard para renta de espacios MUNET (folios MNT).
-- **`cotizador-munet/dashboard.html`** (~1950 lines) — Panel de Ventas: dashboard combinado MNT+BNK con tabla, indicadores, filtros por tipo/estado/fecha, modal para crear cotizaciones de servicios BNK, generación de PDF estilo dorado, autocompletado de clientes. Incluye tabs de navegación (Cotizaciones | Clientes | Proveedores) con secciones, modales de detalle/edición, y vinculación con cotizaciones BNK.
+### Páginas
+
+`index.html` (457) landing/dashboard · `esencia.html` manifiesto · `servicios.html` producción/giras/venues/audiovisual/streaming · `talento.html` directorio del equipo · `proyectos.html` trayectoria · `munet.html` subsistema MUNET (enlaza al cotizador) · `hub.html` Hub Empresarial.
+
+Todas las páginas llevan: `<title>` + `meta description`, OG/Twitter Cards completos, `link rel=canonical` con dominio `https://bunkermx.com`, JSON-LD (`Organization` en index, `BreadcrumbList` en interiores), favicon/apple-touch-icon, `theme-color`, preconnect a Google Fonts. Enlaces internos siempre con URL limpia (`/servicios`).
+
+`robots.txt` (bloquea `/panel/`, `/cotizador-munet/dashboard`, `/capturas/`) y `sitemap.xml` (7 URLs limpias) viven en la raíz y deben actualizarse al agregar páginas.
 
 ### CSS
 
-- **`css/system.css`** (~937 lines) — estilos compartidos: layout, nav, cursor, grid, tipografía, animaciones, responsive. Design tokens en `:root`.
-- **`css/styles.css`** (~776 lines) — estilos legacy del index original (se conserva).
-- **`css/pages/*.css`** — estilos específicos por página: dashboard, esencia, hub, munet, proyectos, servicios, talento.
-- **`cotizador-munet/css/cotizador-munet.css`** (~659 lines) — estilos del cotizador.
+- **`css/system.css`** (1060) — tokens en `:root`, layout, nav, cursor, grid, tipografía, animaciones, `@media print`, responsive.
+- **`css/pages/servicios.css`** (406) — **base compartida de todas las páginas interiores** (esencia, talento, proyectos, munet, hub la cargan antes de su propio CSS). No es solo de servicios.
+- **`css/pages/dashboard.css`** (983) — exclusivo de `index.html`.
+- **`css/pages/{esencia,talento,proyectos,munet,hub}.css`** — overrides por página.
+
+Tokens principales (`:root` en system.css): `--bg/--bg-surface/--bg-elevated`, `--text/--text-mid/--text-dim`, `--gold` `#C6A350`, `--terra` `#9C4A44`, `--munet` `#2E8B6E`, `--glow-*`, `--border-*`.
 
 ### JavaScript
 
-- **`js/system.js`** (~537 lines) — JS core compartido: cursor, nav, typing, counters, glitch, reveal, page transitions.
-- **`js/main.js`** (~88 lines) — JS legacy del index original (se conserva).
-- **`js/login-gate.js`** (~82 lines) — gate de autenticación.
-- **`js/pages/*.js`** — lógica por página: dashboard.js, esencia.js, proyectos.js, clientes.js, proveedores.js.
-- **`js/pages/clientes.js`** (~507 lines) — módulo Clientes (IIFE `window.BNKClientes`): CRUD, tabla con filtros, modal con 4 tabs (General, Contacto, Facturación, Bancarios), % completitud, cotizaciones vinculadas.
-- **`js/pages/proveedores.js`** (~859 lines) — módulo Proveedores (IIFE `window.BNKProveedores`): CRUD, tabla con filtros, modal con 5 tabs (General, Contacto, Fiscales, Bancarios, Servicios), catálogo de servicios/costos por proveedor.
-- **`cotizador-munet/js/cotizador-munet.js`** (~1244 lines) — lógica del wizard cotizador (pasos, tarifas, PDF neon, envío a Google Sheets).
-- **`cotizador-munet/js/logo-data.js`** — logos en base64 (BUNKER_LOGO_B64) para embeber en PDFs.
-- **`cotizador-munet/google-apps-script-munet.js`** — código Apps Script: backend del cotizador MNT + CRUD completo para Clientes, Proveedores, ServiciosProveedor, CatalogoPrecio, CotizacionesBNK, listAll, seedCatalogo. Incluye rate limiting (CacheService, 5 req/10 min), validación de campos, honeypot anti-bot, y validación de origen (`source: 'cotizador-web'`).
+- **`js/system.js`** (609, cargado con `?v=2` en todas las páginas) — cursor (transform GPU-composited), nav + drawer móvil con focus trap, scroll spy, reveal `IntersectionObserver`, typing, counters, boot sequence, page transitions, paneles expand/collapse por hover.
+- **`js/pages/dashboard.js`** (115) — solo index: triángulo "equilibrio imposible" + formulario de contacto con validación inline.
+- **`js/pages/esencia.js`** (23), **`js/pages/proyectos.js`** (152).
+- **`js/pages/panel-ui.js`** (493) + **`css/pages/panel-ui.css`** (409) — `BNKToast`, `BNKConfirm`, `BNKSort`, `BNKPagination`, `BNKExport`. **Pertenecen al cotizador legacy** (`cotizador-munet/dashboard.html`), no al sitio público ni al panel Firebase (el panel tiene su propio port en `panel/js/table-helpers.js`).
 
-### Backend (Google Apps Script)
+---
 
-El backend vive en Google Apps Script y usa Google Sheets como base de datos y Google Drive para almacenar PDFs.
+## Cotizador MNT legacy (`/cotizador-munet/`)
 
-- **Sheet ID**: `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk`
-- **Drive Folder ID**: `17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn`
-- **Hojas en el Sheet**: `Cotizaciones` (MNT), `CotizacionesBNK` (BNK), `Clientes` (42 cols), `CatalogoPrecio`, `Proveedores` (47 cols), `ServiciosProveedor` (7 cols)
-- **Folios**: `MNT-AAMMDD-XXXX` para venues, `BNK-AAMMDD-XXXX` para servicios/producción, `CLI-XXXX` para clientes, `PRV-XXXX` para proveedores, `SRV-XXXX` para servicios
-- **Endpoints GET**: `list`, `listAll`, `listClientes`, `listCatalogo`, `updateStatus`, `updateStatusBNK`, `seedCatalogo`, `listProveedores`, `deleteCliente`, `deleteProveedor`, `listServicios`, `deleteServicio`
-- **Endpoints POST**: cotización MNT (wizard), cotización BNK (`tipoCotizacion: 'BNK'`), CRUD Clientes (`tipoOperacion: 'createCliente'/'updateCliente'`), CRUD Proveedores (`tipoOperacion: 'createProveedor'/'updateProveedor'`), CRUD Servicios (`tipoOperacion: 'createServicio'/'updateServicio'`)
-- **Email**: usa `MailApp.sendEmail` con `name: SENDER_NAME` (no GmailApp, no requiere alias)
-- **Deploy**: copiar `google-apps-script-munet.js` al editor de Apps Script → nueva implementación → actualizar URL si cambia
+Sistema anterior al panel Firebase, aún desplegado y en uso. Backend Google Apps Script + Sheets.
+
+- **`index.html`** (233) + **`js/cotizador-munet.js`** (1259) + **`css/cotizador-munet.css`** (660) — wizard público de renta de espacios MUNET (pasos, tarifas, PDF neon, envío a Apps Script). Enlazado desde `munet.html`.
+- **`dashboard.html`** (2306) — Panel de Ventas legacy sobre Sheets (tabla MNT+BNK, clientes, proveedores, PDF dorado). Carga `../js/pages/panel-ui.js`, `../js/pages/clientes.js` (715), `../js/pages/proveedores.js` (1106). **Superseded por `/panel/`**; se conserva por compatibilidad.
+- **`js/login-gate.js`** (92) — gate con credenciales hasheadas SHA-256 en `sessionStorage`.
+- **`js/logo-data.js`** — `BUNKER_LOGO_B64` para embeber en PDFs.
+
+### Backend Google Apps Script
+
+`cotizador-munet/google-apps-script-munet.js` (1354). Sheets como DB, Drive para PDFs. Credenciales vía `PropertiesService` con fallback hardcodeado.
+
+- **Sheet ID**: `1MrynkbdpsQOq2IuzalyiRfVesUhWcs_020BDl8S_1vk` · **Drive Folder**: `17Hm7m95pxBQFnAD9oO9Mfv0A-136zTYn`
+- **Hojas**: `Cotizaciones` (MNT), `CotizacionesBNK`, `Clientes` (42 cols), `CatalogoPrecio`, `Proveedores` (47 cols), `ServiciosProveedor` (7 cols)
+- **Folios**: `MNT-AAMMDD-XXXX`, `BNK-AAMMDD-XXXX`, `CLI-XXXX`, `PRV-XXXX`, `SRV-XXXX`
+- **GET** (`?action=`): `list` (default), `listBNK`, `listAll`, `listClientes`, `listCatalogo`, `saveCatalogo`, `seedCatalogo`, `updateStatus`, `updateStatusBNK`, `listProveedores`, `createCliente`, `deleteCliente`, `deleteProveedor`, `listServicios`, `deleteServicio`
+- **POST**: cotización MNT (wizard), cotización BNK (`tipoCotizacion: 'BNK'`), `tipoOperacion: 'create|update' + Cliente|Proveedor|Servicio`
+- **Doble escritura a Firestore** (`writeToFirestore`, marcada "transitorio"): cada cotización/cliente/proveedor guardado en Sheets se replica vía REST a `bunker-panel` con `ScriptApp.getOAuthToken()`. Es lo que mantiene sincronizados el cotizador legacy y el panel.
+- **Seguridad**: validación de API key, rate limiting (CacheService, 5 req/10 min), validación de campos, honeypot anti-bot, validación de origen (`source: 'cotizador-web'`)
+- **Email**: `MailApp.sendEmail` con `name: SENDER_NAME` (no GmailApp, no requiere alias)
+- **Deploy**: copiar el archivo al editor de Apps Script → nueva implementación → actualizar URL en el cliente si cambia
+- **`scripts/migrate-sheets-to-firestore.js`** (65) — script one-shot para pegar en Apps Script; migración inicial Sheets → Firestore. Ya ejecutado.
+
+---
+
+## Panel operativo (`/panel/`)
+
+App interna Firebase. SDK compat **10.12.0** (app, auth, firestore, storage, functions). Desplegada en `bunker-panel.web.app`.
+
+### Core
+
+- **`panel/index.html`** (37) — login · **`panel/404.html`** (107) — error dinámico 401/403/404/500 · **`panel/dashboard.html`** (2207) — app completa, 12 tabs
+- **`panel/js/firebase-config.js`** (30) — config `bunker-panel`, `BNK_FIREBASE.{app,auth,db,storage}`, persistencia `SESSION`. Storage con typeof guard (no se carga en login). App Check comentado.
+- **`panel/js/auth.js`** (116) — `BNK_AUTH.currentUser()` es **función**, no propiedad. También `currentRole()`, `logout()`, `onReady(cb)`, `canEdit(section)`, `canView(section)`. Verifica `usuarios/{uid}.activo`.
+- **`panel/js/guard.js`** (30) — oculta `document.documentElement` con `visibility:hidden` hasta resolver auth, inyecta nombre/rol en header, oculta tabs según `data-require-role`. Si `firebase-config.js` falla, la página queda negra — de ahí la criticidad de los typeof guards.
+- **`panel/js/firestore.js`** (244) — `BNK_DB`, factory `collectionAPI(name, {orderBy})` con `list/get/create/update/delete/onSnapshot`.
+- **`panel/js/pdf-rebuild.js`** (417) — `BNKPdfRebuild.download(cotData, style)`: regenera PDFs MNT/BNK desde Firestore.
+- **`panel/js/pdf-workorder.js`** (205) — `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`: Orden de Trabajo para proveedor.
+- **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64`.
+
+#### Colecciones en `BNK_DB`
+
+`cotizaciones` (sin orderBy server-side, se ordena client-side), `clientes`, `proveedores`, `catalogo`, `usuarios`, `eventos`, `plantillas`, `config`, `partners`, `pagos`, `cotizacionPartners`, `cotizacionProveedores`, `cuentasCobrar`, `actividadGlobal` (orderBy `timestamp` desc, `limit: 100`). `collectionAPI` acepta `{ orderBy, limit }`; `limit` aplica a `list()` y `onSnapshot()`.
+
+Subcollection APIs: `BNK_DB.actividad` (`cotizaciones/{id}/actividad`), `BNK_DB.tareas` (`eventos/{id}/tareas`), `BNK_DB.bloques(proveedorId)` (`proveedores/{id}/bloques`), `BNK_DB.documentos(entidad, entityId)`.
+Collection group: `BNK_DB.allServicios()`, `BNK_DB.allBloques()`.
+Helper: `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })` — autocompleta usuario/usuarioId/timestamp y falla silenciosamente.
+
+### Tabs y módulos (`panel/js/pages/`)
+
+12 tabs en 4 grupos separados por `.tab-separator`, con `data-require-role`:
+
+**Ventas** — COTIZACIONES (todos) · COTIZAR MNT · COTIZAR BNK · PIPELINE (admin,ventas)
+**Directorio** — CLIENTES · PROVEEDORES (admin,ventas)
+**Operaciones** — CALENDARIO (admin,ventas,produccion) · REPORTES · CATÁLOGO (admin,ventas) · EVENTOS (admin,ventas,produccion)
+**Admin** — FINANZAS · USUARIOS (admin)
+
+| Módulo | Líneas | Qué hace |
+|---|---|---|
+| `cotizaciones.js` | 1170 | Tabla con KPIs, filtros, sort, paginación, estado editable, PDF por fila, popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, OT), modales de vinculación y modal de Orden de Trabajo |
+| `cotizar-mnt.js` | 1028 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, precio especial por venue, PDF dual, selector de marca |
+| `cotizar-bnk.js` | 1065 | Formulario de servicios/producción, filas de conceptos en modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete de catálogo, bloques expandibles + modal picker, auto-vinculación de proveedores, plantillas de condiciones, PDF dual |
+| `pipeline.js` | 529 | Kanban con drag & drop HTML5 + touch, filtros (tipo/fechas/monto), KPI pipeline activo, `BNKConfirm` en Cancelada/Perdida, snapshot listener con cleanup en `beforeunload` |
+| `clientes.js` | 1059 | CRUD, modal 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud, chips de marcas, cotizaciones vinculadas (Vinculada vs Por nombre), detección de duplicados |
+| `proveedores.js` | 1359 | CRUD, modal 6 tabs (+ Fiscales, Servicios), doble precio (`costoUnitario`/`precioCliente`), bloques de servicios con precio manual |
+| `calendario.js` | 862 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues` |
+| `reportes.js` | 536 | 4 KPIs (revenue cerrado, costo estimado, margen bruto, conversión), Chart.js bar (revenue vs costo + línea de margen % en eje `yPct`) + doughnut (utilización venues), top clientes, funnel, filtro de período, export CSV con BOM UTF-8 |
+| `catalogo.js` | 364 | CRUD catálogo de precios con sort; campos extra (`precioWeekend`, `precioMontaje`) para categoría Venues |
+| `eventos.js` | 1056 | CRUD eventos, checklists con tareas inline (responsable desde usuarios, fechaLimite), detección de vencidas, drag reorder con batch `orden`, CRUD de plantillas, API cross-módulo `BNKEventos.crearEvento()` |
+| `finanzas.js` | 1439 | 5 sub-tabs: Cuentas por Pagar (parcialidades), Partners CRUD, Dispersiones, Cuentas por Cobrar (aging 0-30/30-60/60-90/90+), P&L (Chart.js + tabla mensual). Expone `BNKFinanzas.reload()` y `openEntityPopover()` |
+| `usuarios.js` | 381 | CRUD de usuarios con roles (admin, ventas, produccion, lectura) y sort |
+| `actividad.js` | 225 | Bell icon + dropdown con últimas 20 entradas de `actividadGlobal`, badge de no vistas (24 h, `localStorage` `bnk_last_activity_{uid}`), navegación por clic al tab relevante, tiempo relativo, mapas `TIPO_ICONS`/`TIPO_TAB` (13 tipos). Badge `#tabBadgeCotizaciones` cuenta `cotizacion_creada` de otros usuarios (`bnk_last_cotizaciones_{uid}`). Expone `load()` y `updateBadge()` |
+| `documentos.js` | 451 | Módulo compartido `BNKDocumentos.render(container, {entidad, entityId})`: upload a Storage, versionado (`vigente`), drag & drop, validación PDF/JPG/PNG ≤10 MB, delete admin-only. Usado por clientes, proveedores y partners |
+
+### Helpers de tablas (`panel/js/table-helpers.js`)
+
+Port de los helpers del cotizador legacy, cargado antes de los módulos de página. Lo usan `clientes.js` y `proveedores.js`.
+
+- `BNKSort.apply(data, key, dir)` — detecta tipo (fecha `dd/mm/aaaa` o ISO, número, texto con `localeCompare('es')`), aplana arrays y Timestamps, vacíos siempre al final.
+- `BNKPagination.paginate(data, page)` (50 por página) + `.render(containerId, state, onChange)` con el mismo look que la paginación de cotizaciones (`.dash-pagination`).
+- `BNKExport.csv(filename, headers, rows)` — BOM UTF-8, todas las celdas entrecomilladas, prefijo `'` contra formula injection (`= + - @`).
+- `BNKHelpers.updateResultCount / hasActiveFilters / clearFilters / toggleClearButton` — actúan sobre `input.dash-search`, `input.dash-date`, `select.dash-select` dentro de la barra de filtros.
+
+### Helpers globales (definidos **inline** en `panel/dashboard.html`, no en un archivo)
+
+- `BNKToast.ok/warn/error(msg, retryFn?)` — `role="alert"` + `aria-live="assertive"`. Con `retryFn` muestra botón "Reintentar" y dura 8 s en vez de 3 s.
+- `BNKConfirm.show(msg, okLabel?)` → Promise\<bool\>. **Solo dos parámetros**; el label de cancelar es fijo. Cierra con Escape y clic en overlay.
+- `BNKValidate.error(input, msg)` / `.clear(input)` / `.clearAll(container)` / `.required(input, msg)` / `.email(input)` — validación inline con `.field-error` y `.bnk-field-error-msg`. Los errores se auto-limpian al escribir.
+- `BNKFmt.money(n)` — `Intl.NumberFormat('es-MX', {style:'currency', currency:'MXN'})`. Varios módulos además definen un `_formatMXN()` local con `toLocaleString('es-MX')`.
+- Offline indicator: listeners `online`/`offline` → toast + clase `.bnk-offline` en `body`.
+- Tab switching + `activateTab(target)` + hash routing.
+
+### CSS del panel
+
+Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#050905`, `--dk`, `--card` `#09130B`, `--g` `#00FF41`, `--gd`, `--wh`, `--tx`/`--tx2`, `--bd`, `--red`, `--ylw`, `--blu`, `--cyan`, `--btn-p{x,y}-{sm,md,lg}`.
+
+- **`panel.css`** (733) — base: header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, `.ctz-card`, progress, calendar, popovers, vinculación, bloque badges, toggle "no aplica", `.doc-*`, `.bnk-toast-retry`, `.bnk-offline`, `.act-*`, touch targets 44px, breakpoint 360px, responsive.
+- **`login.css`** (97) — tokens propios `--accent`, `--accent-dim`, `--accent-glow`.
+- **`pipeline.css`** (84), **`reportes.css`** (65), **`eventos.css`** (90), **`calendario.css`** (85), **`finanzas.css`** (114) — cargados inline dentro de su sección en `dashboard.html`.
+
+### Infraestructura
+
+- **`panel/img/logo-bunker.webp`** — copia local (Firebase Hosting solo sirve `/panel/`).
+- **`functions/index.js`** (41) — Cloud Function callable `createUser` (valida que el caller sea admin; roles permitidos admin/ventas/produccion/lectura). Node 18, firebase-admin ^11, firebase-functions ^4.
+- **`firestore.rules`** (159) — helpers `userData()`, `isAuthenticated()` (exige `activo == true`), `isAdmin()`, `isAdminOrVentas()`, `isAdminOrProduccion()`. `hasOnly()` en todas las colecciones con escritura. Matches para las 14 colecciones + subcollections (`actividad`, `documentos`, `servicios`, `bloques`, `tareas`) + collection-group rules para `servicios` y `bloques`. `auditLog` y `actividadGlobal` son append-only (read+create, sin update/delete).
+- **`storage.rules`** (34) — tres matches (`documentos/{clientes|proveedores|partners}/{entityId}/{tipo}/{fileName}`): read auth, create/update ≤10 MB con regex anclado PDF/JPG/PNG (clientes y proveedores admin+ventas; partners solo admin), delete solo admin vía lookup cross-service a Firestore.
+- **`firebase.json`** — `site: "bunker-panel"`, `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all. Headers en `**/*.html`: `Cache-Control: no-cache`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, HSTS 2 años con preload, `Permissions-Policy`, y CSP con `default-src 'none'`. En `**/*.{css,js}`: `max-age=3600`.
+- **`.firebaserc`** — default `bunker-panel`. Cuenta: admin@vanguardiaysoluciones.
+
+---
+
+## Convenciones
+
+### Generales
+
+- **Idioma**: todo el texto visible al usuario en español.
+- **Sin build tools**: no hay bundler, transpiler ni preprocesador. Editar fuentes directamente.
+- **ES5 + Promise** en todo el JS del panel y cotizador (`var`, `function`, sin arrow/async). Cada `js/pages/*.js` es un IIFE auto-contenido inicializado vía `BNK_AUTH.onReady()`.
+- **CSS cascade**: nunca `!important`. Usar los design tokens del subsistema correspondiente (`system.css` para el sitio público, `panel.css` para el panel), no valores hardcodeados.
+- **Fonts**: Barlow Condensed (títulos), Barlow (cuerpo), Space Mono (mono). El cotizador legacy añade Rajdhani.
+- **Reveal**: clase `rev` → `IntersectionObserver` agrega `vis` (sitio público).
+
+### Patrones del panel
+
+- **Modales**: `.bnk-overlay` + `.bnk-modal` con clase `.visible`.
+- **Autocomplete**: `.bnk-autocomplete` + `.bnk-ac-item` con `.visible`.
+- **Badges**: `.estado-{nombre}`, `.tipo-{MNT|BNK}`.
+- **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las nuevas se crean en `Recorrido`. El legacy `'Nueva'` se mapea a `Recorrido` en pipeline, cotizaciones, reportes y finanzas.
+- **Fechas en cotizaciones**: `fecha` (ISO de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp). Todos los módulos usan `d.fecha || d.createdAt` como fallback para registros legacy.
+- **PDFs regenerables**: no se almacenan. Se reconstruyen on-the-fly con `BNKPdfRebuild.download(cotData, style)` — MNT lee `desgloseVenues` (JSON), BNK lee `conceptos` (JSON).
+- **Popover para ver, modal para actuar**. Dos popovers: el de folio de cotización (BNK vinculadas, indicadores, acciones) y `#entityPopover` reutilizable para cliente/proveedor/partner (cotizaciones vinculadas, cada una expandible con `.expanded`).
+- **Vinculación MNT↔BNK**: 1:N. BNK lleva `folioMNT` apuntando al folio padre.
+- **Vinculación Cliente↔Cotización**: `clienteId` + `clienteNombre`. Badge "Vinculada" (FK formal) vs "Por nombre" (fuzzy match por empresa).
+- **`cotizacionProveedores`**: simétrica a `cotizacionPartners`. `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`, auto-creados al guardar BNK con conceptos de proveedor (`autoVinculado: true`).
+- **Bloques de proveedor**: `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Los servicios llevan `bloqueId`.
+- **Doble precio**: `costoUnitario` (costo real) + `precioCliente`. Si `precioCliente` es 0, se usa `costoUnitario`.
+- **Documentos de expediente**: `{entidad}/{id}/documentos/{docId}` + Storage en `documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`. 7 tipos predefinidos + libres. Versionado con `vigente: true/false`. Indicador separado `N/M requeridos`, no afecta el % de completitud.
+- **Toggle "No aplica extranjero"**: excluye campos bancarios extranjeros del % de completitud. Persiste como `noAplicaExtranjero: true`.
+- **Datos bancarios restringidos**: el tab "Bancarios" va `display:none` para rol `ventas` en clientes y proveedores.
+- **URL hash routing**: el tab activo se refleja en `location.hash`; `activateTab(target)` + `history.replaceState()`. Refresh conserva el tab.
+- **Chart.js** 4.4.0 por CDN jsDelivr con SRI, `defer`. Destruir instancias con `chart.destroy()` antes de re-render.
+- **jsPDF** 2.5.1 por CDN cdnjs con SRI, `defer`, junto con `logo-data.js`.
+- **ARIA emojis**: emojis funcionales envueltos en `<span role="img" aria-label="…">`; decorativos sin ARIA.
 
 ### PDFs
 
-Dos estilos de PDF generados client-side con jsPDF 2.5.1, toggle Neon/Corporativa en ambos cotizadores:
-- **MNT (neon/verde)**: fondo `#050905`, acento `#00FF41`
-- **MNT (corporativa)**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`
-- **BNK**: mismas dos paletas, agrupación por categoría con sub-agrupación por bloque de proveedor, condiciones comerciales con plantillas
-- **Orden de Trabajo (OT)**: paleta corporativa, filtrado por proveedor, agrupación por bloque, sección de notas
-- **Logo embebido**: `BUNKER_LOGO_B64` en `panel/js/logo-data.js` (y `cotizador-munet/js/logo-data.js`)
-- **Regeneración**: `panel/js/pdf-rebuild.js` reconstruye PDFs idénticos desde datos de Firestore (sin necesidad de storage externo)
+Dos paletas con toggle en ambos cotizadores:
+- **Neon**: fondo `#050905`, acento `#00FF41`.
+- **Corporativa**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`.
 
-### Panel Operativo (`/panel/`)
+BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade condiciones comerciales con plantillas. La Orden de Trabajo usa siempre la paleta corporativa, filtra por proveedor, agrupa por bloque y añade sección de notas (fallback de matching: `proveedorId` → nombre → todos los conceptos).
 
-App interna Firebase con Auth + Firestore. Desplegada en `bunker-panel.web.app`.
+### Cache busting
 
-**Core:**
-- **`panel/index.html`** — login page
-- **`panel/dashboard.html`** (~2230 lines) — dashboard principal con 12 tabs agrupados visualmente (Ventas | Directorio | Operaciones | Admin). Incluye Chart.js 4.4.0 CDN con SRI integrity hash
-- **`panel/404.html`** — página de error dinámica (401/403/404/500) con estética neon
-- **`panel/js/firebase-config.js`** — config Firebase (`bunker-panel`), inicialización de servicios con typeof guards para SDKs opcionales (Storage no se carga en login)
-- **`panel/js/auth.js`** (~116 lines) — autenticación + roles. `BNK_AUTH.currentUser()` es **función**, no propiedad
-- **`panel/js/guard.js`** — guard de sesión, redirige a login si no autenticado
-- **`panel/js/firestore.js`** (~245 lines) — abstracción Firestore con `BNK_DB.collectionAPI(name)` factory. Colecciones: cotizaciones (sin orderBy server-side, se ordena client-side), clientes, proveedores, catalogo, eventos, usuarios, partners, pagos, cotizacionPartners, cotizacionProveedores, cuentasCobrar, actividadGlobal (ordered by timestamp desc). Incluye `BNK_DB.bloques(proveedorId)` (subcollection API), `BNK_DB.documentos(entidad, entityId)` (subcollection API para documentos de expediente), `BNK_DB.allServicios()` y `BNK_DB.allBloques()` (collection group queries cross-proveedor), `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })` (helper que auto-fills usuario, usuarioId, timestamp)
-- **`panel/js/pdf-rebuild.js`** (~290 lines) — regenera PDFs MNT y BNK desde datos guardados en Firestore. `BNKPdfRebuild.download(cotData, style)` detecta fuente y genera el PDF correspondiente
-- **`panel/js/pdf-workorder.js`** (~193 lines) — genera PDF de Orden de Trabajo para proveedores. `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`. Paleta corporativa, secciones: proveedor, evento, servicios requeridos (agrupados por bloque), notas. Fallback matching por proveedorId → nombre → todos los conceptos
-- **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64` base64 PNG para PDFs
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=2`.
 
-**Módulos por tab (`panel/js/pages/`):**
-- **`cotizaciones.js`** (~1157 lines) — tabla con KPIs, filtros, paginación, estado editable, botón PDF por fila (regenera via pdf-rebuild.js), popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, orden de trabajo), modales de vinculación partner/proveedor/cliente, modal OT (orden de trabajo PDF por proveedor)
-- **`cotizar-mnt.js`** (~660 lines) — wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo Firestore, calendario de fechas, tarifas regular/weekend/montaje, PDF dual, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
-- **`cotizar-bnk.js`** (~1064 lines) — formulario de servicios/producción, filas dinámicas de conceptos con modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete catálogo, bloques de proveedor expandibles, botón "Agregar Bloque" con modal picker, auto-vinculación de proveedores al guardar, plantillas de condiciones comerciales, PDF dual con agrupación por bloque, guardado en Firestore con campos `fecha`, `fechaEvento`, selector de marca por cliente
-- **`pipeline.js`** (~530 lines) — tablero kanban con HTML5 drag & drop + touch support para mover cards entre columnas de estado, filtros (tipo MNT/BNK, rango de fechas, monto mínimo), KPI "PIPELINE ACTIVO" con suma de estados activos, confirmación BNKConfirm para Cancelada/Perdida, fix: BNK children usa `_data` (no `filtered`), snapshot listener con cleanup en `beforeunload`, indicador de folios BNK vinculados en cards MNT, logActividad en cambios de estado
-- **`documentos.js`** (~437 lines) — módulo compartido `BNKDocumentos` para subida/gestión de documentos de expediente (RFC, INE, comprobante domicilio, etc.). Upload a Firebase Storage, versionado (vigente + historial), drag & drop, validación PDF/JPG/PNG ≤10 MB, admin-only delete, documentos libres. Usado por clientes, proveedores y partners
-- **`clientes.js`** (~1024 lines) — CRUD, modal con 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud con toggle "No aplica extranjero", chips UI para marcas, cotizaciones vinculadas con badges Vinculada/Por nombre, popover de folio con cotizaciones vinculadas por empresa
-- **`proveedores.js`** (~1337 lines) — CRUD, modal con 6 tabs (General, Contacto, Fiscales, Bancarios, Servicios, Documentos), doble precio (costoUnitario + precioCliente), bloques de servicios con precio manual, toggle "No aplica extranjero" para completitud, popover de folio con cotizaciones vinculadas
-- **`calendario.js`** (~590 lines) — calendario con 3 vistas (mes/semana/día), toggle MES/SEMANA, click en día abre vista detallada, exportación iCal RFC 5545 (.ics), tooltips enriquecidos (folio, cliente, espacio, total), overflow "+N más" cuando >3 eventos/día, filtros por venue, navegación con flechas y HOY, soporta múltiples fechas MNT via desgloseVenues
-- **`reportes.js`** (~393 lines) — reportes avanzados con márgenes reales: 4 KPIs (revenue cerrado, costo estimado, margen bruto, tasa conversión), Chart.js bar chart (revenue vs costo mensual + línea de margen % en eje derecho `yPct`) + doughnut (utilización venues), top clientes con barras de margen, funnel de conversión, filtro por período (mes/trimestre/año/todo), exportación CSV con BOM UTF-8 + audit log via `BNK_DB.logActividad`. Cálculo de costo: `JSON.parse(cot.conceptos)` → suma `costoProveedor * cantidad`
-- **`catalogo.js`** (~183 lines) — CRUD catálogo de precios con campos especiales para categoría Venues (precioWeekend, precioMontaje)
-- **`eventos.js`** (~712 lines) — gestión completa de producción: CRUD eventos (crear/editar modal con cliente, fechaEvento, folioCotizacion), checklists con tareas inline editables (responsable dropdown desde usuarios, fechaLimite date input), detección de tareas vencidas (`.checklist-item--overdue`), "+ TAREA" inline add, admin × delete con BNKConfirm, HTML5 drag reorder con batch `orden` update, plantillas CRUD (listar, agregar, editar, eliminar con BNKConfirm), `BNKEventos.crearEvento()` API cross-módulo, logActividad (`evento_creado`, `evento_editado`, `tarea_completada`)
-- **`usuarios.js`** (~175 lines) — gestión de usuarios con roles (admin, ventas, produccion, lectura)
-- **`actividad.js`** (~177 lines) — feed de actividad global: bell icon widget en header con badge de actividades no vistas (últimas 24h via `localStorage` key `bnk_last_activity_{uid}`), dropdown con últimas 20 entradas de `BNK_DB.actividadGlobal`, navegación por clic (entry → `activateTab()` al tab relevante), tiempo relativo ("ahora", "hace N min", "hace Nh", "ayer", "hace Nd"), mapas TIPO_ICONS y TIPO_TAB para 13 tipos de actividad. Badge `#tabBadgeCotizaciones` en el tab COTIZACIONES: cuenta `cotizacion_creada` de otros usuarios desde la última visita (`localStorage` key `bnk_last_cotizaciones_{uid}`, se marca al abrir el tab). Expone `BNKActividad.load()` y `updateBadge()`
-- **`finanzas.js`** (~1290 lines) — módulo FINANZAS con 5 sub-tabs: Cuentas por Pagar (pagos a proveedores/partners con parcialidades), Partners CRUD (co-productores con perfil y datos bancarios, popover de folio con cotizaciones vinculadas y preview expandible), Dispersiones (rastreo de pagos a partners vinculados a cotizaciones liquidadas), Cuentas por Cobrar (accounts receivable con aging buckets 0-30/30-60/60-90/90+ días, columna DÍAS, badge VENCIDO, `.fin-overdue` row styling), P&L (estado de resultados: ingresos desde cuentasCobrar con fechaIngreso, egresos desde pagos con split proveedor/partner, Chart.js bar mensual (ingresos vs egresos + línea de margen operativo % en eje derecho `yPct`), tabla mensual, filtro período). Expone `BNKFinanzas.reload()` y `BNKFinanzas.openEntityPopover()` para uso cross-módulo. logActividad en pagos, partners y cuentas por cobrar
+---
 
-**CSS:**
-- **`panel/css/panel.css`** (~732 lines) — estilos base: tokens, header, tabs (con `.tab-separator` entre grupos), buttons, tables, modals, forms, wizard MNT, form BNK (flex layout dual-mode), cards `.ctz-card`, progress bar, calendar, popover de folio, entity popover, vinculación lists, bloque badges, toggle "no aplica", documentos de expediente (`.doc-*`), toast retry (`.bnk-toast-retry`), offline indicator (`.bnk-offline`), activity feed (`.act-bell-wrap`, `.act-dropdown`, `.act-entry-*`), touch targets 44px, breakpoint 360px, popover clipping fix, responsive
-- **`panel/css/login.css`** — estilos del login (tokens: `--accent`, `--accent-dim`, `--accent-glow`)
-- **`panel/css/pipeline.css`** — estilos del kanban: drag styles (`.pipeline-card--dragging`, `.pipeline-col--drop-target`, `.pipeline-card--ghost`), filter bar (`.pipeline-filters`), touch drag ghost
-- **`panel/css/reportes.css`** — estilos de reportes: `.cat-bar`, `.top-bar-margen`, chart containers con height fijo, CSV disabled state, KPI widgets grid
-- **`panel/css/eventos.css`** — estilos de eventos/producción: overdue task highlight (`.checklist-item--overdue`), inline editing inputs, drag reorder visual feedback, plantilla CRUD styles
-- **`panel/css/calendario.css`** — estilos del calendario: month grid, week grid (`.cal-week-grid`), day view (`.cal-day-view`), tooltip (`.cal-tooltip`), overflow badge (`.cal-overflow`), view toggle buttons
-- **`panel/css/finanzas.css`** — estilos de finanzas: sub-tabs, partner checks, info grid, dispersión rows, P&L chart height, aging bucket KPIs (`.aging-kpis`), overdue rows (`.fin-overdue`), VENCIDO badge
+## Seguridad
 
-**Infraestructura:**
-- **`panel/img/logo-bunker.webp`** — logo (copia local para Firebase Hosting)
-- **`functions/index.js`** — Cloud Function `createUser` (requiere plan Blaze)
-- **`firestore.rules`** — reglas de seguridad Firestore (incluye subcollections `documentos` en clientes/proveedores/partners, `hasOnly()` field validation en todas las colecciones con escritura, `actividadGlobal` append-only collection con read:auth + create:auth + no update/delete, campos expandidos en `eventos` y `tareas`)
-- **`storage.rules`** — reglas de seguridad Firebase Storage (auth requerido, 10 MB max, PDF/JPG/PNG, admin-only delete)
+- **App Check**: configurado en consola (reCAPTCHA v3, modo **Monitor**). **Código cliente desactivado** — el SDK está comentado en `dashboard.html` y la inicialización en `firebase-config.js`. La CSP ya permite `google.com` y `firebaseappcheck.googleapis.com`. Activar solo al pasar a Enforce, y verificando CSP primero: si reCAPTCHA se bloquea, `guard.js` deja la pantalla negra.
+- **XSS**: `_esc()` (DOM-based `textContent` → `innerHTML`) en reportes, pipeline, eventos, calendario, actividad, finanzas, cotizaciones, documentos, cotizar-mnt y cotizar-bnk. `clientes.js` y `proveedores.js` usan `_escapeHTML()` + `_safeUrl()` (nombres distintos, misma función).
+- **Firestore/Storage rules**: ver arriba. Roles admin / ventas / produccion / lectura. Datos sensibles (partners, pagos, finanzas) solo admin.
+- **Apps Script**: API key, rate limiting, validación de campos, honeypot, validación de origen.
+- **Audit log**: exports CSV → colección `auditLog`. Actividad cross-módulo → `actividadGlobal` vía `BNK_DB.logActividad()`.
+- **Password policy**: mínimo 8 caracteres en Firebase Auth.
+- **Pendiente**: LFPDPPP (aviso de privacidad + registro de tratamiento de datos — requiere abogado).
 
-### Deployment
+---
 
-- **Sitio público**: se actualiza por GitHub → cPanel automático. **No tocar cPanel nunca.**
-- **Panel**: `firebase deploy --only hosting --project bunker-panel`
-- **Reglas Firestore**: `firebase deploy --only firestore:rules --project bunker-panel`
-- **Reglas Storage**: `firebase deploy --only storage --project bunker-panel`
-- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (requiere plan Blaze)
-- **`firebase.json`** — hosting con `site: "bunker-panel"`, `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all (404.html funciona nativo)
-- **`.firebaserc`** — proyecto default: `bunker-panel`
-- **Firebase project ID**: `bunker-panel` (cuenta: admin@vanguardiaysoluciones)
+## Gotchas conocidos
 
-### UX Patterns del Panel
+- **Dos copias de `BNKSort`/`BNKPagination`/`BNKExport`/`BNKHelpers`**: `js/pages/panel-ui.js` (cotizador legacy) y `panel/js/table-helpers.js` (panel). Son independientes; un fix en una no llega a la otra.
+- El export CSV antepone `'` a celdas que empiezan con `+`, así que teléfonos tipo `+52 …` salen como `'+52 …` en Excel. Es intencional (protección contra formula injection).
+- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore` y los `hasOnly()` de `firestore.rules`.
 
-- **Módulos IIFE**: cada `js/pages/*.js` es un IIFE auto-contenido que se inicializa via `BNK_AUTH.onReady()`
-- **Cards `.ctz-card`**: wrapper visual para secciones de formulario (fondo `var(--card)`, borde `var(--bd)`)
-- **Toast**: `BNKToast.ok/warn/error(msg, retryFn?)` para notificaciones. `role="alert"` + `aria-live="assertive"`. Error acepta segundo parámetro `retryFn` que muestra botón "Reintentar" (8s timeout vs 3s normal)
-- **Modales**: patrón `.bnk-overlay` + `.bnk-modal` con clase `.visible` para toggle
-- **Autocomplete**: patrón `.bnk-autocomplete` + `.bnk-ac-item` con clase `.visible`
-- **Colores de estado**: clases `.estado-{nombre}` y `.tipo-{MNT|BNK}` para badges
-- **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las cotizaciones nuevas se crean con estado `'Recorrido'`. El estado legacy `'Nueva'` se mapea a `'Recorrido'` en todos los módulos (pipeline, cotizaciones, reportes, finanzas)
-- **Campos de fecha en cotizaciones**: `fecha` (ISO timestamp de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp de Firestore). Todos los módulos usan `d.fecha || d.createdAt` como fallback para compatibilidad con registros legacy
-- **PDFs regenerables**: los PDFs no se almacenan en storage. Se regeneran on-the-fly desde datos en Firestore via `BNKPdfRebuild.download(cotData)`. MNT usa `desgloseVenues` (JSON), BNK usa `conceptos` (JSON)
-- **Popover de folio (cotizaciones)**: clic en folio de cotización abre popover compacto con info rápida, BNK vinculadas (1:N via `folioMNT`), indicadores de partners/proveedores, y acciones (crear BNK, PDF, vincular). Patrón: popover para ver, modal para actuar
-- **Popover de folio (entidades)**: clic en folio de cliente, proveedor o partner abre popover `#entityPopover` reutilizable con lista de cotizaciones vinculadas. Cada cotización es expandible (clic toggle clase `.expanded`) para ver evento, total, estado, pagado. Clientes se vinculan por nombre de empresa (fuzzy match). Partners y proveedores por `cotizacionPartners`/`cotizacionProveedores` + `pagos`
-- **Vinculación MNT↔BNK**: relación 1:N. BNK tiene campo `folioMNT` que apunta al folio MNT padre. Desde popover MNT se puede crear BNK con datos pre-llenados
-- **cotizacionProveedores**: colección Firestore simétrica a `cotizacionPartners`. Schema: `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`. Auto-creados al guardar cotización BNK con conceptos de proveedor (`autoVinculado: true`)
-- **Vinculación Cliente↔Cotización**: campo `clienteId` + `clienteNombre` en cotización. Modal con auto-match por nombre de empresa (fuzzy). Popover muestra badge "Vinculada" (formal FK) vs "Por nombre" (fuzzy match)
-- **Bloques de proveedor**: subcollection `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Servicios con campo `bloqueId` para agrupar. En cotizador BNK: expandibles via dropdown (📦 prefix) o botón "Agregar Bloque" con modal picker
-- **Doble precio servicios**: cada servicio de proveedor tiene `costoUnitario` (costo real) y `precioCliente` (precio al cliente). Fallback: si `precioCliente` es 0, usa `costoUnitario`
-- **PDF Orden de Trabajo**: `BNKPdfWorkOrder.download(cotData, proveedorData, notas)` — PDF corporativo para enviar al proveedor con servicios filtrados por proveedor, accesible desde popover de cotización BNK
-- **Toggle "No aplica extranjero"**: checkbox en modales de cliente/proveedor que excluye campos bancarios extranjeros del cálculo de completitud. Persiste como `noAplicaExtranjero: true` en el documento
-- **Precio especial MNT**: venues Valeria y Lobby permiten override de precio por cotización en el wizard MNT. Se guarda como `precioEspecial` en `desgloseVenues`
-- **Documentos de expediente**: subcollection `{entidad}/{id}/documentos/{docId}` con archivos en Firebase Storage (`documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`). 7 tipos predefinidos (RFC, domicilio, INE, 32-D, carátula, acta, poder) + documentos libres. Versionado: `vigente: true/false`. Indicador separado `N/M requeridos` (no afecta % completitud). Módulo compartido `BNKDocumentos.render(container, {entidad, entityId})` usado por clientes, proveedores y partners
-- **URL hash routing**: tab activo se refleja en `location.hash` (`#cotizaciones`, `#clientes`). Refresh conserva el tab. `activateTab(target)` + `history.replaceState()`
-- **Tab grouping**: tabs separados en 4 grupos con `.tab-separator` (Ventas | Directorio | Operaciones | Admin)
-- **Datos bancarios restringidos**: tab "Bancarios" oculto (`display:none`) para rol `ventas` en modales de clientes y proveedores. Solo visible para `admin`
-- **Offline indicator**: `window.addEventListener('offline/online')` con toast + clase `.bnk-offline` en `body` (banner rojo en header)
-- **Currency helper**: `BNKFmt.money(n)` — `Intl.NumberFormat('es-MX', {style:'currency', currency:'MXN'})`. Cada módulo también tiene `_formatMXN()` local con `toLocaleString('es-MX')`
-- **ARIA emojis**: emojis funcionales (botones, chips) envueltos en `<span role="img" aria-label="...">`. Emojis decorativos (empty states) sin ARIA
-- **Wizard breadcrumbs**: progress steps en MNT son clickeables para navegar hacia atrás (click en step ≤ current → `_goToStep(n)`)
-- **Scripts defer**: jsPDF y logo-data.js cargan con `defer` para reducir Time-to-Interactive
-- **Chart.js**: CDN 4.4.0 con SRI integrity hash, cargado con `defer`. Usado en reportes (bar + doughnut) y finanzas P&L (stacked bar). Instancias destruidas antes de re-render (`chart.destroy()`)
-- **HTML5 Drag & Drop**: pipeline cards (dragstart/dragover/drop/dragend) + touch support (touchstart/touchmove/touchend con ghost clone, 10px threshold). Eventos usa drag reorder para tareas con batch `orden` update
-- **Activity feed (bell icon)**: `#actBellBtn` en header con badge `#actBellBadge`, dropdown `#actDropdown`. 13 tipos de actividad instrumentados cross-módulo. Badge cuenta actividades no vistas en últimas 24h via `localStorage`
-- **iCal export**: calendario genera archivo `.ics` RFC 5545 (VCALENDAR/VEVENT con UID, DTSTART, SUMMARY) para importar en Google Calendar, Outlook, etc.
-- **Aging buckets**: finanzas CxC muestra 4 buckets (0-30/30-60/60-90/90+ días) con KPIs y highlight de filas vencidas
-- **Confirm dialog**: `BNKConfirm.show(msg, okLabel, cancelLabel)` — modal de confirmación reutilizable usado en pipeline (Cancelada/Perdida), eventos (delete tarea/plantilla)
+## Otros archivos
 
-### Seguridad (post-auditoría 2026-09-22)
-
-- **App Check**: Firebase App Check configurado en consola (reCAPTCHA v3, modo Monitor). **Código cliente desactivado** — activar solo al cambiar a Enforce mode. CSP ya tiene dominios necesarios (`google.com`, `firebaseappcheck.googleapis.com`). SDK comentado en `dashboard.html`
-- **CSP**: `Content-Security-Policy` en `firebase.json` con dominios específicos: Firebase, Google reCAPTCHA, App Check, `cdn.jsdelivr.net` (Chart.js CDN). `frame-src` permite `google.com` (para reCAPTCHA cuando se active)
-- **XSS prevention**: `_esc()` (DOM-based textContent→innerHTML) en todos los módulos que generan HTML dinámico (reportes, pipeline, eventos, calendario, actividad, finanzas, cotizaciones, clientes, proveedores, documentos). `_safeUrl()` para href en clientes.js y proveedores.js
-- **Firestore rules**: `hasOnly()` en todas las colecciones con escritura para prevenir field injection. Roles: admin, ventas, produccion, lectura. Datos sensibles (partners, pagos, finanzas) solo admin
-- **Storage rules**: auth requerido, 10 MB max, PDF/JPG/PNG only (regex anclado), admin-only delete con cross-service Firestore lookup
-- **Apps Script**: API key validation, rate limiting (5 req/10 min via CacheService), field validation, honeypot anti-bot, source header validation
-- **Audit log**: CSV exports logueados a colección `auditLog` en Firestore. Actividad global logueada a `actividadGlobal` via `BNK_DB.logActividad()` desde todos los módulos (cotizaciones, clientes, proveedores, eventos, finanzas)
-- **Password policy**: mínimo 8 caracteres en Firebase Auth
-- **Cache busting**: scripts con `?v=N` query params en HTML para invalidar CDN cache en deploys. Incrementar versión al modificar JS/CSS
-- **Guard pattern**: `guard.js` oculta `document.documentElement` con `visibility:hidden` hasta que auth resuelve. Si `firebase-config.js` falla, la página queda negra — por eso los typeof guards son críticos
-- **Pendiente**: LFPDPPP (aviso de privacidad + registro de tratamiento de datos — requiere abogado)
-
-## Key Conventions
-
-- **Language**: all user-facing text is in Spanish. Keep it that way.
-- **No build tools**: no bundler, transpiler, or preprocessor. Edit the source files directly.
-- **CSS cascade**: styles rely on specificity and cascade order — never use `!important`.
-- **Design tokens**: all colors, spacing, and typography sizes are defined as CSS custom properties in `:root` (inside `system.css`). Use these tokens rather than hard-coded values.
-- **Modular structure**: shared code goes in `system.css`/`system.js`; page-specific code goes in `css/pages/` and `js/pages/`.
-- **Reveal animations**: elements with class `rev` get animated in by `IntersectionObserver` (adds class `vis`). Apply `rev` to new content blocks for consistent entrance animations.
-- **Fonts**: Barlow Condensed (headings), Barlow (body), Space Mono (monospace accents) — loaded from Google Fonts.
-
-## Other Files
-
-- `bunker_v2.html` — previous single-page version of the site. Kept as reference.
-- `document_pdf*.pdf` — reference PDF documents (company materials).
-- `img/` — all image assets (logos, section illustrations).
-- `docs/superpowers/specs/` — design specs de features.
-- `docs/superpowers/plans/` — planes de implementación detallados.
-- `capturas/` — carpeta local para capturas y notas de trabajo (en .gitignore, no se despliega).
+- **`.htaccess`** — rewrites de Apache: redirect 301 de `*.html` a URL limpia y rewrite interno inverso para servirlas.
+- **`.cpanel.yml`** — tarea de despliegue: copia todo el repo (menos `.git` y el propio yml) a `/home3torre/bunkermx/html`.
+- **`img/`** — logos e ilustraciones (`logo-bunker*`, `isotipo-bunker.webp`, `logo-munet.webp`, `filosofia/metodo/proposito/vision-bnk.png`, `triangulo-penrose.png`, `img/team/`).
+- **`docs/superpowers/specs/`** y **`docs/superpowers/plans/`** — specs de diseño y planes de implementación de cada feature (jul–sep 2026). Útiles como historial de decisiones.
+- **Gitignored**: `capturas/` (capturas y notas de trabajo), `.firebase/`, `.claude/`, `.playwright-mcp/`, `.tmp.driveupload/`, `branding/`, `node_modules/`, `.env*`.

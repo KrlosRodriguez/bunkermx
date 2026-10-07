@@ -1,84 +1,75 @@
 # BUNKER MX
 
-Sitio web institucional de **BUNKER Creatividad Empresarial**, enfocado en produccion de espectaculos, entretenimiento en gran formato, proyectos culturales, MUNET y servicios empresariales.
+Sitio web institucional y panel operativo de **BUNKER Creatividad Empresarial**: producción de espectáculos, entretenimiento en gran formato, proyectos culturales, MUNET y servicios empresariales.
 
-El proyecto esta construido como un sitio estatico con HTML, CSS y JavaScript puro. No usa framework, bundler, Node.js ni paso de compilacion.
+Todo es HTML, CSS y JavaScript puro. No hay framework, bundler ni paso de compilación.
 
-## Contenido
+## Subsistemas
 
-- `index.html`: pagina principal del sistema BUNKER.
-- `esencia.html`: filosofia, proposito, vision y metodo de trabajo.
-- `servicios.html`: servicios de produccion, giras, venues, audiovisual y streaming.
-- `talento.html`: directorio del equipo BUNKER.
-- `proyectos.html`: archivo de trayectoria y proyectos.
-- `munet.html`: subsistema MUNET.
-- `hub.html`: Hub Empresarial BUNKER.
-- `cotizador-munet/`: sistema de cotizaciones con dos modulos:
-  - **Cotizador MNT** (`index.html`): wizard para renta de espacios MUNET con calendario, tarifas automaticas y PDF neon.
-  - **Panel de Ventas** (`dashboard.html`): dashboard combinado MNT+BNK con indicadores, filtros, modal para cotizaciones de servicios/produccion integral, PDF estilo dorado, catalogo de precios y autocompletado de clientes.
-- `css/`: estilos globales, sistema visual y estilos por pagina.
-- `js/`: interacciones, navegacion, animaciones y logica por pagina.
-- `img/`: logos e imagenes del sitio.
+| Subsistema | Ruta | Stack | Despliegue |
+|---|---|---|---|
+| **Sitio público** | raíz | HTML/CSS/JS estático | GitHub → cPanel automático (`.cpanel.yml`) |
+| **Panel operativo** | `panel/` | Firebase Auth + Firestore + Storage | Firebase Hosting → `bunker-panel.web.app` |
+| **Cotizador MNT legacy** | `cotizador-munet/` | HTML/JS + Google Apps Script + Sheets | GitHub → cPanel (junto al sitio público) |
 
-## Sistema de Cotizaciones
+### Sitio público
 
-El sistema maneja dos tipos de cotizaciones:
+- `index.html` — página principal.
+- `esencia.html` — filosofía, propósito, visión y método.
+- `servicios.html` — producción, giras, venues, audiovisual y streaming.
+- `talento.html` — directorio del equipo.
+- `proyectos.html` — trayectoria y proyectos.
+- `munet.html` — subsistema MUNET (enlaza al cotizador).
+- `hub.html` — Hub Empresarial BUNKER.
+- `css/`, `js/`, `img/` — estilos, scripts y assets.
 
-| Tipo | Folio | Descripcion |
+Usa URLs limpias (`/esencia`, no `/esencia.html`), resueltas por `.htaccess` en Apache.
+
+### Panel operativo (`panel/`)
+
+App interna con 12 tabs: cotizaciones MNT/BNK, pipeline, clientes, proveedores, calendario, reportes, catálogo, eventos, finanzas y usuarios. Requiere cuenta en Firebase Auth.
+
+### Cotizador MNT legacy (`cotizador-munet/`)
+
+- `index.html` — wizard público de renta de espacios MUNET.
+- `dashboard.html` — Panel de Ventas anterior, sobre Google Sheets. Lo reemplazó `panel/`, pero sigue desplegado por compatibilidad.
+- Backend en Google Apps Script (`google-apps-script-munet.js`), que además replica cotizaciones, clientes y proveedores a Firestore.
+
+| Tipo | Folio | Descripción |
 |------|-------|-------------|
-| **MNT** | `MNT-AAMMDD-XXXX` | Renta de espacios/venues del MUNET (wizard publico) |
-| **BNK** | `BNK-AAMMDD-XXXX` | Servicios y produccion integral (modal en dashboard) |
+| **MNT** | `MNT-AAMMDD-XXXX` | Renta de espacios/venues del MUNET |
+| **BNK** | `BNK-AAMMDD-XXXX` | Servicios y producción integral |
 
-**Backend**: Google Apps Script con Google Sheets como base de datos y Google Drive para PDFs.
-**Hojas**: Cotizaciones (MNT), CotizacionesBNK, Clientes, CatalogoPrecio (37 conceptos precargados).
-
-Las cotizaciones BNK pueden vincularse a un folio MNT existente (boton "+" en la tabla del dashboard).
-
-## Como verlo localmente
-
-Puedes abrir `index.html` directamente en el navegador.
-
-Para probarlo con rutas limpias de forma local, tambien puedes levantar un servidor estatico:
+## Cómo verlo localmente
 
 ```bash
 python -m http.server 5500
 ```
 
-Luego abre:
-
-```text
-http://localhost:5500
-```
+Abre `http://localhost:5500`. Este servidor no resuelve las URLs limpias: abre los `.html` directamente (`/esencia.html`).
 
 ## Despliegue
 
-El sitio esta preparado para Firebase Hosting. La configuracion vive en `firebase.json` y publica la raiz del repositorio.
+**Sitio público y cotizador legacy**: se publican solos al hacer push a `main` en GitHub. **No tocar cPanel manualmente.**
 
-Rutas configuradas:
-
-- `/esencia`
-- `/servicios`
-- `/talento`
-- `/proyectos`
-- `/munet`
-- `/hub`
-- `/cotizador-munet`
-- `/cotizador-munet/dashboard.html` (Panel de Ventas)
-
-Para desplegar:
+**Panel operativo** (solo publica `panel/`):
 
 ```bash
-firebase deploy
+firebase deploy --only hosting --project bunker-panel
 ```
+
+Reglas de seguridad:
+
+```bash
+firebase deploy --only firestore:rules,storage --project bunker-panel
+```
+
+No uses `firebase deploy` sin `--only`: también desplegaría las Cloud Functions.
 
 ## Notas de desarrollo
 
-- Mantener el texto visible para usuarios en espanol.
-- Editar directamente los archivos fuente; no hay build.
-- Usar los estilos existentes en `css/system.css` y `css/pages/`.
-- Evitar subir archivos temporales, capturas, logs o material de trabajo local.
-- `bunker_v2.html` se conserva como version previa o referencia.
-
-## Repositorio
-
-Este `README.md` esta en la raiz del proyecto para que GitHub lo muestre automaticamente en la pagina principal del repositorio.
+- Todo el texto visible para usuarios va en español.
+- Se editan directamente los archivos fuente; no hay build.
+- En el panel, al modificar un JS o CSS hay que subir su `?v=N` en `panel/dashboard.html` para invalidar la caché.
+- No subir capturas, logs ni material de trabajo local (`capturas/` está en `.gitignore`).
+- La guía técnica detallada está en `CLAUDE.md`.
