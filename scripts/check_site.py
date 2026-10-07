@@ -193,7 +193,28 @@ BASE_CHECKS = [check_internal_refs, check_anchor_targets, check_unique_ids,
 
 # ── Comprobaciones por etapa (cada tarea agrega las suyas aquí arriba de STAGE_CHECKS) ──
 
-STAGE_CHECKS = []
+NAV_EXPECTED = [('/', 'INICIO'), ('/esencia', 'ADN BUNKER'), ('/servicios', 'SERVICIOS'),
+                ('/talento', 'NOSOTROS'), ('/proyectos', 'PROYECTOS'), ('/munet', 'MUNET'),
+                ('/#contacto', 'INICIAR PROYECTO')]
+
+
+def check_nav_labels(pages):
+    errs = []
+    for p in pages.values():
+        for cls in ('nav-link', 'mob-link'):
+            got = []
+            for e in p.by_class(cls):
+                href = e['attrs'].get('href')
+                got.append(('/#contacto' if href == '#contacto' else href, p.text_of(e)))
+            if got != NAV_EXPECTED:
+                errs.append('%s .%s = %r' % (p.name, cls, got))
+        old = [p.text_of(e) for e in p.by_class('foot-link') if p.text_of(e) in ('Equipo', 'Contacto', 'Esencia')]
+        if old:
+            errs.append('%s footer con etiquetas viejas: %r' % (p.name, old))
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels]
 
 
 def main():
