@@ -55,6 +55,14 @@ Tokens principales (`:root` en system.css): `--bg/--bg-surface/--bg-elevated`, `
 - **`js/pages/esencia.js`** (23), **`js/pages/proyectos.js`** (152).
 - **`js/pages/panel-ui.js`** (493) + **`css/pages/panel-ui.css`** (409) — `BNKToast`, `BNKConfirm`, `BNKSort`, `BNKPagination`, `BNKExport`. **Pertenecen al cotizador legacy** (`cotizador-munet/dashboard.html`), no al sitio público ni al panel Firebase (el panel tiene su propio port en `panel/js/table-helpers.js`).
 
+### Rediseño por etapas (minuta 2026-10)
+
+Plan: `docs/superpowers/plans/2026-10-07-rediseno-sitio-minuta.md`. Cada etapa va en una rama `web/etapa-N-*` y solo se fusiona a `main` (lo que publica en cPanel) cuando `python scripts/check_site.py` pasa y se revisó en navegador a 1440/1025/375 px.
+
+- `scripts/check_site.py` — verificación estática sin dependencias (enlaces internos, anclas, ids únicos, CSS versionados y comprobaciones por etapa). Correr antes de cada push.
+- `scripts/swap_block.py` — reemplaza/inserta bloques HTML entre marcadores exactos; aborta si un marcador no es único.
+- Los CSS de las páginas llevan `?v=N`: subirlo al modificar el archivo.
+
 ---
 
 ## Cotizador MNT legacy (`/cotizador-munet/`)
