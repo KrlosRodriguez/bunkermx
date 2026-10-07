@@ -14,7 +14,7 @@ from html.parser import HTMLParser
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAGES = ['index.html', 'esencia.html', 'servicios.html', 'talento.html',
-         'proyectos.html', 'munet.html', 'hub.html']
+         'proyectos.html', 'munet.html', 'hub.html', 'archivo.html']
 
 
 class Page(HTMLParser):
@@ -323,7 +323,24 @@ def check_servicios(pages):
     return errs
 
 
-STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros, check_adn, check_servicios]
+def check_archivo(pages):
+    p = pages['archivo.html']
+    errs = []
+    if len(p.by_class('proj-card')) < 44:
+        errs.append('archivo con %d proyectos (esperado ≥44)' % len(p.by_class('proj-card')))
+    if len(p.by_class('f-btn')) != 7 or not p.by_id('projGrid'):
+        errs.append('faltan filtros o #projGrid (proyectos.js los necesita)')
+    if not any('proyectos.js' in (e['attrs'].get('src') or '') for e in p.elements):
+        errs.append('archivo.html no carga js/pages/proyectos.js')
+    canon = [e['attrs'].get('href') for e in p.elements if e['tag'] == 'link' and e['attrs'].get('rel') == 'canonical']
+    if canon != ['https://bunkermx.com/archivo']:
+        errs.append('canonical = %r' % canon)
+    if 'https://bunkermx.com/archivo' not in read_text('sitemap.xml'):
+        errs.append('sitemap.xml sin /archivo')
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros, check_adn, check_servicios, check_archivo]
 
 
 def main():
