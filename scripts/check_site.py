@@ -214,7 +214,26 @@ def check_nav_labels(pages):
     return errs
 
 
-STAGE_CHECKS = [check_nav_labels]
+HOME_EYEBROW = 'Entretenimiento · Experiencias · Espectáculos · Venues'
+HOME_CLAIM = 'Estrategia, creatividad y producción para eventos, espectáculos y experiencias de alto impacto.'
+
+
+def check_home_copy(pages):
+    p = pages['index.html']
+    errs = []
+    ey = [p.text_of(e) for e in p.by_class('hero-eyebrow')]
+    if ey != [HOME_EYEBROW]:
+        errs.append('hero-eyebrow = %r' % ey)
+    cl = [p.text_of(e) for e in p.by_class('hero-claim')]
+    if cl != [HOME_CLAIM]:
+        errs.append('hero-claim = %r' % cl)
+    metas = [e['attrs'].get('content', '') for e in p.elements if e['tag'] == 'meta']
+    if any('Entertainment' in m for m in metas):
+        errs.append('metadatos todavía dicen "Entertainment"')
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels, check_home_copy]
 
 
 def main():
