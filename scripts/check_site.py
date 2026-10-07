@@ -260,7 +260,37 @@ def check_nosotros(pages):
     return errs
 
 
-STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros]
+ADN_PILARES = ['// ── ECOSISTEMA ──', '// ── MECANISMO ──', '// ── RESULTADO ──']
+
+
+def check_adn(pages):
+    p = pages['esencia.html']
+    errs = []
+    h1 = [p.text_of(e) for e in p.elements if e['tag'] == 'h1']
+    if h1 != ['ADN BUNKER']:
+        errs.append('h1 = %r' % h1)
+    seps = [p.text_of(e) for e in p.by_class('mf-term-sep')]
+    if seps != ADN_PILARES:
+        errs.append('pilares = %r' % seps)
+    if len(p.by_class('mf-pillar-claim')) != 3:
+        errs.append('faltan las 3 frases .mf-pillar-claim')
+    if p.by_class('bnk-decl-card'):
+        errs.append('el Sistema BNK sigue en esencia.html')
+    if not pages['talento.html'].by_id('sistema-bnk'):
+        errs.append('talento.html no tiene #sistema-bnk: publica la Etapa 3 antes')
+    if not p.by_class('bnk-metodo'):
+        errs.append('desapareció el Método BNK')
+    if len(p.by_class('mf-atrib')) != 4 or p.by_class('mf-atrib-hint'):
+        errs.append('atributos: deben ser 4 y sin el "+" de hover')
+    css = read_text('css/pages/esencia.css')
+    if re.search(r'\.mf-atrib-desc\{[^}]*max-height:0', css):
+        errs.append('esencia.css sigue ocultando .mf-atrib-desc')
+    if 'ADN BUNKER' not in [pages['index.html'].text_of(e) for e in pages['index.html'].by_class('mod-label')]:
+        errs.append('index: módulo ADN BUNKER no encontrado')
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros, check_adn]
 
 
 def main():
