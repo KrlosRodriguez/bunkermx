@@ -1058,3 +1058,12 @@ body.cur-hover .cur-r{
   img{max-width:100%;filter:none}
   footer{border-top:1px solid #ccc;padding:1rem 0}
 }
+
+/* ── Menú escritorio angosto (1025–1400 px): etiquetas largas del rediseño ── */
+@media(min-width:1025px) and (max-width:1400px){
+  .nav-coords{display:none}
+  .nav-link{padding:8px 8px;letter-spacing:1px}
+}
+@media(min-width:1025px) and (max-width:1200px){
+  .nav-status{display:none}
+}
