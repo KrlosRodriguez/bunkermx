@@ -290,7 +290,40 @@ def check_adn(pages):
     return errs
 
 
-STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros, check_adn]
+SVC_EXPECTED = [
+    ('EVENTOS & EXPERIENCIAS', ['Eventos corporativos', 'Activaciones', 'Lanzamientos', 'Conferencias',
+                                'Experiencias de marca', 'Eventos institucionales']),
+    ('ESPECTÁCULOS & GRAN FORMATO', ['Conciertos', 'Shows', 'Giras', 'Producción técnica',
+                                     'Stage management', 'Site coordination']),
+    ('PRODUCCIÓN & CONTENIDO', ['Audiovisual', 'Streaming', 'Branded content', 'Producción musical', 'Cine / TV']),
+    ('VENUES & OPERACIÓN', ['Dirección de recintos', 'Producción in-house', 'Operación técnica',
+                            'MUNET →', 'Gestión de espacios']),
+]
+
+
+def check_servicios(pages):
+    p = pages['servicios.html']
+    errs = []
+    got = []
+    for card in p.by_class('svc-cat'):
+        name = [p.text_of(e) for e in p.inside(card, cls='svc-cat-name')]
+        items = [p.text_of(e) for e in p.inside(card, tag='li')]
+        got.append((name[0] if name else None, items))
+    if got != SVC_EXPECTED:
+        errs.append('categorías = %r' % got)
+    munet = [e for e in p.elements if e['tag'] == 'a' and e['attrs'].get('href') == '/munet'
+             and 'svc-cat-link' in e['classes']]
+    if len(munet) != 1:
+        errs.append('falta el enlace MUNET dentro de la categoría 04')
+    if p.by_class('svc-panel') or any('data-expand' in e['attrs'] for e in p.elements):
+        errs.append('quedan paneles viejos .svc-panel/data-expand (system.js les pone hover)')
+    idx = pages['index.html']
+    if not any('4 CATEGORÍAS' in idx.text_of(e) for e in idx.by_class('mod-meta')):
+        errs.append('index: el módulo SERVICIOS debe decir 4 CATEGORÍAS')
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros, check_adn, check_servicios]
 
 
 def main():

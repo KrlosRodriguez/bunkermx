@@ -404,3 +404,35 @@
   .munet-inline--compact{flex-direction:column;align-items:flex-start;gap:8px}
   .espacios-mini{grid-template-columns:1fr}
 }
+/* ── Servicios por categoría (rediseño 2026-10) — sin hover para ver contenido ── */
+.svc-cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.svc-cat{
+  position:relative;background:var(--bg-panel);border:1px solid var(--border);
+  clip-path:polygon(0 0,calc(100% - var(--clip-md)) 0,100% var(--clip-md),100% 100%,var(--clip-md) 100%,0 calc(100% - var(--clip-md)));
+  padding:28px 28px 32px;transition:border-color var(--dur-fast);
+}
+.svc-cat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-dim),transparent);
+}
+.svc-cat:hover{border-color:var(--border-gold)}
+.svc-cat--venues::before{background:linear-gradient(90deg,var(--munet),var(--munet-dim),transparent)}
+.svc-cat-head{display:flex;align-items:baseline;gap:16px;margin-bottom:20px}
+.svc-cat-num{font-family:'Space Mono',monospace;font-size:var(--fs-sm);color:var(--gold-dim);letter-spacing:2px}
+.svc-cat-name{
+  font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-xl);font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;line-height:1.1;margin:0;
+}
+.svc-cat-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
+.svc-cat-list li{position:relative;padding-left:18px;color:var(--text-mid);line-height:1.5}
+.svc-cat-list li::before{
+  content:'>';position:absolute;left:0;top:.15em;
+  font-family:'Space Mono',monospace;font-size:var(--fs-xs);color:var(--gold);
+}
+.svc-cat-link{color:var(--munet);text-decoration:none;border-bottom:1px solid var(--border-munet)}
+.svc-cat-link:hover,.svc-cat-link:focus-visible{color:var(--munet-light);border-bottom-color:var(--munet)}
+@media(max-width:768px){.svc-cat-grid{grid-template-columns:1fr}}
+@media(max-width:480px){
+  .svc-cat{padding:22px 20px 24px}
+  .svc-cat-list{grid-template-columns:1fr}
+}
