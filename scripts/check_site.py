@@ -233,7 +233,34 @@ def check_home_copy(pages):
     return errs
 
 
-STAGE_CHECKS = [check_nav_labels, check_home_copy]
+def check_nosotros(pages):
+    p = pages['talento.html']
+    errs = []
+    h1 = [p.text_of(e) for e in p.elements if e['tag'] == 'h1']
+    if h1 != ['EXPERIENCIA']:
+        errs.append('h1 = %r' % h1)
+    meta = ' '.join(p.text_of(e) for e in p.by_class('page-header-meta'))
+    for s in ('+100 EXPERIENCIAS', '+30 AÑOS', '+30 VENUES'):
+        if s not in meta:
+            errs.append('falta "%s" en el encabezado' % s)
+    sec = p.by_id('sistema-bnk')
+    if not sec:
+        errs.append('falta <section id="sistema-bnk">')
+    else:
+        names = [p.text_of(e) for e in p.inside(sec[0], cls='bnk-decl-name')]
+        if names != ['FILOSOFÍA', 'PROPÓSITO', 'VISIÓN', 'MISIÓN']:
+            errs.append('Sistema BNK = %r' % names)
+        if p.inside(sec[0], cls='bnk-decl-hint'):
+            errs.append('quedó el "+" de hover en las tarjetas')
+    if re.search(r'\.bnk-decl-quote\{[^}]*max-height:0', read_text('css/pages/talento.css')):
+        errs.append('talento.css oculta .bnk-decl-quote')
+    labels = [p_.text_of(e) for p_ in [pages['index.html']] for e in p_.by_class('mod-label')]
+    if 'NOSOTROS' not in labels:
+        errs.append('index: módulo NOSOTROS no encontrado (%r)' % labels)
+    return errs
+
+
+STAGE_CHECKS = [check_nav_labels, check_home_copy, check_nosotros]
 
 
 def main():
