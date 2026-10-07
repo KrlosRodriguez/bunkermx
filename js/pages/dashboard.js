@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const result = document.getElementById('eq-result');
 
   function evalEq() {
+    if (!result) return;
     const selected = Array.from(checks).filter(c => c.checked).map(c => c.value);
 
     // Update labels
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('contact-form');
   const status = document.getElementById('form-status');
 
-  if (form) {
+  if (form && status) {
     // Inline validation on blur
     form.querySelectorAll('.hud-input[required]').forEach(input => {
       input.addEventListener('blur', () => {
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (firstInvalid) { firstInvalid.focus(); return; }
 
       const btn = this.querySelector('button[type="submit"]');
+      if (!btn) return;
       const originalHTML = btn.innerHTML;
 
       // Simulated send sequence

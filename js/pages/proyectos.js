@@ -9,24 +9,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const seps  = document.querySelectorAll('.region-sep');
   const count = document.getElementById('projCount');
   const yrHeads = document.querySelectorAll('.yr-head');
+  if (!grid) return; // solo aplica en proyectos.html
+
+  // Abre/cierra un grupo de año y su contenedor de cards (si existe)
+  const setYear = (head, open) => {
+    head.classList.toggle('open', open);
+    const body = head.nextElementSibling;
+    if (body) body.classList.toggle('open', open);
+  };
 
   // ── Year Group Accordion ──
   yrHeads.forEach(head => {
     head.addEventListener('click', () => {
-      const cards_el = head.nextElementSibling;
       const isOpen = head.classList.contains('open');
 
       // Close all other year groups
-      yrHeads.forEach(h => {
-        h.classList.remove('open');
-        h.nextElementSibling.classList.remove('open');
-      });
+      yrHeads.forEach(h => setYear(h, false));
 
       // Toggle clicked group
-      if (!isOpen) {
-        head.classList.add('open');
-        cards_el.classList.add('open');
-      }
+      if (!isOpen) setYear(head, true);
     });
   });
 
@@ -45,10 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       grid.classList.remove('proj-grid--filtered');
 
       // Close all year groups
-      yrHeads.forEach(h => {
-        h.classList.remove('open');
-        h.nextElementSibling.classList.remove('open');
-      });
+      yrHeads.forEach(h => setYear(h, false));
 
       // Show all cards and year groups
       cards.forEach(c => {

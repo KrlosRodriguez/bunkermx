@@ -280,6 +280,8 @@
 
   function _csvEscape(val) {
     var s = (val === null || val === undefined) ? '' : String(val);
+    // Neutraliza formula injection (=, +, -, @, tab, CR) al abrir en Excel
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     if (s.indexOf(',') > -1 || s.indexOf('"') > -1 || s.indexOf('\n') > -1 || s.indexOf('\r') > -1) {
       return '"' + s.replace(/"/g, '""') + '"';
     }
