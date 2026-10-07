@@ -8,7 +8,7 @@ Todo es HTML, CSS y JavaScript puro. No hay framework, bundler ni paso de compil
 
 | Subsistema | Ruta | Stack | Despliegue |
 |---|---|---|---|
-| **Sitio público** | raíz | HTML/CSS/JS estático | GitHub → cPanel automático (`.cpanel.yml`) |
+| **Sitio público** | raíz | HTML/CSS/JS estático | GitHub → cPanel (deploy manual desde cPanel, `.cpanel.yml`) |
 | **Panel operativo** | `panel/` | Firebase Auth + Firestore + Storage | Firebase Hosting → `bunker-panel.web.app` |
 | **Cotizador MNT legacy** | `cotizador-munet/` | HTML/JS + Google Apps Script + Sheets | GitHub → cPanel (junto al sitio público) |
 
@@ -50,7 +50,7 @@ Abre `http://localhost:5500`. Este servidor no resuelve las URLs limpias: abre l
 
 ## Despliegue
 
-**Sitio público y cotizador legacy**: se publican solos al hacer push a `main` en GitHub. **No tocar cPanel manualmente.**
+**Sitio público y cotizador legacy**: el push a `main` **no** publica. El dueño de la cuenta ejecuta el deploy del repo desde cPanel (Git Version Control → *Update from Remote* → *Deploy HEAD Commit*). No modificar ninguna otra configuración de cPanel.
 
 **Panel operativo** (solo publica `panel/`):
 

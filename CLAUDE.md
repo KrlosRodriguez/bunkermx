@@ -12,7 +12,9 @@ BUNKER Creatividad Empresarial: sitio público corporativo + panel operativo int
 | **Panel operativo** | `/panel/` | Firebase Auth + Firestore + Storage | **Firebase Hosting** (`bunker-panel.web.app`) |
 | **Cotizador MNT legacy** | `/cotizador-munet/` | HTML/JS + Google Apps Script + Sheets | GitHub → cPanel (junto al sitio público) |
 
-**NUNCA tocar cPanel desde el panel de control** — la última vez rompió los correos. El despliegue del sitio público es automático vía Git.
+**NUNCA tocar cPanel desde el panel de control** — la última vez rompió los correos.
+
+**El push a `main` NO publica el sitio público.** Verificado el 2026-10-07: producción seguía sirviendo el `index.html` del 10-ago-2026 (`Last-Modified`), sin ninguno de los commits posteriores. Publicar requiere que el dueño de la cuenta ejecute el deploy del repo en cPanel (Git Version Control → *Update from Remote* → *Deploy HEAD Commit*), que corre `.cpanel.yml`. Claude no lo hace. Después de cada deploy, verificar con `curl -sI https://bunkermx.com/ | grep -i last-modified`.
 
 ## How to Run
 
@@ -222,6 +224,7 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 - **Apps Script**: API key, rate limiting, validación de campos, honeypot, validación de origen.
 - **Audit log**: exports CSV → colección `auditLog`. Actividad cross-módulo → `actividadGlobal` vía `BNK_DB.logActividad()`.
 - **Password policy**: mínimo 8 caracteres en Firebase Auth.
+- **Archivos internos bloqueados en cPanel**: `.cpanel.yml` copia todo el repo al servidor, así que `.htaccess` responde 403 a dotfiles (salvo `.well-known`), `docs/`, `scripts/`, `functions/`, `capturas/`, `*.md`, `*.json`, `*.rules`, `*.yml` y `cotizador-munet/google-apps-script-munet.js`. Si el sitio llega a necesitar un `.json` público, agregar una excepción explícita antes de esas reglas.
 - **Pendiente**: LFPDPPP (aviso de privacidad + registro de tratamiento de datos — requiere abogado).
 
 ---

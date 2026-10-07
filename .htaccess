@@ -1,5 +1,17 @@
 RewriteEngine On
 
+# ── Bloquear archivos internos del repositorio ──
+# El deploy de cPanel (.cpanel.yml) copia TODO el repo al servidor. Estos archivos
+# no son parte del sitio y exponen arquitectura, IDs y correos internos → 403.
+# Dotfiles (.gitignore, .firebaserc, .git/...) excepto .well-known (certificados SSL)
+RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+# Carpetas de documentación, scripts y Cloud Functions
+RewriteRule ^(docs|scripts|functions|capturas)(/|$) - [F,L,NC]
+# Documentación, configuración y reglas (CLAUDE.md, README.md, firebase.json, *.rules)
+RewriteRule \.(md|json|rules|yml|yaml|log)$ - [F,L,NC]
+# Código fuente del backend Apps Script (se ejecuta en Google, no en este servidor)
+RewriteRule ^cotizador-munet/google-apps-script-munet\.js$ - [F,L,NC]
+
 # Redirect .html URLs to clean URLs (except index.html which goes to /)
 RewriteCond %{THE_REQUEST} \s/index\.html[\s?] [NC]
 RewriteRule ^ / [R=301,L]
