@@ -539,6 +539,8 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 
 /* Pagination controls */
 .dash-pagination{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px}
+.dash-pagination-info{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx)}
+.dash-pagination .panel-btn-icon:disabled{opacity:.3;cursor:not-allowed}
 
 /* ── FOCUS VISIBLE (Accessibility) ── */
 .dash-tab:focus-visible,

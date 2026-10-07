@@ -8,6 +8,7 @@
   function collectionAPI(name, options) {
     options = options || {};
     var defaultOrder = options.orderBy || null;
+    var maxDocs = options.limit || 0; // 0 = sin límite
 
     return {
       list: function (filters) {
@@ -18,6 +19,7 @@
           });
         }
         if (defaultOrder) ref = ref.orderBy(defaultOrder.field, defaultOrder.dir || 'asc');
+        if (maxDocs) ref = ref.limit(maxDocs);
         return ref.get().then(function (snap) {
           return snap.docs.map(function (doc) {
             var d = doc.data();
@@ -62,6 +64,7 @@
           });
         }
         if (defaultOrder) ref = ref.orderBy(defaultOrder.field, defaultOrder.dir || 'asc');
+        if (maxDocs) ref = ref.limit(maxDocs);
         return ref.onSnapshot(function (snap) {
           var docs = snap.docs.map(function (doc) {
             var d = doc.data();
@@ -238,7 +241,7 @@
     allBloques:            allBloquesQuery,
     actividad:           actividadAPI,
     tareas:              tareasAPI,
-    actividadGlobal:       collectionAPI('actividadGlobal', { orderBy: { field: 'timestamp', dir: 'desc' } }),
+    actividadGlobal:       collectionAPI('actividadGlobal', { orderBy: { field: 'timestamp', dir: 'desc' }, limit: 100 }),
     logActividad:          logActividad
   };
 })();

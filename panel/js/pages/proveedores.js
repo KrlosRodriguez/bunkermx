@@ -1142,6 +1142,17 @@
             p.cuentaActiva || '', p.nombreContacto || '', p.correoContacto || '',
             p.telefonoContacto || '', p.rfc || '', p.fechaAlta || '', p.fechaEdicion || ''];
         });
+        // Audit log — fire-and-forget, no bloquea la descarga
+        try {
+          var user = BNK_AUTH.currentUser();
+          BNK_FIREBASE.db.collection('auditLog').add({
+            accion: 'export_csv',
+            modulo: 'proveedores',
+            usuario: user ? user.email : 'desconocido',
+            registros: data.length,
+            fecha: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (e) { /* no bloquear descarga si falla el log */ }
         var hoy = new Date().toISOString().slice(0, 10);
         BNKExport.csv('proveedores_' + hoy + '.csv', headers, rows);
       });

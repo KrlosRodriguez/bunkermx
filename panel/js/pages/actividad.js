@@ -46,7 +46,7 @@
   function load() {
     if (!BNK_DB.actividadGlobal) return;
     BNK_DB.actividadGlobal.list().then(function (docs) {
-      _entries = docs.slice(0, 50);
+      _entries = docs; // ya viene limitado a las 100 más recientes (firestore.js)
       _renderDropdown();
       _updateBadge();
       _updateCotBadge();
