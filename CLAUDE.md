@@ -50,7 +50,7 @@ Tokens principales (`:root` en system.css): `--bg/--bg-surface/--bg-elevated`, `
 
 ### JavaScript
 
-- **`js/system.js`** (647, cargado con `?v=3` en todas las páginas) — cursor (transform GPU-composited), nav + drawer móvil con focus trap, scroll spy, reveal `IntersectionObserver`, typing, counters, boot sequence, page transitions, paneles expand/collapse por hover. Cada bloque corre dentro de `safe(name, fn)` (try/catch + `console.error('[BUNKER] …')`): si uno falla, los demás siguen. La cortina `#page-transition` se quita antes que nada y, si el boot falla, `#main-content` se revela de inmediato. Al agregar un bloque nuevo, envolverlo igual.
+- **`js/system.js`** (561, cargado con `?v=4` en todas las páginas) — cursor (transform GPU-composited), nav + drawer móvil con focus trap, scroll spy, reveal `IntersectionObserver`, typing, counters, boot sequence, page transitions, paneles expand/collapse por hover. Cada bloque corre dentro de `safe(name, fn)` (try/catch + `console.error('[BUNKER] …')`): si uno falla, los demás siguen. La cortina `#page-transition` se quita antes que nada y, si el boot falla, `#main-content` se revela de inmediato. Al agregar un bloque nuevo, envolverlo igual.
 - **`js/pages/dashboard.js`** (115) — solo index: triángulo "equilibrio imposible" + formulario de contacto con validación inline.
 - **`js/pages/esencia.js`** (23), **`js/pages/proyectos.js`** (152).
 - **`js/pages/panel-ui.js`** (493) + **`css/pages/panel-ui.css`** (409) — `BNKToast`, `BNKConfirm`, `BNKSort`, `BNKPagination`, `BNKExport`. **Pertenecen al cotizador legacy** (`cotizador-munet/dashboard.html`), no al sitio público ni al panel Firebase (el panel tiene su propio port en `panel/js/table-helpers.js`).
@@ -220,7 +220,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=3`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 
