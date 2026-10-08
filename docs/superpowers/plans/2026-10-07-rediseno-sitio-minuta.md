@@ -1914,6 +1914,10 @@ const c = [...document.querySelectorAll('.mag-card')];
 
 Expected: todos `true` a 1440, 1025 y 375 px. A 1440 px, la tarjeta grande ocupa 2×2 y no quedan huecos raros en el grid. Si quedan, ajustar el orden de las tarjetas, no el CSS. Hacer clic en "VER TODOS LOS PROYECTOS": en local va a `/archivo`, que el servidor de Python no resuelve; probar con `archivo.html` directo. En producción debe resolver.
 
+- [ ] **Step 7b: Hacer indexable /archivo**
+
+Quitar el `<meta name="robots" content="noindex, follow">` de `archivo.html`, volver a agregar la entrada `<url>` de `/archivo` en `sitemap.xml` (misma forma que `/proyectos`) y, en `check_archivo` de `scripts/check_site.py`, invertir las dos aserciones (noindex debe estar ausente; el sitemap debe listar `/archivo`). Agregar `archivo.html` y `sitemap.xml` al `git add` del Step 8.
+
 - [ ] **Step 8: Commit y publicar**
 
 ```bash
