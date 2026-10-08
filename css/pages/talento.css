@@ -440,6 +440,7 @@
 .bnk-decl-name{
   font-family:'Space Mono',monospace;font-size:var(--fs-xs);
   letter-spacing:3px;text-transform:uppercase;color:var(--gold);
+  margin:0;font-weight:400;
 }
 .bnk-decl-quote{
   font-family:'Barlow',sans-serif;font-size:var(--fs-sm);

@@ -230,6 +230,9 @@ def check_home_copy(pages):
     metas = [e['attrs'].get('content', '') for e in p.elements if e['tag'] == 'meta']
     if any('Entertainment' in m for m in metas):
         errs.append('metadatos todavía dicen "Entertainment"')
+    body = [e for e in p.elements if e['tag'] == 'body']
+    if body and 'entertainment' in p.text_of(body[0]).lower():
+        errs.append('texto visible todavía dice "Entertainment"')
     return errs
 
 
@@ -335,8 +338,11 @@ def check_archivo(pages):
     canon = [e['attrs'].get('href') for e in p.elements if e['tag'] == 'link' and e['attrs'].get('rel') == 'canonical']
     if canon != ['https://bunkermx.com/archivo']:
         errs.append('canonical = %r' % canon)
-    if 'https://bunkermx.com/archivo' not in read_text('sitemap.xml'):
-        errs.append('sitemap.xml sin /archivo')
+    rob = [e['attrs'].get('content', '') for e in p.elements if e['tag'] == 'meta' and e['attrs'].get('name') == 'robots']
+    if not any('noindex' in r for r in rob):
+        errs.append('archivo.html sin noindex (hasta Task 8)')
+    if 'https://bunkermx.com/archivo' in read_text('sitemap.xml'):
+        errs.append('sitemap.xml no debe listar /archivo hasta Task 8')
     return errs
 
 
