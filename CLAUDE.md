@@ -33,11 +33,11 @@ Multi-page en español, core compartido (`system.css` + `system.js`) + módulos 
 
 ### Páginas
 
-`index.html` (457) landing/dashboard · `esencia.html` manifiesto · `servicios.html` producción/giras/venues/audiovisual/streaming · `talento.html` directorio del equipo · `proyectos.html` trayectoria · `munet.html` subsistema MUNET (enlaza al cotizador) · `hub.html` Hub Empresarial.
+`index.html` (457) landing/dashboard · `esencia.html` ADN BUNKER (ecosistema/mecanismo/resultado + Método BNK) · `servicios.html` 4 categorías de servicio · `talento.html` NOSOTROS (experiencia, equipo y Sistema BNK) · `proyectos.html` trayectoria · `archivo.html` archivo completo de proyectos con filtros (`proyectos.css` + `proyectos.js`), noindex hasta que /proyectos lo enlace · `munet.html` subsistema MUNET (enlaza al cotizador) · `hub.html` Hub Empresarial.
 
 Todas las páginas llevan: `<title>` + `meta description`, OG/Twitter Cards completos, `link rel=canonical` con dominio `https://bunkermx.com`, JSON-LD (`Organization` en index, `BreadcrumbList` en interiores), favicon/apple-touch-icon, `theme-color`, preconnect a Google Fonts. Enlaces internos siempre con URL limpia (`/servicios`).
 
-`robots.txt` (bloquea `/panel/`, `/cotizador-munet/dashboard`, `/capturas/`) y `sitemap.xml` (7 URLs limpias) viven en la raíz y deben actualizarse al agregar páginas.
+`robots.txt` (bloquea `/panel/`, `/cotizador-munet/dashboard`, `/capturas/`) y `sitemap.xml` (7 URLs limpias; `/archivo` queda excluido hasta la Task 8) viven en la raíz y deben actualizarse al agregar páginas.
 
 ### CSS
 
@@ -54,6 +54,14 @@ Tokens principales (`:root` en system.css): `--bg/--bg-surface/--bg-elevated`, `
 - **`js/pages/dashboard.js`** (115) — solo index: triángulo "equilibrio imposible" + formulario de contacto con validación inline.
 - **`js/pages/esencia.js`** (23), **`js/pages/proyectos.js`** (152).
 - **`js/pages/panel-ui.js`** (493) + **`css/pages/panel-ui.css`** (409) — `BNKToast`, `BNKConfirm`, `BNKSort`, `BNKPagination`, `BNKExport`. **Pertenecen al cotizador legacy** (`cotizador-munet/dashboard.html`), no al sitio público ni al panel Firebase (el panel tiene su propio port en `panel/js/table-helpers.js`).
+
+### Rediseño por etapas (minuta 2026-10)
+
+Plan: `docs/superpowers/plans/2026-10-07-rediseno-sitio-minuta.md`. Cada etapa va en una rama `web/etapa-N-*` y se integra en la rama `web/rediseno`, que se fusiona a `main` cuando se apruebe; publicar sigue requiriendo el deploy manual en cPanel. Cada etapa se integra cuando `python scripts/check_site.py` pasa y se revisó en navegador a 1440/1025/375 px.
+
+- `scripts/check_site.py` — verificación estática sin dependencias (enlaces internos, anclas, ids únicos, CSS versionados y comprobaciones por etapa). Correr antes de cada push.
+- `scripts/swap_block.py` — reemplaza/inserta bloques HTML entre marcadores exactos; aborta si un marcador no es único.
+- Los CSS de las páginas llevan `?v=N`: subirlo al modificar el archivo.
 
 ---
 

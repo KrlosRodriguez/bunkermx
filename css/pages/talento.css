@@ -409,3 +409,45 @@
     font-size:7px;
   }
 }
+
+/* ── Cifras del encabezado (NOSOTROS) ── */
+.page-header-meta--stats{line-height:1.5}
+.page-header-meta--stats div{white-space:nowrap}
+.page-header-meta--stats strong{
+  font-family:'Barlow Condensed',sans-serif;font-size:var(--fs-lg);
+  font-weight:700;color:var(--gold);margin-right:6px;letter-spacing:0;
+}
+
+/* ── Sistema BNK (movido desde ADN BUNKER) — siempre visible ── */
+.bnk-sistema{border-top:1px solid var(--border)}
+.bnk-sistema .hud-divider{margin-bottom:clamp(28px,4vw,48px)}
+.bnk-decl-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:var(--gap-card);
+}
+.bnk-decl-card{
+  background:var(--bg-elevated);border:1px solid var(--border);
+  padding:clamp(24px,2.5vw,36px);
+  display:flex;flex-direction:column;gap:12px;
+  transition:border-color .3s, box-shadow .3s;
+}
+.bnk-decl-card:hover{border-color:var(--border-gold);box-shadow:var(--glow-gold)}
+.bnk-decl-card--accent{border-color:var(--gold-dim);background:linear-gradient(160deg,var(--bg-elevated) 40%,rgba(198,163,80,.06))}
+.bnk-decl-num{
+  font-family:'Barlow Condensed',sans-serif;font-size:36px;
+  font-weight:800;color:rgba(198,163,80,.18);line-height:1;
+}
+.bnk-decl-name{
+  font-family:'Space Mono',monospace;font-size:var(--fs-xs);
+  letter-spacing:3px;text-transform:uppercase;color:var(--gold);
+  margin:0;font-weight:400;
+}
+.bnk-decl-quote{
+  font-family:'Barlow',sans-serif;font-size:var(--fs-sm);
+  font-weight:400;color:var(--text-mid);line-height:1.7;margin:0;
+}
+@media(max-width:1024px){.bnk-decl-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){
+  .bnk-decl-grid{grid-template-columns:1fr}
+  .page-header-meta--stats{text-align:left}
+}
