@@ -170,7 +170,7 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 
 - **`panel/img/logo-bunker.webp`** — copia local (Firebase Hosting solo sirve `/panel/`).
 - **`functions/index.js`** (41) — Cloud Function callable `createUser` (valida que el caller sea admin; roles permitidos admin/ventas/produccion/lectura). Node 18, firebase-admin ^11, firebase-functions ^4.
-- **`firestore.rules`** (159) — helpers `userData()`, `isAuthenticated()` (exige `activo == true`), `isAdmin()`, `isAdminOrVentas()`, `isAdminOrProduccion()`. `hasOnly()` en todas las colecciones con escritura. Matches para las 14 colecciones + subcollections (`actividad`, `documentos`, `servicios`, `bloques`, `tareas`) + collection-group rules para `servicios` y `bloques`. `auditLog` y `actividadGlobal` son append-only (read+create, sin update/delete).
+- **`firestore.rules`** (159) — helpers `userData()`, `isAuthenticated()` (exige `activo == true`), `isAdmin()`, `isAdminOrVentas()`, `isAdminOrProduccion()`. Autorización **solo por rol**: las listas blancas `hasOnly()` se quitaron el 2026-10-13 porque se habían escrito desde la especificación y no desde el código, y bloqueaban toda escritura (`Missing or insufficient permissions`). Solo quedan dos, verificadas contra el cliente: `usuarios` (protege escalación de rol) y `actividadGlobal`. No reintroducir sin probar antes con `firebase emulators:start --only firestore`: en un `update`, `request.resource.data` es el documento completo ya fusionado, así que cualquier campo heredado hace fallar la escritura. Matches para las 14 colecciones + subcollections (`actividad`, `documentos`, `servicios`, `bloques`, `tareas`) + collection-group rules para `servicios` y `bloques`. `auditLog` y `actividadGlobal` son append-only (read+create, sin update/delete).
 - **`storage.rules`** (34) — tres matches (`documentos/{clientes|proveedores|partners}/{entityId}/{tipo}/{fileName}`): read auth, create/update ≤10 MB con regex anclado PDF/JPG/PNG (clientes y proveedores admin+ventas; partners solo admin), delete solo admin vía lookup cross-service a Firestore.
 - **`firebase.json`** — `site: "bunker-panel"`, `public: "panel"`, rewrite `/dashboard` → `/dashboard.html`, sin catch-all. Headers en `**/*.html`: `Cache-Control: no-cache`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, HSTS 2 años con preload, `Permissions-Policy`, y CSP con `default-src 'none'`. En `**/*.{css,js}`: `max-age=3600`.
 - **`.firebaserc`** — default `bunker-panel`. Cuenta: admin@vanguardiaysoluciones.
@@ -199,7 +199,7 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 - **Popover para ver, modal para actuar**. Dos popovers: el de folio de cotización (BNK vinculadas, indicadores, acciones) y `#entityPopover` reutilizable para cliente/proveedor/partner (cotizaciones vinculadas, cada una expandible con `.expanded`).
 - **Vinculación MNT↔BNK**: 1:N. BNK lleva `folioMNT` apuntando al folio padre.
 - **Vinculación Cliente↔Cotización**: `clienteId` + `clienteNombre`. Badge "Vinculada" (FK formal) vs "Por nombre" (fuzzy match por empresa).
-- **`cotizacionProveedores`**: simétrica a `cotizacionPartners`. `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre }`, auto-creados al guardar BNK con conceptos de proveedor (`autoVinculado: true`).
+- **`cotizacionProveedores`**: simétrica a `cotizacionPartners`. `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre, montoTotal, servicios }`, auto-creados al guardar BNK con conceptos de proveedor (`autoVinculado: true`). A diferencia de `cotizacionPartners` (admin), es **admin+ventas**: la escribe `cotizar-bnk.js`, que corre con rol ventas. La auto-vinculación va fuera de la cadena de éxito del guardado — si falla, avisa con un toast pero la cotización y el PDF se entregan igual.
 - **Bloques de proveedor**: `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Los servicios llevan `bloqueId`.
 - **Doble precio**: `costoUnitario` (costo real) + `precioCliente`. Si `precioCliente` es 0, se usa `costoUnitario`.
 - **Documentos de expediente**: `{entidad}/{id}/documentos/{docId}` + Storage en `documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`. 7 tipos predefinidos + libres. Versionado con `vigente: true/false`. Indicador separado `N/M requeridos`, no afecta el % de completitud.
@@ -220,7 +220,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, `cotizar-bnk?v=9`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 
@@ -228,7 +228,7 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 
 - **App Check**: configurado en consola (reCAPTCHA v3, modo **Monitor**). **Código cliente desactivado** — el SDK está comentado en `dashboard.html` y la inicialización en `firebase-config.js`. La CSP ya permite `google.com` y `firebaseappcheck.googleapis.com`. Activar solo al pasar a Enforce, y verificando CSP primero: si reCAPTCHA se bloquea, `guard.js` deja la pantalla negra.
 - **XSS**: `_esc()` (DOM-based `textContent` → `innerHTML`) en reportes, pipeline, eventos, calendario, actividad, finanzas, cotizaciones, documentos, cotizar-mnt y cotizar-bnk. `clientes.js` y `proveedores.js` usan `_escapeHTML()` + `_safeUrl()` (nombres distintos, misma función).
-- **Firestore/Storage rules**: ver arriba. Roles admin / ventas / produccion / lectura. Datos sensibles (partners, pagos, finanzas) solo admin.
+- **Firestore/Storage rules**: ver arriba. Roles admin / ventas / produccion / lectura. Datos sensibles (partners, pagos, cuentasCobrar, cotizacionPartners) solo admin.
 - **Apps Script**: API key, rate limiting, validación de campos, honeypot, validación de origen.
 - **Audit log**: exports CSV → colección `auditLog`. Actividad cross-módulo → `actividadGlobal` vía `BNK_DB.logActividad()`.
 - **Password policy**: mínimo 8 caracteres en Firebase Auth.
@@ -241,7 +241,7 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 
 - **Dos copias de `BNKSort`/`BNKPagination`/`BNKExport`/`BNKHelpers`**: `js/pages/panel-ui.js` (cotizador legacy) y `panel/js/table-helpers.js` (panel). Son independientes; un fix en una no llega a la otra.
 - El export CSV antepone `'` a celdas que empiezan con `+`, así que teléfonos tipo `+52 …` salen como `'+52 …` en Excel. Es intencional (protección contra formula injection).
-- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore` y los `hasOnly()` de `firestore.rules`.
+- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore`.
 
 ## Otros archivos
 

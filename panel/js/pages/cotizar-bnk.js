@@ -815,15 +815,27 @@
     };
 
     BNK_DB.cotizaciones.create(firestoreData).then(function (saved) {
-      // Auto-link providers
-      var parsedConceptos = JSON.parse(firestoreData.conceptos);
-      return _autoVincularProveedores(saved.id, folio, parsedConceptos).then(function () {
-        doc.save('Cotizacion-BNK-' + folio + '.pdf');
-        BNKToast.ok('Cotización ' + folio + ' generada.');
-        BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: firestoreData.folio, detalle: 'Cotización BNK creada para ' + (firestoreData.empresa || '') });
-        _limpiar();
-        if (window.BNKFinanzas && BNKFinanzas.reload) BNKFinanzas.reload();
+      // La cotización ya quedó guardada: entregar PDF y confirmar primero.
+      doc.save('Cotizacion-BNK-' + folio + '.pdf');
+      BNKToast.ok('Cotización ' + folio + ' generada.');
+      BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: firestoreData.folio, detalle: 'Cotización BNK creada para ' + (firestoreData.empresa || '') });
+
+      // La auto-vinculación de proveedores es complementaria. Si falla no se
+      // marca el guardado como fallido: antes su error caía en el catch de
+      // abajo, mostraba "Error al guardar" y dejaba el botón en REINTENTAR
+      // con la cotización ya creada, así que reintentar la duplicaba.
+      var parsedConceptos = [];
+      try {
+        parsedConceptos = JSON.parse(firestoreData.conceptos);
+      } catch (e) {
+        parsedConceptos = [];
+      }
+      _autoVincularProveedores(saved.id, folio, parsedConceptos).catch(function (err) {
+        BNKToast.warn('Cotización guardada, pero no se pudieron vincular los proveedores: ' + ((err && err.message) || 'error desconocido'));
       });
+
+      _limpiar();
+      if (window.BNKFinanzas && BNKFinanzas.reload) BNKFinanzas.reload();
     }).catch(function (err) {
       BNKToast.error('Error al guardar: ' + err.message);
       btn.textContent = 'REINTENTAR';

@@ -20,24 +20,48 @@ service cloud.firestore {
       return isAuthenticated() && userData().rol in ['admin', 'ventas'];
     }
 
-    function isAdminOrProduccion() {
-      return isAuthenticated() && userData().rol in ['admin', 'produccion'];
+    function isAdminOrVentasOrProduccion() {
+      return isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'];
     }
+
+    // ────────────────────────────────────────────────────────────────
+    // Sobre la validación de campos (hasOnly)
+    //
+    // Las listas blancas de campos que existían aquí se escribieron desde
+    // la especificación, no desde el código del panel, y bloqueaban
+    // prácticamente toda escritura (ver 2026-10-13: "Missing or
+    // insufficient permissions" al guardar servicios, catálogo, pagos,
+    // partners, cotizaciones, documentos y usuarios).
+    //
+    // Dos motivos para no reintroducirlas tal cual:
+    //   1. En un update, request.resource.data es el documento COMPLETO
+    //      ya fusionado, no solo los campos modificados. Cualquier campo
+    //      heredado (p. ej. de la doble escritura Sheets → Firestore del
+    //      Apps Script, que usa otro esquema) hace fallar el update.
+    //   2. No hay emulador ni tests, así que un desfase entre la lista y
+    //      el cliente no se detecta hasta que el usuario no puede guardar.
+    //
+    // La autorización sigue siendo por rol (y por colección). Si se
+    // quiere volver a validar campos, hacerlo colección por colección y
+    // probándolo antes con `firebase emulators:start --only firestore`.
+    // ────────────────────────────────────────────────────────────────
 
     match /usuarios/{uid} {
       allow read: if isAdmin() || request.auth.uid == uid;
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','email','rol','activo','createdAt']);
+      // Lista blanca conservada a propósito: protege la escalación de rol.
+      // Mantener sincronizada con usuarios.js y functions/index.js.
+      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','email','rol','activo','createdAt','updatedAt']);
       allow delete: if isAdmin();
     }
 
     match /cotizaciones/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['folio','cliente','estado','fecha','fechaEvento','conceptos','total','tipo','clienteId','clienteNombre','folioMNT','marca','desgloseVenues','condiciones','subtotal','iva','descuento','notas','createdAt','fechaCreacion','evento','telefono','email','espacios','precioTotal','origen','estilo','empresa','contacto','eventoTipo','numPersonas','horario','montaje','extras','tipoEvento','reqAdicionales','comentarios','updatedAt','desgloseServicios','descuentoPorcentaje','anticipo','anticipoPorcentaje']);
+      allow create, update: if isAdminOrVentas();
       allow delete: if isAdmin();
 
       match /actividad/{actId} {
         allow read: if isAuthenticated();
-        allow create: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','texto','usuario','fecha','createdAt']);
+        allow create: if isAdminOrVentas();
       }
     }
 
@@ -45,9 +69,9 @@ service cloud.firestore {
       allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
 
-      match /documentos/{docId} {
+      match /documentos/{documentoId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
+        allow create, update: if isAdminOrVentas();
         allow delete: if isAdmin();
       }
     }
@@ -56,46 +80,42 @@ service cloud.firestore {
       allow read: if isAdminOrVentas();
       allow create, update, delete: if isAdminOrVentas();
 
-      match /documentos/{docId} {
+      match /documentos/{documentoId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
+        allow create, update: if isAdminOrVentas();
         allow delete: if isAdmin();
       }
 
       match /servicios/{srvId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','categoria','costoUnitario','precioCliente','unidad','descripcion','bloqueId','orden']);
-        allow delete: if isAdminOrVentas();
+        allow create, update, delete: if isAdminOrVentas();
       }
 
       match /bloques/{bloqueId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','precioManual','usaPrecioManual','orden']);
-        allow delete: if isAdminOrVentas();
+        allow create, update, delete: if isAdminOrVentas();
       }
     }
 
     match /catalogo/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdminOrVentas() && request.resource.data.keys().hasOnly(['nombre','categoria','precio','precioWeekend','precioMontaje','descripcion','unidad','activo','orden']);
-      allow delete: if isAdminOrVentas();
+      allow create, update, delete: if isAdminOrVentas();
     }
 
     match /eventos/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','fecha','espacio','cotizacionId','folio','estado','plantilla','descripcion','createdAt','updatedAt','cliente','fechaEvento','folioCotizacion','tareasCompletadas','tareasTotal']);
+      allow create, update: if isAdminOrVentasOrProduccion();
 
       match /tareas/{tareaId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAuthenticated() && userData().rol in ['admin', 'ventas', 'produccion'] && request.resource.data.keys().hasOnly(['nombre','descripcion','completada','orden','notas','responsable','responsableNombre','fechaLimite']);
+        allow create, update: if isAdminOrVentasOrProduccion();
         allow delete: if isAdmin();
       }
     }
 
     match /plantillas/{docId} {
       allow read: if isAuthenticated();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','tareas','createdAt','updatedAt']);
-      allow delete: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     match /config/{docId} {
@@ -106,33 +126,38 @@ service cloud.firestore {
     // ── Finanzas: solo admin puede leer y escribir datos bancarios/pagos ──
     match /partners/{docId} {
       allow read, delete: if isAdmin();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','empresa','email','telefono','rfc','curp','clabe','banco','titular','notas','activo','createdAt','comision','especialidad','swift','iban','noAplicaExtranjero','direccion','cp','ciudad','estado','regimen','usoCfdi','formaPago','metodoPago','domicilioFiscal']);
+      allow create, update: if isAdmin();
 
-      match /documentos/{docId} {
+      match /documentos/{documentoId} {
         allow read: if isAuthenticated();
-        allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['tipo','tipoLibre','nombre','url','storagePath','vigente','creadoPor','createdAt','contentType','size']);
+        allow create, update: if isAdmin();
         allow delete: if isAdmin();
       }
     }
 
     match /pagos/{docId} {
       allow read, delete: if isAdmin();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','partnerId','partnerNombre','monto','fecha','concepto','comprobante','notas','createdAt','tipo','estado','parcialidad','totalParcialidades','proveedorId','proveedorNombre']);
+      allow create, update: if isAdmin();
     }
 
     match /cotizacionPartners/{docId} {
       allow read, delete: if isAdmin();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','partnerId','partnerNombre','createdAt','autoVinculado']);
+      allow create, update: if isAdmin();
     }
 
     match /cuentasCobrar/{docId} {
       allow read, delete: if isAdmin();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['folioProyecto','folioFactura','prefactura','lider','cliente','proyecto','concepto','montoSinIva','fechaIngreso','estado','notas','createdAt','updatedAt']);
+      allow create, update: if isAdmin();
     }
 
+    // Tabla de vinculación cotización ↔ proveedor. No es dato financiero
+    // reservado: la crea automáticamente cotizar-bnk.js (admin+ventas) al
+    // guardar una cotización con conceptos de proveedor, y la leen el tab
+    // COTIZACIONES y REPORTES. Dejarla admin-only hacía fallar el guardado
+    // de BNK a los usuarios de ventas. El costo de proveedor que guarda
+    // (montoTotal) ya es visible para ventas en la colección proveedores.
     match /cotizacionProveedores/{docId} {
-      allow read, delete: if isAdmin();
-      allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['cotizacionId','cotizacionFolio','proveedorId','proveedorNombre','createdAt','autoVinculado']);
+      allow read, create, update, delete: if isAdminOrVentas();
     }
 
     match /auditLog/{docId} {
@@ -143,6 +168,7 @@ service cloud.firestore {
 
     match /actividadGlobal/{docId} {
       allow read: if isAuthenticated();
+      // Lista blanca verificada contra BNK_DB.logActividad() (firestore.js).
       allow create: if isAuthenticated() && request.resource.data.keys().hasOnly(['tipo','entidad','entidadId','referencia','detalle','usuario','usuarioId','timestamp']);
       allow update, delete: if false;
     }
