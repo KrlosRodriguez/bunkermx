@@ -437,7 +437,11 @@
           + '<div class="mnt-cal-grid">'
           + _buildCalendarDays(vid, venue, cm)
           + '</div>'
-          + '<div class="mnt-cal-legend"><span style="color:var(--ylw)">■</span> TARIFA WEEKEND (VIE-SÁB)</div>';
+          + '<div class="mnt-cal-legend-row">'
+          + '<span class="mnt-legend-chip mnt-legend-chip--weekend">TARIFA WEEKEND (VIE-SÁB)</span>'
+          + '<span class="mnt-legend-chip mnt-legend-chip--montaje">MONTAJE</span>'
+          + '<span class="mnt-legend-chip mnt-legend-chip--desmontaje">DESMONTAJE</span>'
+          + '</div>';
 
         // Montaje stepper
         var montLabel = venue.precioMontaje > 0 ? _formatMXN(venue.precioMontaje) + ' / DÍA' : 'SIN COSTO';
@@ -520,6 +524,12 @@
     return meses[calMonth.getMonth()] + ' ' + calMonth.getFullYear();
   }
 
+  function _fechasDerivadas(vid) {
+    var sel = _selected[vid];
+    if (!sel) return { montajeDates: [], desmontajeDates: [] };
+    return BNKOcupacion.derive(sel.eventDays, sel.montajeDays, sel.desmontajeDays);
+  }
+
   function _buildCalendarDays(vid, venue, calMonth) {
     var year = calMonth.getFullYear();
     var month = calMonth.getMonth();
@@ -535,6 +545,8 @@
 
     var isSalas = venue.concepto === 'SALAS CAPACIT.';
 
+    var derivadas = _fechasDerivadas(vid);
+
     for (var d = 1; d <= daysInMonth; d++) {
       var date = new Date(year, month, d);
       var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
@@ -542,11 +554,30 @@
       var isWeekend = dow === 5 || dow === 6; // Vie-Sáb
       var isPast = date < today;
       var isSelected = _selected[vid] && _selected[vid].eventDays.indexOf(iso) >= 0;
+      var esMontaje = derivadas.montajeDates.indexOf(iso) >= 0;
+      var esDesmontaje = derivadas.desmontajeDates.indexOf(iso) >= 0;
+      var ocupa = _ocupado(venue.concepto, iso);
       var disabled = isPast || (isSalas && isWeekend);
-      var disabledTitle = disabled ? ' title="' + (isPast ? 'Fecha pasada \u2014 no disponible' : 'No disponible para este tipo de evento') + '"' : '';
 
-      html += '<div class="mnt-cal-day' + (isWeekend ? ' weekend' : '') + (isSelected ? ' selected' : '') + (disabled ? ' disabled' : '')
-        + '"' + disabledTitle + ' data-vid="' + vid + '" data-date="' + iso + '">' + d + '</div>';
+      // Precedencia: ocupado por otra cotización > derivado de esta > no disponible.
+      var extraClass = '', title = '';
+      if (ocupa) {
+        extraClass = ' ocupado';
+        title = 'Ocupado \u2014 ' + ocupa.folio + ' (' + ocupa.tipo + ')';
+      } else if (esMontaje) {
+        extraClass = ' montaje';
+        title = 'Día de montaje';
+      } else if (esDesmontaje) {
+        extraClass = ' desmontaje';
+        title = 'Día de desmontaje';
+      } else if (disabled) {
+        title = isPast ? 'Fecha pasada \u2014 no disponible' : 'No disponible para este tipo de evento';
+      }
+
+      html += '<div class="mnt-cal-day' + (isWeekend ? ' weekend' : '') + (isSelected ? ' selected' : '')
+        + (disabled ? ' disabled' : '') + extraClass + '"'
+        + (title ? ' title="' + _esc(title) + '"' : '')
+        + ' data-vid="' + vid + '" data-date="' + iso + '">' + d + '</div>';
     }
     return html;
   }
