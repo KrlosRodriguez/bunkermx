@@ -4,11 +4,12 @@
 
   var _venues = [];      // datos de catalogo categoría Venues
   var _clientes = [];    // lista de clientes para autocompletado
-  var _selected = {};    // { docId: { montajeDays: 0, eventDays: [...], calMonth: Date } }
+  var _selected = {};    // { docId: { montajeDays: 0, desmontajeDays: 0, eventDays: [...], calMonth: Date } }
   var _currentStep = 1;
   var _tipo = 'privado'; // 'privado' o 'publico'
   var _pdfStyle = 'neon';
   var _expandedVid = null; // venue con calendario expandido (accordion)
+  var _ocupacion = {};   // { nombreVenue: { iso: { folio, tipo, cotizacionId } } }
 
   function init() {
     var wizard = document.getElementById('mntWizard');
@@ -20,11 +21,22 @@
 
     Promise.all([
       BNK_DB.catalogo.list(),
-      BNK_DB.clientes.list()
+      BNK_DB.clientes.list(),
+      BNK_DB.cotizaciones.list().catch(function (err) {
+        // Sin el índice se puede cotizar igual, solo sin verificación de ocupación.
+        console.error('[BNK] No se pudo cargar la ocupación:', err);
+        return null;
+      })
     ]).then(function (results) {
       var allCatalogo = results[0];
       _venues = allCatalogo.filter(function (c) { return c.categoria === 'Venues' && c.activo !== false; });
       _clientes = results[1];
+      if (results[2] === null) {
+        _ocupacion = {};
+        BNKToast.warn('No se pudo verificar la ocupación de los espacios. Revisa las fechas a mano.');
+      } else {
+        _ocupacion = BNKOcupacion.indexar(results[2]);
+      }
       if (loadingEl.parentNode) loadingEl.remove();
       if (wizard) wizard.style.opacity = '';
       _renderSpaces();
@@ -39,6 +51,11 @@
   // ── Utilidades ──
   function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
   function _formatMXN(n) { return '$' + (Number(n) || 0).toLocaleString('es-MX'); }
+
+  function _ocupado(venueNombre, iso) {
+    var porVenue = _ocupacion[venueNombre];
+    return (porVenue && porVenue[iso]) ? porVenue[iso] : null;
+  }
 
   function _generarFolio() {
     var now = new Date();
