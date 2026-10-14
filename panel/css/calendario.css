@@ -9,11 +9,13 @@
 .cal-filtro:hover{color:var(--wh);border-color:rgba(0,255,65,.3)}
 .cal-filtro.active{color:var(--g);border-color:var(--g);background:rgba(0,255,65,.06)}
 
-.cal-legend{display:flex;gap:16px;padding:0 30px 16px}
+.cal-legend{display:flex;flex-wrap:wrap;gap:16px;padding:0 30px 16px}
 .cal-legend-item{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 12px;border:1px solid}
 .cal-legend--cotizado{color:var(--ylw);border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06)}
 .cal-legend--confirmado{color:var(--g);border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.06)}
 .cal-legend--evento{color:var(--cyan,#00e5ff);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.06)}
+.cal-legend--montaje{color:var(--montaje);border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.06)}
+.cal-legend--desmontaje{color:var(--desmontaje);border-color:rgba(255,140,66,.3);background:rgba(255,140,66,.06)}
 
 /* Month grid */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:0 30px 30px;background:var(--bd)}
@@ -33,6 +35,8 @@
 .cal-bloque--cotizado{background:rgba(240,192,64,.15);color:var(--ylw);border-left:2px solid var(--ylw)}
 .cal-bloque--confirmado{background:rgba(0,255,65,.1);color:var(--g);border-left:2px solid var(--g)}
 .cal-bloque--evento{background:rgba(0,229,255,.1);color:var(--cyan,#00e5ff);border-left:2px solid var(--cyan,#00e5ff)}
+.cal-bloque--montaje{background:rgba(139,92,246,.12);color:var(--montaje);border-left:2px solid var(--montaje)}
+.cal-bloque--desmontaje{background:rgba(255,140,66,.12);color:var(--desmontaje);border-left:2px solid var(--desmontaje)}
 
 /* Overflow indicator */
 .cal-overflow{font-family:'Space Mono',monospace;font-size:9px;color:var(--g);cursor:pointer;padding:2px 6px;text-align:center}
@@ -65,6 +69,8 @@
 .cal-day-item-tipo--cotizado{background:var(--ylw)}
 .cal-day-item-tipo--confirmado{background:var(--g)}
 .cal-day-item-tipo--evento{background:var(--cyan,#00e5ff)}
+.cal-day-item-tipo--montaje{background:var(--montaje)}
+.cal-day-item-tipo--desmontaje{background:var(--desmontaje)}
 .cal-day-item-info{flex:1;min-width:0}
 .cal-day-item-cliente{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--wh)}
 .cal-day-item-evento{font-size:12px;color:var(--tx);margin-top:2px}

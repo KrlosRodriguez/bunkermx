@@ -370,7 +370,8 @@
 
     bloques.forEach(function (b) {
       var dtstart = b.fecha.replace(/-/g, '');
-      var uid = (b.folio || b.cotizacionId || b.eventoId || b.fecha + '-' + Math.random().toString(36).slice(2)) + '@bunker-panel';
+      var uid = (b.folio || b.cotizacionId || b.eventoId || b.fecha + '-' + Math.random().toString(36).slice(2))
+        + '-' + (b.papel || 'evento') + '-' + dtstart + '@bunker-panel';
 
       // Look up monto from cotizacion data
       var monto = 0;
@@ -387,7 +388,8 @@
       lines.push('UID:' + uid);
       lines.push('DTSTART;VALUE=DATE:' + dtstart);
       lines.push('DTEND;VALUE=DATE:' + dtstart);
-      lines.push('SUMMARY:' + _icsEscape(b.cliente + ' - ' + (b.evento || b.label)));
+      var prefijoICS = b.papel === 'montaje' ? 'MONTAJE — ' : (b.papel === 'desmontaje' ? 'DESMONTAJE — ' : '');
+      lines.push('SUMMARY:' + _icsEscape(prefijoICS + b.cliente + ' - ' + (b.evento || b.label)));
       lines.push('DESCRIPTION:' + _icsEscape(
         'Folio: ' + (b.folio || '') +
         '\\nEstado: ' + (b.estado || '') +
@@ -419,6 +421,8 @@
 
   function _buildTooltip(b) {
     var parts = [];
+    if (b.papel === 'montaje') parts.push('MONTAJE');
+    if (b.papel === 'desmontaje') parts.push('DESMONTAJE');
     if (b.cliente) parts.push(b.cliente);
     if (b.evento) parts.push(b.evento);
     if (b.folio) parts.push(b.folio);
@@ -430,26 +434,29 @@
     var bloques = [];
 
     _cotizaciones.forEach(function (c) {
-      var matchesFecha = false;
+      var esCerrada = BNKOcupacion.ESTADOS_BLOQUEAN.indexOf(c.estado) !== -1;
+
+      // Qué papel juega esta fecha en esta cotización.
+      var papel = null;
       if (c.desgloseVenues) {
         try {
           var desglose = JSON.parse(c.desgloseVenues);
-          for (var i = 0; i < desglose.length; i++) {
-            if (desglose[i].eventDays && desglose[i].eventDays.indexOf(fecha) !== -1) {
-              matchesFecha = true;
-              break;
-            }
+          for (var i = 0; i < desglose.length && !papel; i++) {
+            var f = BNKOcupacion.fechasDeVenue(desglose[i]);
+            if (f.evento.indexOf(fecha) !== -1) papel = 'evento';
+            else if (esCerrada && f.montaje.indexOf(fecha) !== -1) papel = 'montaje';
+            else if (esCerrada && f.desmontaje.indexOf(fecha) !== -1) papel = 'desmontaje';
           }
-        } catch (e) { /* ignore parse errors */ }
+        } catch (e) { /* documento ilegible: se ignora */ }
       }
-      if (!matchesFecha) {
+      if (!papel) {
         var fechaEvento = c.fechaEvento || c.fecha || c.createdAt || '';
         if (typeof fechaEvento === 'object' && fechaEvento.toDate) {
           fechaEvento = fechaEvento.toDate().toISOString().substring(0, 10);
         }
-        if (String(fechaEvento).substring(0, 10) === fecha) matchesFecha = true;
+        if (String(fechaEvento).substring(0, 10) === fecha) papel = 'evento';
       }
-      if (!matchesFecha) return;
+      if (!papel) return;
 
       if (_espacioFiltro !== 'todos') {
         var espacios = _normalizarTexto(c.espacios || '');
@@ -462,16 +469,21 @@
         if (!match) return;
       }
 
-      var estadosCerrados = ['Cerrada', 'En Producción', 'Ejecutado'];
-      var tipo = estadosCerrados.indexOf(c.estado) !== -1 ? 'confirmado' : 'cotizado';
+      var tipo;
+      if (papel === 'montaje' || papel === 'desmontaje') tipo = papel;
+      else tipo = esCerrada ? 'confirmado' : 'cotizado';
+
+      var prefijo = papel === 'montaje' ? 'MON ↑ ' : (papel === 'desmontaje' ? 'DES ↓ ' : '');
+
       bloques.push({
         tipo: tipo,
+        papel: papel,
         cliente: c.cliente || '',
         evento: c.evento || '',
         folio: c.folio || '',
         espacio: c.espacios || '',
         estado: c.estado || '',
-        label: (c.cliente || '').substring(0, 12),
+        label: prefijo + (c.cliente || '').substring(0, 12),
         cotizacionId: c.id
       });
     });
