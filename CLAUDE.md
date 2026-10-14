@@ -102,7 +102,8 @@ App interna Firebase. SDK compat **10.12.0** (app, auth, firestore, storage, fun
 - **`panel/js/auth.js`** (116) — `BNK_AUTH.currentUser()` es **función**, no propiedad. También `currentRole()`, `logout()`, `onReady(cb)`, `canEdit(section)`, `canView(section)`. Verifica `usuarios/{uid}.activo`.
 - **`panel/js/guard.js`** (30) — oculta `document.documentElement` con `visibility:hidden` hasta resolver auth, inyecta nombre/rol en header, oculta tabs según `data-require-role`. Si `firebase-config.js` falla, la página queda negra — de ahí la criticidad de los typeof guards.
 - **`panel/js/firestore.js`** (244) — `BNK_DB`, factory `collectionAPI(name, {orderBy})` con `list/get/create/update/delete/onSnapshot`.
-- **`panel/js/pdf-rebuild.js`** (417) — `BNKPdfRebuild.download(cotData, style)`: regenera PDFs MNT/BNK desde Firestore.
+- **`panel/js/ocupacion.js`** (101) — `BNKOcupacion`: aritmética de fechas ISO, derivación de días de montaje/desmontaje e índice de ocupación de venues. Sin DOM ni Firebase; lo comparten `cotizar-mnt.js` y `calendario.js`. Se verifica con `node scripts/test-ocupacion.js`.
+- **`panel/js/pdf-rebuild.js`** (426) — `BNKPdfRebuild.download(cotData, style)`: regenera PDFs MNT/BNK desde Firestore.
 - **`panel/js/pdf-workorder.js`** (205) — `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`: Orden de Trabajo para proveedor.
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64`.
 
@@ -126,12 +127,12 @@ Helper: `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })`
 | Módulo | Líneas | Qué hace |
 |---|---|---|
 | `cotizaciones.js` | 1170 | Tabla con KPIs, filtros, sort, paginación, estado editable, PDF por fila, popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, OT), modales de vinculación y modal de Orden de Trabajo |
-| `cotizar-mnt.js` | 1028 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, precio especial por venue, PDF dual, selector de marca |
+| `cotizar-mnt.js` | 1180 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, días de montaje y desmontaje derivados, bloqueo de fechas ocupadas, precio especial por venue, PDF dual, selector de marca |
 | `cotizar-bnk.js` | 1065 | Formulario de servicios/producción, filas de conceptos en modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete de catálogo, bloques expandibles + modal picker, auto-vinculación de proveedores, plantillas de condiciones, PDF dual |
 | `pipeline.js` | 529 | Kanban con drag & drop HTML5 + touch, filtros (tipo/fechas/monto), KPI pipeline activo, `BNKConfirm` en Cancelada/Perdida, snapshot listener con cleanup en `beforeunload` |
 | `clientes.js` | 1059 | CRUD, modal 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud, chips de marcas, cotizaciones vinculadas (Vinculada vs Por nombre), detección de duplicados |
 | `proveedores.js` | 1359 | CRUD, modal 6 tabs (+ Fiscales, Servicios), doble precio (`costoUnitario`/`precioCliente`), bloques de servicios con precio manual |
-| `calendario.js` | 862 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues` |
+| `calendario.js` | 874 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues`, bloques de montaje y desmontaje para cotizaciones cerradas |
 | `reportes.js` | 536 | 4 KPIs (revenue cerrado, costo estimado, margen bruto, conversión), Chart.js bar (revenue vs costo + línea de margen % en eje `yPct`) + doughnut (utilización venues), top clientes, funnel, filtro de período, export CSV con BOM UTF-8 |
 | `catalogo.js` | 364 | CRUD catálogo de precios con sort; campos extra (`precioWeekend`, `precioMontaje`) para categoría Venues |
 | `eventos.js` | 1056 | CRUD eventos, checklists con tareas inline (responsable desde usuarios, fechaLimite), detección de vencidas, drag reorder con batch `orden`, CRUD de plantillas, API cross-módulo `BNKEventos.crearEvento()` |
@@ -195,6 +196,8 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 - **Badges**: `.estado-{nombre}`, `.tipo-{MNT|BNK}`.
 - **Estados de cotización**: `Recorrido → Cotizada → Negociación → Cerrada → En Producción → Ejecutado → Cancelada → Perdida`. Las nuevas se crean en `Recorrido`. El legacy `'Nueva'` se mapea a `Recorrido` en pipeline, cotizaciones, reportes y finanzas.
 - **Fechas en cotizaciones**: `fecha` (ISO de creación), `fechaEvento` (primera fecha del evento), `createdAt` (server timestamp). Todos los módulos usan `d.fecha || d.createdAt` como fallback para registros legacy.
+- **Montaje y desmontaje MNT**: `desgloseVenues[i]` lleva `montajeDays`/`montajeDates` y `desmontajeDays`/`desmontajeDates`. Las fechas son días **naturales contiguos**: N antes del primer día de evento y M después del último, derivados con `BNKOcupacion.derive()`. El wizard no guarda esas fechas en su estado, las deriva al vuelo y solo las materializa al guardar. Los registros anteriores a oct-2026 traen `montajeDays` sin fechas: los lectores las derivan con la misma regla, no hay migración. Ambos se cobran a `precioMontaje`. `diasTotal` y `fechaEvento` siguen refiriéndose solo a días de evento.
+- **Ocupación de venues**: `BNKOcupacion.indexar(cotizaciones)` arma `{ nombreVenue: { iso: {folio, tipo} } }` con las cotizaciones MNT en `Cerrada`/`En Producción`/`Ejecutado`. El wizard lo usa para bloquear fechas ya tomadas. Empata por **nombre** de venue, no por id: si se renombra un venue en CATÁLOGO, la ocupación histórica deja de empatar.
 - **PDFs regenerables**: no se almacenan. Se reconstruyen on-the-fly con `BNKPdfRebuild.download(cotData, style)` — MNT lee `desgloseVenues` (JSON), BNK lee `conceptos` (JSON).
 - **Popover para ver, modal para actuar**. Dos popovers: el de folio de cotización (BNK vinculadas, indicadores, acciones) y `#entityPopover` reutilizable para cliente/proveedor/partner (cotizaciones vinculadas, cada una expandible con `.expanded`).
 - **Vinculación MNT↔BNK**: 1:N. BNK lleva `folioMNT` apuntando al folio padre.
@@ -220,7 +223,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=10`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, `cotizar-bnk?v=9`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales: `panel.css?v=11`, `calendario.css?v=9`, `ocupacion?v=1`, `pdf-rebuild?v=2`, `calendario?v=9`, `cotizar-mnt?v=9`, `firebase-config?v=6`, `firestore?v=4`, `table-helpers?v=1`, `proveedores?v=9`, `cotizaciones?v=7`, `reportes?v=10`, `finanzas?v=10`, `eventos?v=9`, `actividad?v=10`, `cotizar-bnk?v=9`, resto `v=8` o `v=1`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 
@@ -241,7 +244,7 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 
 - **Dos copias de `BNKSort`/`BNKPagination`/`BNKExport`/`BNKHelpers`**: `js/pages/panel-ui.js` (cotizador legacy) y `panel/js/table-helpers.js` (panel). Son independientes; un fix en una no llega a la otra.
 - El export CSV antepone `'` a celdas que empiezan con `+`, así que teléfonos tipo `+52 …` salen como `'+52 …` en Excel. Es intencional (protección contra formula injection).
-- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore`.
+- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore`. Los campos de montaje/desmontaje del panel son aditivos: el Apps Script no los escribe y los lectores los derivan. Si algún día se agrega montaje al cotizador público, hay que actualizar también `writeToFirestore`.
 
 ## Otros archivos
 
