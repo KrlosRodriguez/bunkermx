@@ -18,6 +18,8 @@
   --ylw:  #F0C040;
   --blu:  #00D4FF;
   --cyan: #00e5ff;
+  --montaje:    #8B5CF6;
+  --desmontaje: #FF8C42;
   --btn-py-sm: 6px;
   --btn-px-sm: 14px;
   --btn-py-md: 10px;
@@ -328,14 +330,25 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .mnt-cal-day.weekend{color:var(--ylw)}
 .mnt-cal-day.weekend.selected{background:rgba(240,192,64,.12);border-color:var(--ylw);color:var(--ylw)}
 .mnt-cal-day.disabled{opacity:.2;pointer-events:none}
+.mnt-cal-day.montaje{background:rgba(139,92,246,.14);border-color:var(--montaje);color:var(--montaje);font-weight:700;cursor:default;pointer-events:none}
+.mnt-cal-day.desmontaje{background:rgba(255,140,66,.14);border-color:var(--desmontaje);color:var(--desmontaje);font-weight:700;cursor:default;pointer-events:none}
+.mnt-cal-day.ocupado{background:rgba(255,68,85,.06);border-color:rgba(255,68,85,.35);color:var(--red);opacity:.55;cursor:not-allowed;pointer-events:none}
 .mnt-cal-day.empty{visibility:hidden}
 
 /* ── CALENDAR LEGEND ── */
 .mnt-cal-legend{font-family:'Space Mono',monospace;font-size:8px;color:var(--tx);letter-spacing:1px;margin-top:6px;opacity:.6}
+.mnt-cal-legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.mnt-legend-chip{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;display:flex;align-items:center;gap:4px}
+.mnt-legend-chip::before{content:'';width:8px;height:8px;flex-shrink:0;background:currentColor}
+.mnt-legend-chip--weekend{color:var(--ylw)}
+.mnt-legend-chip--montaje{color:var(--montaje)}
+.mnt-legend-chip--desmontaje{color:var(--desmontaje)}
 
 /* ── MONTAJE STEPPER ── */
+.mnt-steppers{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .mnt-montaje{display:flex;align-items:center;gap:10px;margin-top:8px;padding:8px 10px;background:rgba(0,255,65,.02);border:1px solid var(--bd)}
-.mnt-montaje-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px}
+.mnt-steppers .mnt-montaje{margin-top:0;justify-content:space-between}
+.mnt-montaje-label{font-family:'Space Mono',monospace;font-size:9px;color:var(--tx);letter-spacing:1px;flex:1}
 .mnt-montaje-btn{width:24px;height:24px;border:1px solid var(--bd);background:none;color:var(--g);font-size:14px;cursor:pointer;transition:all .2s}
 .mnt-montaje-btn:hover{background:rgba(0,255,65,.08);border-color:var(--g)}
 .mnt-montaje-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--g);min-width:26px;text-align:center}
