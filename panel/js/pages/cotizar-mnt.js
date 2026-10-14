@@ -50,6 +50,13 @@
 
   // ── Utilidades ──
   function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
+  // de un atributo hace falta este, o el valor puede romper el atributo.
+  function _escAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
   function _formatMXN(n) { return '$' + (Number(n) || 0).toLocaleString('es-MX'); }
 
   function _ocupado(venueNombre, iso) {
@@ -333,7 +340,7 @@
           card.classList.remove('selected');
           if (_expandedVid === vid) _expandedVid = null;
         } else {
-          _selected[vid] = { montajeDays: 0, eventDays: [], calMonth: new Date() };
+          _selected[vid] = { montajeDays: 0, desmontajeDays: 0, eventDays: [], calMonth: new Date() };
           card.classList.add('selected');
           _expandedVid = vid;
         }
@@ -392,6 +399,7 @@
     var parts = [];
     if (sel.eventDays.length > 0) parts.push(sel.eventDays.length + ' día' + (sel.eventDays.length > 1 ? 's' : '') + ' evento');
     if (sel.montajeDays > 0) parts.push(sel.montajeDays + ' montaje');
+    if (sel.desmontajeDays > 0) parts.push(sel.desmontajeDays + ' desmontaje');
     return parts.length > 0 ? parts.join(', ') : 'Sin fechas';
   }
 
@@ -443,13 +451,21 @@
           + '<span class="mnt-legend-chip mnt-legend-chip--desmontaje">DESMONTAJE</span>'
           + '</div>';
 
-        // Montaje stepper
+        // Steppers de montaje y desmontaje
         var montLabel = venue.precioMontaje > 0 ? _formatMXN(venue.precioMontaje) + ' / DÍA' : 'SIN COSTO';
-        html += '<div class="mnt-montaje">'
+        html += '<div class="mnt-steppers">'
+          + '<div class="mnt-montaje">'
           + '<span class="mnt-montaje-label">DÍAS DE MONTAJE (' + montLabel + ')</span>'
-          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="-1">−</button>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="montaje" data-dir="-1">&minus;</button>'
           + '<span class="mnt-montaje-val" id="montVal-' + vid + '">' + (sel.montajeDays || 0) + '</span>'
-          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="1">+</button>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="montaje" data-dir="1">+</button>'
+          + '</div>'
+          + '<div class="mnt-montaje">'
+          + '<span class="mnt-montaje-label">DÍAS DE DESMONTAJE (' + montLabel + ')</span>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="desmontaje" data-dir="-1">&minus;</button>'
+          + '<span class="mnt-montaje-val" id="desmVal-' + vid + '">' + (sel.desmontajeDays || 0) + '</span>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="desmontaje" data-dir="1">+</button>'
+          + '</div>'
           + '</div>';
 
         html += '</div>'; // close accordion-body
@@ -490,31 +506,35 @@
         var date = this.getAttribute('data-date');
         var days = _selected[vid].eventDays;
         var idx = days.indexOf(date);
-        if (idx >= 0) { days.splice(idx, 1); this.classList.remove('selected'); }
-        else { days.push(date); this.classList.add('selected'); }
-        // Update summary in header
-        var wrap = this.closest('.mnt-calendar-wrap');
-        if (wrap) {
-          var sumEl = wrap.querySelector('.mnt-accordion-summary');
-          if (sumEl) sumEl.textContent = _venueSummary(vid);
+        if (idx >= 0) { days.splice(idx, 1); }
+        else { days.push(date); }
+
+        var venue = _venues.find(function (v) { return v.id === vid; });
+        if (venue && _recortarDias(vid, venue)) {
+          BNKToast.warn('Se ajustaron los días de montaje o desmontaje por el cambio de fechas.');
         }
+        _renderCalendars();
       });
     });
 
     area.querySelectorAll('.mnt-montaje-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var vid = this.getAttribute('data-vid');
+        var tipo = this.getAttribute('data-tipo');
         var dir = parseInt(this.getAttribute('data-dir'));
         var sel = _selected[vid];
-        sel.montajeDays = Math.max(0, (sel.montajeDays || 0) + dir);
-        var valEl = document.getElementById('montVal-' + vid);
-        if (valEl) valEl.textContent = sel.montajeDays;
-        // Update summary in header
-        var wrap = this.closest('.mnt-calendar-wrap');
-        if (wrap) {
-          var sumEl = wrap.querySelector('.mnt-accordion-summary');
-          if (sumEl) sumEl.textContent = _venueSummary(vid);
+        var venue = _venues.find(function (v) { return v.id === vid; });
+        if (!sel || !venue) return;
+        var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+
+        if (dir > 0) {
+          var motivo = _porQueNoSePuede(vid, venue, tipo);
+          if (motivo) { BNKToast.warn(motivo); return; }
+          sel[prop] = (sel[prop] || 0) + 1;
+        } else {
+          sel[prop] = Math.max(0, (sel[prop] || 0) - 1);
         }
+        _renderCalendars();
       });
     });
   }
@@ -528,6 +548,68 @@
     var sel = _selected[vid];
     if (!sel) return { montajeDates: [], desmontajeDates: [] };
     return BNKOcupacion.derive(sel.eventDays, sel.montajeDays, sel.desmontajeDays);
+  }
+
+  var MESES_CORTO_MSG = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  function _fechaCorta(iso) {
+    var p = iso.split('-');
+    return parseInt(p[2], 10) + ' ' + MESES_CORTO_MSG[parseInt(p[1], 10) - 1];
+  }
+
+  // La n-ésima fecha (1-based) de montaje o desmontaje para las fechas actuales.
+  function _isoDe(sel, tipo, n) {
+    var ordenados = sel.eventDays.slice().sort();
+    return tipo === 'montaje'
+      ? BNKOcupacion.isoAdd(ordenados[0], -n)
+      : BNKOcupacion.isoAdd(ordenados[ordenados.length - 1], n);
+  }
+
+  // Motivo por el que ese día concreto no se puede reservar, o null si se puede.
+  function _motivoDia(vid, venue, tipo, iso) {
+    var sel = _selected[vid];
+    if (iso < BNKOcupacion.hoy()) return 'El ' + tipo + ' caería en una fecha pasada.';
+    // Defensivo: con la regla de derivación actual un día derivado nunca cae
+    // sobre un día de evento, pero si la regla cambia esto lo detiene.
+    if (sel.eventDays.indexOf(iso) >= 0) return 'Ese día ya es día de evento.';
+    var ocupa = _ocupado(venue.concepto, iso);
+    if (ocupa) return 'No disponible: ' + ocupa.folio + ' ocupa el ' + _fechaCorta(iso) + '.';
+    return null;
+  }
+
+  // null si se puede sumar un día más de ese tipo; si no, el motivo.
+  function _porQueNoSePuede(vid, venue, tipo) {
+    var sel = _selected[vid];
+    if (!sel.eventDays.length) return 'Selecciona primero los días del evento.';
+    var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+    return _motivoDia(vid, venue, tipo, _isoDe(sel, tipo, (sel[prop] || 0) + 1));
+  }
+
+  // Cuántos días de ese tipo siguen siendo válidos con las fechas de evento
+  // actuales. Revisa TODOS los días derivados, no solo el más externo: al mover
+  // las fechas del evento, los días de en medio también cambian de posición.
+  function _maxDias(vid, venue, tipo) {
+    var sel = _selected[vid];
+    if (!sel.eventDays.length) return 0;
+    var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+    var n = 0;
+    while (n < (sel[prop] || 0)) {
+      if (_motivoDia(vid, venue, tipo, _isoDe(sel, tipo, n + 1)) !== null) break;
+      n++;
+    }
+    return n;
+  }
+
+  // Tras cambiar los días de evento, baja los contadores al máximo válido.
+  function _recortarDias(vid, venue) {
+    var sel = _selected[vid];
+    var recortado = false;
+    ['montaje', 'desmontaje'].forEach(function (tipo) {
+      var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+      var max = _maxDias(vid, venue, tipo);
+      if ((sel[prop] || 0) > max) { sel[prop] = max; recortado = true; }
+    });
+    return recortado;
   }
 
   function _buildCalendarDays(vid, venue, calMonth) {
@@ -576,7 +658,7 @@
 
       html += '<div class="mnt-cal-day' + (isWeekend ? ' weekend' : '') + (isSelected ? ' selected' : '')
         + (disabled ? ' disabled' : '') + extraClass + '"'
-        + (title ? ' title="' + _esc(title) + '"' : '')
+        + (title ? ' title="' + _escAttr(title) + '"' : '')
         + ' data-vid="' + vid + '" data-date="' + iso + '">' + d + '</div>';
     }
     return html;
