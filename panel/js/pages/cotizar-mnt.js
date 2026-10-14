@@ -668,6 +668,7 @@
   function _calcular() {
     var rentaTotal = 0;
     var montajeTotal = 0;
+    var desmontajeTotal = 0;
     var desglose = [];
 
     Object.keys(_selected).forEach(function (vid) {
@@ -692,9 +693,12 @@
 
       var renta = (diasRegular * precioRegularEfectivo) + (diasWeekend * precioWeekendEfectivo);
       var montaje = (sel.montajeDays || 0) * (venue.precioMontaje || 0);
+      var desmontaje = (sel.desmontajeDays || 0) * (venue.precioMontaje || 0);
+      var derivadas = _fechasDerivadas(vid);
 
       rentaTotal += renta;
       montajeTotal += montaje;
+      desmontajeTotal += desmontaje;
 
       desglose.push({
         nombre: venue.concepto,
@@ -702,6 +706,9 @@
         diasWeekend: diasWeekend,
         diasTotal: diasRegular + diasWeekend,
         montajeDays: sel.montajeDays || 0,
+        montajeDates: derivadas.montajeDates,
+        desmontajeDays: sel.desmontajeDays || 0,
+        desmontajeDates: derivadas.desmontajeDates,
         eventDays: sel.eventDays.slice().sort(),
         precioRegular: precioRegularEfectivo,
         precioWeekend: precioWeekendEfectivo,
@@ -710,11 +717,12 @@
         precioMontaje: venue.precioMontaje || 0,
         renta: renta,
         montaje: montaje,
-        total: renta + montaje
+        desmontaje: desmontaje,
+        total: renta + montaje + desmontaje
       });
     });
 
-    var subtotal = rentaTotal + montajeTotal;
+    var subtotal = rentaTotal + montajeTotal + desmontajeTotal;
     var iva = Math.round(subtotal * 0.16);
     var total = subtotal + iva;
 
@@ -722,6 +730,7 @@
       desglose: desglose,
       rentaTotal: rentaTotal,
       montajeTotal: montajeTotal,
+      desmontajeTotal: desmontajeTotal,
       subtotal: subtotal,
       iva: iva,
       total: total
@@ -747,10 +756,13 @@
         + _esc(d.nombre)
         + '<span class="mnt-edit-venue" data-idx="' + idx + '" title="Editar fechas">&#9998;</span>'
         + '</div>'
-        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Fechas: ' + _esc(d.eventDays.join(', ')) + '</span></div>'
+        + (d.montajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--montaje)">Montaje: ' + _esc(d.montajeDates.join(', ')) + '</span></div>' : '')
+        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Evento: ' + _esc(d.eventDays.join(', ')) + '</span></div>'
+        + (d.desmontajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--desmontaje)">Desmontaje: ' + _esc(d.desmontajeDates.join(', ')) + '</span></div>' : '')
         + '<div class="mnt-resumen-row"><span>Días regulares (Lun-Jue): ' + d.diasRegular + '</span><span>' + _formatMXN(d.diasRegular * d.precioRegular) + '</span></div>'
         + (d.diasWeekend > 0 ? '<div class="mnt-resumen-row"><span>Días weekend (Vie-Sáb): ' + d.diasWeekend + '</span><span>' + _formatMXN(d.diasWeekend * d.precioWeekend) + '</span></div>' : '')
         + (d.montajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días montaje: ' + d.montajeDays + '</span><span>' + _formatMXN(d.montaje) + '</span></div>' : '')
+        + (d.desmontajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días desmontaje: ' + d.desmontajeDays + '</span><span>' + _formatMXN(d.desmontaje) + '</span></div>' : '')
         + '<div class="mnt-resumen-row" style="font-weight:700;color:var(--wh)"><span>Total espacio</span><span>' + _formatMXN(d.total) + '</span></div>'
         + '</div>';
     });
@@ -758,6 +770,7 @@
     html += '<div class="mnt-resumen" style="margin-top:16px">'
       + '<div class="mnt-resumen-row"><span>Renta total</span><span>' + _formatMXN(calc.rentaTotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>Montaje total</span><span>' + _formatMXN(calc.montajeTotal) + '</span></div>'
+      + '<div class="mnt-resumen-row"><span>Desmontaje total</span><span>' + _formatMXN(calc.desmontajeTotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>Subtotal (sin IVA)</span><span>' + _formatMXN(calc.subtotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>IVA (16%)</span><span>' + _formatMXN(calc.iva) + '</span></div>'
       + '<div class="mnt-resumen-total">' + _formatMXN(calc.total) + '</div>'
@@ -997,6 +1010,7 @@
       notas: (document.getElementById('mntNotas') || {}).value || '',
       rentaTotal: calc.rentaTotal,
       montajeTotal: calc.montajeTotal,
+      desmontajeTotal: calc.desmontajeTotal,
       subtotal: calc.subtotal,
       iva: calc.iva,
       total: calc.total,
