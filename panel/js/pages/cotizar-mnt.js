@@ -902,6 +902,12 @@
         doc.text(_formatMXN(d.montaje), W - margin - 4, y + 4, { align: 'right' });
         doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]); y += 7;
       }
+      if (d.desmontajeDays > 0) {
+        doc.text(d.desmontajeDays + ' día(s) desmontaje × ' + _formatMXN(d.precioMontaje), margin + 4, y + 4);
+        doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+        doc.text(_formatMXN(d.desmontaje), W - margin - 4, y + 4, { align: 'right' });
+        doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]); y += 7;
+      }
       y += 4;
     });
 
@@ -919,6 +925,8 @@
     doc.text(_formatMXN(calc.rentaTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('Montaje total', margin + 4, y + 4);
     doc.text(_formatMXN(calc.montajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
+    doc.text('Desmontaje total', margin + 4, y + 4);
+    doc.text(_formatMXN(calc.desmontajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('Subtotal (sin IVA)', margin + 4, y + 4);
     doc.text(_formatMXN(calc.subtotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('IVA (16%)', margin + 4, y + 4);

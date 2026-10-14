@@ -93,6 +93,7 @@
 
     var rentaTotal = Number(data.rentaTotal) || 0;
     var montajeTotal = Number(data.montajeTotal) || 0;
+    var desmontajeTotal = Number(data.desmontajeTotal) || 0;
     var subtotal = Number(data.subtotal) || 0;
     var iva = Number(data.iva) || 0;
     var total = Number(data.total) || 0;
@@ -151,6 +152,12 @@
         doc.text(_formatMXN(d.montaje), W - margin - 4, yRef.y + 4, { align: 'right' });
         doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]); yRef.y += 7;
       }
+      if ((d.desmontajeDays || 0) > 0) {
+        doc.text(d.desmontajeDays + ' día(s) desmontaje × ' + _formatMXN(d.precioMontaje), margin + 4, yRef.y + 4);
+        doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
+        doc.text(_formatMXN(d.desmontaje || 0), W - margin - 4, yRef.y + 4, { align: 'right' });
+        doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]); yRef.y += 7;
+      }
       yRef.y += 4;
     });
 
@@ -163,6 +170,8 @@
     doc.text(_formatMXN(rentaTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
     doc.text('Montaje total', margin + 4, yRef.y + 4);
     doc.text(_formatMXN(montajeTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
+    doc.text('Desmontaje total', margin + 4, yRef.y + 4);
+    doc.text(_formatMXN(desmontajeTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
     doc.text('Subtotal (sin IVA)', margin + 4, yRef.y + 4);
     doc.text(_formatMXN(subtotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
     doc.text('IVA (16%)', margin + 4, yRef.y + 4);
