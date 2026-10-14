@@ -55,6 +55,13 @@ Supuestos adicionales, asumidos explícitamente:
 
 ## 4. Regla de derivación
 
+La aritmética de fechas, la derivación y el índice de ocupación viven en un archivo compartido
+nuevo, **`panel/js/ocupacion.js`**, que expone el global `BNKOcupacion` y consumen tanto
+`cotizar-mnt.js` como `calendario.js`. Es el mismo patrón de `panel/js/table-helpers.js` y evita el
+gotcha documentado en CLAUDE.md de mantener dos copias divergentes del mismo helper. Como no toca
+el DOM ni Firebase, se verifica con `node scripts/test-ocupacion.js`, un script sin dependencias
+al estilo de `scripts/check_site.py`.
+
 El estado del wizard **no almacena** las fechas de montaje. `_selected[vid]` guarda únicamente
 `eventDays`, `montajeDays` y `desmontajeDays`; las fechas se calculan al vuelo con una función pura
 cada vez que se renderiza o se calcula, y solo se materializan al guardar en Firestore. Así no
@@ -230,8 +237,8 @@ si no:
     montaje y desmontaje no se muestran
 ```
 
-`montajeDates` / `desmontajeDates` se obtienen de un helper `_fechasOcupacion(cotizacion)` que
-aplica la derivación del punto 4 cuando los campos no existen (cotizaciones previas a este cambio).
+`montajeDates` / `desmontajeDates` se obtienen de `BNKOcupacion.fechasDeVenue(entry)`, que aplica la
+derivación del punto 4 cuando los campos no existen (cotizaciones previas a este cambio).
 
 Una misma fecha puede generar varios bloques de cotizaciones distintas (por ejemplo, montaje de una
 y evento de otra): se muestran como bloques independientes, y el contador "+N más" los incluye.
@@ -279,12 +286,14 @@ Los fondos de bloque siguen el patrón existente: `rgba(...,.12)` de relleno má
 
 | Archivo | Cambio | Cache busting |
 |---|---|---|
+| `panel/js/ocupacion.js` | **Nuevo.** `BNKOcupacion`: fechas ISO, derivación, lectura de un venue con respaldo legacy, índice de ocupación | `?v=1` |
+| `scripts/test-ocupacion.js` | **Nuevo.** Verificación en Node de `ocupacion.js`, sin dependencias | — |
 | `panel/js/pages/cotizar-mnt.js` | derivación, 2.º stepper, índice de ocupación, render, cálculo, resumen, PDF, payload | `?v=8` a `?v=9` |
 | `panel/js/pages/calendario.js` | tipos de bloque nuevos, derivación de respaldo, tooltips, iCal | `?v=8` a `?v=9` |
 | `panel/js/pdf-rebuild.js` | renglón de desmontaje | `?v=1` a `?v=2` |
 | `panel/css/panel.css` | 2 tokens, clases del wizard, bloque de 2 steppers, leyenda | `?v=10` a `?v=11` |
 | `panel/css/calendario.css` | clases en mes/semana/día, 2 chips de leyenda | `?v=8` a `?v=9` |
-| `panel/dashboard.html` | 2 chips de leyenda más las versiones de arriba | — |
+| `panel/dashboard.html` | `<script>` de `ocupacion.js`, 2 chips de leyenda, versiones de arriba | — |
 | `CLAUDE.md` | esquema de `desgloseVenues`, regla de derivación, nota en la doble escritura | — |
 
 Sin cambios en `firestore.rules`: el esquema vive dentro de un campo JSON string que ya se escribe.
@@ -297,8 +306,10 @@ cotizador público, hay que actualizar también `writeToFirestore`.
 
 ## 11. Verificación
 
-No hay tests automatizados en el repo. La verificación es manual contra `bunker-panel` después de
-`firebase deploy --only hosting --project bunker-panel`, con esta lista:
+La lógica de fechas de `panel/js/ocupacion.js` se verifica con `node scripts/test-ocupacion.js`
+(sin dependencias). El resto es verificación manual contra un canal de preview
+(`firebase hosting:channel:deploy montaje --project bunker-panel`), y solo al final a producción,
+con esta lista:
 
 1. Montaje 2 más desmontaje 1 sobre un evento del 14–15 de octubre: se pintan 12 y 13 en violeta y
    16 en naranja; el total suma 3 x `precioMontaje`.
