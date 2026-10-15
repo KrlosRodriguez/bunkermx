@@ -1,4 +1,8 @@
-const functions = require('firebase-functions');
+// firebase-functions v6 movió la API v2 a la raíz del paquete, así que la v1
+// (la que usa esta función: onCall(data, context)) se importa explícitamente.
+// Migrar a v2 implicaría borrar y recrear la función y revisar la CSP del
+// panel, porque cambia la URL; no vale la pena solo por el cambio de runtime.
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
