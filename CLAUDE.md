@@ -25,7 +25,7 @@ BUNKER Creatividad Empresarial: sitio público corporativo + panel operativo int
   - La sesión no se comparte entre el canal y producción (persistencia `SESSION`, por origen): hay que entrar en cada uno.
 - **Reglas**: `firebase deploy --only firestore:rules --project bunker-panel` / `--only storage`.
 - **Deploy completo panel**: `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`.
-- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (plan Blaze, Node 18).
+- **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (plan Blaze, Node 22).
 - No hay build ni lint en ningún subsistema. El único test automatizado es `node scripts/test-ocupacion.js` (sin dependencias), que cubre `panel/js/ocupacion.js`.
 - **`node --check` no basta.** Valida sintaxis, no alcance: un `function` insertado por error dentro del cuerpo de otra función pasa limpio y revienta en runtime (pasó el 2026-10-14 con `_escAttr` dentro de `_esc`, y dejó el tab CALENDARIO en blanco). Toda tarea que toque JS del panel se verifica **cargando la página en el navegador** y leyendo la consola, no solo con comprobaciones estáticas.
 
@@ -257,7 +257,6 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 - **Hay 16 copias de `_esc()`/`_escapeHTML()`, una por módulo.** Desde el 2026-10-15 todas escapan también `"` y `'`, así que sirven dentro de atributos; antes eran `textContent` → `innerHTML` y un nombre con comillas rompía el atributo. Al tocar una, tocar todas (o la asimetría vuelve). Los valores falsy siguen devolviendo cadena vacía: si el `0` importa, usar `_escAttr()`.
 - **El `?v=N` hay que subirlo también entre deploys de la misma tarea.** Una vez que una versión se sirvió (aunque sea a un canal de preview), el CDN y el navegador la cachean 1 h: cualquier cambio posterior necesita número nuevo o sigues viendo el archivo viejo.
 - **El Apps Script sobrescribe el documento completo en Firestore.** `writeToFirestore()` hace `PATCH` sin `updateMask`, así que los campos que el formulario legacy no manda se **borran**. En `clientes` y `proveedores` eso incluye lo que solo existe en el panel (`marcas`, `noAplicaExtranjero`, `createdAt`): editar un cliente desde `cotizador-munet/dashboard.html` lo vacía en el panel. Mientras no se agregue el `updateMask`, los expedientes se editan desde el panel.
-- **Cloud Functions sigue en Node 18**, runtime ya fuera de soporte en Google: el próximo `firebase deploy --only functions` puede ser rechazado. Subir a Node 20/22 implica también `firebase-functions` v5+ (donde `functions.https.onCall` del import raíz pasa a ser v2) — no es un cambio de una línea.
 - **El arranque del panel lee `cotizaciones` cuatro veces** (tres listeners `onSnapshot` en COTIZACIONES, PIPELINE y CALENDARIO + un `list()` en COTIZAR MNT) y cada módulo carga sus datos aunque su tab no se abra. Con el volumen actual no se nota; es lo primero que hay que mirar si las lecturas de Firestore se disparan.
 - **Los headers de `firebase.json` se aplican por ruta de petición, no de archivo.** Por eso `/dashboard` necesita su propio bloque además de `**/*.html`. Si se agrega otro rewrite con URL limpia, hay que repetirle las cabeceras o nacerá sin CSP.
 
