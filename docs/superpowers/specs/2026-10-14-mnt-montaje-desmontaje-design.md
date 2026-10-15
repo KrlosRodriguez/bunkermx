@@ -92,7 +92,7 @@ El botón de incremento **no incrementa** y muestra un `BNKToast.warn` cuando el
 | No hay días de evento seleccionados | `Selecciona primero los días del evento.` |
 | Cae en una fecha pasada | `El <montaje\|desmontaje> caería en una fecha pasada.` |
 | Choca con un día ocupado por una cotización cerrada del mismo venue | `No disponible: <folio> ocupa el <d mmm>.` |
-| Choca con un día de evento del mismo venue (fechas con huecos) | `Ese día ya es día de evento.` |
+| Choca con un día de evento del mismo venue | `Ese día ya es día de evento.` — **inalcanzable** con la regla de derivación actual (los días derivados caen siempre fuera del rango del evento); se deja como guard por si la regla cambia |
 
 Los mensajes se parametrizan con la palabra `montaje` o `desmontaje` según el stepper que se pulsó.
 
@@ -161,8 +161,12 @@ _ocupacion = {
 
 - Se incluyen solo cotizaciones con `fuente === 'MNT'` y estado en
   `['Cerrada','En Producción','Ejecutado']`.
-- Se indexa por **nombre** del venue, porque `desgloseVenues` guarda `nombre` (el `concepto` del
-  catálogo), no el id del documento.
+- Se indexa por **nombre** del venue, no por id del documento. Hay **dos esquemas** de
+  `desgloseVenues` conviviendo en la misma colección: el panel escribe `nombre` y `montajeDays`;
+  el cotizador público, vía `writeToFirestore` del Apps Script, escribe `name` y `montajeDias`
+  (`google-apps-script-munet.js:282-294`). `BNKOcupacion` acepta los dos, con prioridad al del
+  panel. Omitir el segundo dejaba sin bloquear toda reserva nacida en la web, que es justo el
+  caso que la feature existe para cubrir.
 - Si `cotizaciones.list()` falla, el wizard **no se bloquea**: se registra en consola, `_ocupacion`
   queda vacío y se muestra un toast de advertencia. Cotizar sin verificación de ocupación es
   preferible a no poder cotizar.
