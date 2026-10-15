@@ -853,15 +853,17 @@
     return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
   }
 
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
   function _esc(s) {
     if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
-  // de un atributo hace falta este, o el valor puede romper el atributo.
+  // Igual que _esc() pero sin tratar los valores falsy como cadena vacía:
+  // _escAttr(0) devuelve '0'. Para atributos donde el cero importa.
   function _escAttr(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')

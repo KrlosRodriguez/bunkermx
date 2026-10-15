@@ -18,9 +18,6 @@
   var _sortDir = 'asc';
   var _page = 1;
 
-  // Focus trap cleanup
-  var _focusTrapCleanup = null;
-
   // ── Mapeo campo backend → id de elemento HTML ──
   // NOTA: 'marcas' se maneja aparte como chips (array), no como input simple
   var CAMPO_ID = {
@@ -70,11 +67,13 @@
   var CAMPOS_EXTRANJERO = ['bancoExtranjero', 'divisa', 'titularExtranjero', 'cuentaIban', 'swiftBic', 'abaRouting', 'bancoIntermediario', 'swiftIntermediario'];
 
   // ── Helpers internos ──
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
   function _escapeHTML(str) {
     if (!str) return '';
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // Valida que una URL sea http/https antes de usarla en href
@@ -244,23 +243,16 @@
     _clientes.forEach(function (c) { sumPct += calcCompletitud(c); });
     var avgPct = total > 0 ? Math.round(sumPct / total) : 0;
 
-    if (window.BNKAnimate) {
-      BNKAnimate.staggerCountUp([
-        { element: _getEl('indCliTotal'), value: total, options: {} },
-        { element: _getEl('indCliActivos'), value: activos, options: {} },
-        { element: _getEl('indCliInactivos'), value: inactivos, options: {} },
-        { element: _getEl('indCliCompletitud'), value: avgPct, options: { suffix: '%' } }
-      ]);
-    } else {
-      var elTotal = _getEl('indCliTotal');
-      var elActivos = _getEl('indCliActivos');
-      var elInactivos = _getEl('indCliInactivos');
-      var elComp = _getEl('indCliCompletitud');
-      if (elTotal) elTotal.textContent = total;
-      if (elActivos) elActivos.textContent = activos;
-      if (elInactivos) elInactivos.textContent = inactivos;
-      if (elComp) elComp.textContent = avgPct + '%';
-    }
+    // (BNKAnimate vive en js/pages/panel-ui.js, del cotizador legacy: el panel
+    // no lo carga, así que los KPIs se escriben directo.)
+    var elTotal = _getEl('indCliTotal');
+    var elActivos = _getEl('indCliActivos');
+    var elInactivos = _getEl('indCliInactivos');
+    var elComp = _getEl('indCliCompletitud');
+    if (elTotal) elTotal.textContent = total;
+    if (elActivos) elActivos.textContent = activos;
+    if (elInactivos) elInactivos.textContent = inactivos;
+    if (elComp) elComp.textContent = avgPct + '%';
   }
 
   // ── renderTable ──
@@ -509,11 +501,8 @@
     // Hacer visible el overlay
     overlay.classList.add('visible');
 
-    // Focus trap
-    if (_focusTrapCleanup) _focusTrapCleanup();
-    if (window.BNKAccessibility) {
-      _focusTrapCleanup = BNKAccessibility.trapFocus(overlay, cerrarModal);
-    }
+    // El focus trap y el ARIA de los modales los pone el helper genérico de
+    // dashboard.html; BNKAccessibility es del cotizador legacy y aquí no carga.
   }
 
   // ── Renderizar cotizaciones vinculadas ──
@@ -554,9 +543,6 @@
     if (!overlay) return;
     overlay.classList.remove('visible');
     BNKDocumentos.destroy();
-
-    // Cleanup focus trap
-    if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
 
     // Re-habilitar inputs por si venía de modo 'ver'
     var inputs = overlay.querySelectorAll('input, select, textarea');
@@ -1012,6 +998,16 @@
       countEl.textContent = '0';
       listEl.innerHTML = '<div class="entity-popover-empty">Error al cargar cotizaciones</div>';
     });
+
+    // En pantallas chicas lo coloca el CSS (fijo abajo, de borde a borde): si
+    // aquí se escriben top/left inline, el estilo inline le gana a la media
+    // query y el popover se queda recortado fuera de la pantalla.
+    if (window.innerWidth <= 600) {
+      pop.style.top = '';
+      pop.style.left = '';
+      pop.classList.add('visible');
+      return;
+    }
 
     // Position
     var rect = anchorEl.getBoundingClientRect();

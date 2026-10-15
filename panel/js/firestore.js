@@ -56,7 +56,12 @@
         return db.collection(name).doc(id).delete();
       },
 
-      onSnapshot: function (callback, filters) {
+      // onSnapshot(cb, onError) o onSnapshot(cb, filters, onError). Los módulos
+      // pasaban el manejador de error en el segundo lugar, donde esto esperaba
+      // filtros: el error nunca llegaba y un listener caído (permisos, red)
+      // dejaba la tabla en "CARGANDO..." para siempre y sin avisar.
+      onSnapshot: function (callback, filters, onError) {
+        if (typeof filters === 'function') { onError = filters; filters = null; }
         var ref = db.collection(name);
         if (filters) {
           Object.keys(filters).forEach(function (key) {
@@ -72,6 +77,9 @@
             return d;
           });
           callback(docs);
+        }, function (err) {
+          if (onError) onError(err);
+          else console.error('[BNK] onSnapshot ' + name + ':', err);
         });
       }
     };

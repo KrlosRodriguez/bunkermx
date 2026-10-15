@@ -70,7 +70,14 @@
   }
 
   // ── Utilidades ──
-  function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
+  function _esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
   function _formatMXN(n) { return '$' + (Number(n) || 0).toLocaleString('es-MX'); }
   function _modal(id, show) {
     var el = document.getElementById(id);
@@ -1220,6 +1227,16 @@
         html += '</div>';
       });
       listEl.innerHTML = html;
+    }
+
+    // En pantallas chicas lo coloca el CSS (fijo abajo, de borde a borde): si
+    // aquí se escriben top/left inline, el estilo inline le gana a la media
+    // query y el popover se queda recortado fuera de la pantalla.
+    if (window.innerWidth <= 600) {
+      pop.style.top = '';
+      pop.style.left = '';
+      pop.classList.add('visible');
+      return;
     }
 
     // Position

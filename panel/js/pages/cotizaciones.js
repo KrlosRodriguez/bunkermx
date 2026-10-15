@@ -10,6 +10,7 @@
   var _unsubscribe = null;
   var _firstLoad = true;
   var _canEdit = false;
+  var _isAdmin = false;
 
   // Datos vinculados (para popover)
   var _cotPartners = [];
@@ -22,6 +23,15 @@
 
   function init() {
     _canEdit = BNK_AUTH.canEdit('cotizaciones');
+    _isAdmin = BNK_AUTH.currentRole() === 'admin';
+
+    // Acciones que solo el admin puede completar según firestore.rules:
+    // borrar cotizaciones y vincular partners (partners y cotizacionPartners
+    // son admin-only). Mostrarlas a ventas o lectura solo llevaba a un
+    // "Missing or insufficient permissions".
+    var btnVincPartner = document.getElementById('popVincPartner');
+    if (btnVincPartner && !_isAdmin) btnVincPartner.style.display = 'none';
+
     _bindFilters();
     _bindTableEvents();
     _bindSortHeaders();
@@ -218,7 +228,7 @@
       html += '</td>'
         + '<td>'
         + '<button class="tbl-action tbl-action--pdf" data-cot-pdf="' + _esc(d.id) + '" title="Descargar PDF">&#128196;</button>'
-        + '<button class="tbl-action tbl-action--del" data-cot-del="' + _esc(d.id) + '" title="Eliminar">&times;</button>'
+        + (_isAdmin ? '<button class="tbl-action tbl-action--del" data-cot-del="' + _esc(d.id) + '" title="Eliminar">&times;</button>' : '')
         + '</td>'
         + '</tr>';
     });
@@ -565,6 +575,16 @@
       } else {
         clienteIndicator.innerHTML = '<span class="pop-badge pop-badge--none">Sin cliente</span>';
       }
+    }
+
+    // En pantallas chicas lo coloca el CSS (fijo abajo, de borde a borde): si
+    // aquí se escriben top/left inline, el estilo inline le gana a la media
+    // query y el popover se queda recortado fuera de la pantalla.
+    if (window.innerWidth <= 600) {
+      pop.style.top = '';
+      pop.style.left = '';
+      pop.classList.add('visible');
+      return;
     }
 
     // Position popover (fixed)
@@ -1145,11 +1165,13 @@
     return '$' + (Number(n) || 0).toLocaleString('es-MX');
   }
 
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
   function _esc(s) {
     if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   BNK_AUTH.onReady(function (user) {

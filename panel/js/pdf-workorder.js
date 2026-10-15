@@ -7,6 +7,10 @@
   function download(cotData, proveedorData, notas) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
     var W = 210, margin = 20, contentW = W - margin * 2, H = 297;
 
     // Corporative palette
@@ -67,7 +71,7 @@
       doc.setFontSize(8); doc.setTextColor(SUB_TEXT[0], SUB_TEXT[1], SUB_TEXT[2]);
       doc.text(label + ':', margin + 2, y + 4);
       doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]);
-      doc.text(String(value || '\u2014'), margin + 40, y + 4);
+      doc.text(String(value || '-'), margin + 40, y + 4);
       y += 6;
     }
 
@@ -158,7 +162,7 @@
         checkPage(8);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold');
         doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-        doc.text('\u25b8 ' + bName, margin + 2, y + 4);
+        doc.text('\u00bb ' + bName, margin + 2, y + 4);
         doc.setFont('helvetica', 'normal'); y += 6;
 
         bloques[bName].forEach(function (c) {

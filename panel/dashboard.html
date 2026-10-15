@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=11">
+<link rel="stylesheet" href="css/panel.css?v=14">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -16,9 +16,9 @@
 <!-- App Check SDK: descomentar cuando se active Enforce mode -->
 <!-- <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check-compat.js"></script> -->
 <script src="js/firebase-config.js?v=6"></script>
-<script src="js/auth.js"></script>
-<script src="js/guard.js"></script>
-<script src="js/firestore.js?v=4"></script>
+<script src="js/auth.js?v=2"></script>
+<script src="js/guard.js?v=2"></script>
+<script src="js/firestore.js?v=5"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
 <script defer src="js/logo-data.js?v=2"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
@@ -1317,7 +1317,9 @@
           <option value="Ejecutado">Ejecutados</option>
         </select>
         <button class="panel-btn-primary" id="evtBtnNuevo" data-require-role="admin,ventas,produccion">+ NUEVO EVENTO</button>
-        <button class="panel-btn-secondary fin-admin-only" id="evtBtnPlantillas">PLANTILLAS</button>
+        <!-- La visibilidad la decide eventos.js por rol. No usar .fin-admin-only:
+             esa clase solo se activa dentro de #sec-finanzas. -->
+        <button class="panel-btn-secondary" id="evtBtnPlantillas" style="display:none">PLANTILLAS</button>
       </div>
     </div>
     <div id="evtLoading" class="dash-loading">CARGANDO EVENTOS...</div>
@@ -2182,6 +2184,107 @@
     document.body.classList.remove('bnk-offline');
   });
 
+  // ── Accesibilidad de modales: role/aria-modal + focus trap genérico ──
+  // Los 20 overlays del panel se declaraban como <div> pelados y sin trampa de
+  // foco (el BNKAccessibility del cotizador legacy nunca se carga aquí), así
+  // que con el teclado se podía tabular por detrás del modal abierto.
+  (function () {
+    var SEL = '.bnk-overlay, .bnk-confirm-overlay';
+    var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), '
+      + 'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    var overlays = document.querySelectorAll(SEL);
+    var _prevFocus = null;
+    var _seq = 0;
+
+    function _caja(ov) { return ov.querySelector('.bnk-modal, .bnk-confirm-box') || ov.firstElementChild; }
+
+    function _enfocables(ov) {
+      return Array.prototype.filter.call(ov.querySelectorAll(FOCUSABLE), function (el) {
+        return el.offsetWidth > 0 || el.offsetHeight > 0;
+      });
+    }
+
+    function _visible() {
+      for (var i = overlays.length - 1; i >= 0; i--) {
+        if (overlays[i].classList.contains('visible')) return overlays[i];
+      }
+      return null;
+    }
+
+    overlays.forEach(function (ov) {
+      var caja = _caja(ov);
+      if (!caja) return;
+      caja.setAttribute('role', 'dialog');
+      caja.setAttribute('aria-modal', 'true');
+      var titulo = caja.querySelector('.bnk-modal-title, .bnk-confirm-msg, h2, h3');
+      if (titulo) {
+        if (!titulo.id) titulo.id = 'bnkModalTitulo' + (++_seq);
+        caja.setAttribute('aria-labelledby', titulo.id);
+      }
+
+      // Al abrir: recordar el foco previo y mover el foco dentro del modal.
+      // Al cerrar: devolverlo a donde estaba.
+      new MutationObserver(function () {
+        if (ov.classList.contains('visible')) {
+          if (!ov.contains(document.activeElement)) _prevFocus = document.activeElement;
+          var items = _enfocables(ov);
+          if (items.length && !ov.contains(document.activeElement)) items[0].focus();
+        } else if (_prevFocus && !_visible()) {
+          try { _prevFocus.focus(); } catch (e) {}
+          _prevFocus = null;
+        }
+      }).observe(ov, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // Tab cíclico dentro del modal abierto
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab') return;
+      var ov = _visible();
+      if (!ov) return;
+      var items = _enfocables(ov);
+      if (!items.length) return;
+      var primero = items[0], ultimo = items[items.length - 1];
+      if (!ov.contains(document.activeElement)) { e.preventDefault(); primero.focus(); return; }
+      if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    });
+  })();
+
+  // ── Texto seguro para los PDFs ──
+  // jsPDF, con las fuentes estándar (WinAnsi), escribe en UTF-16 cualquier
+  // cadena que traiga un carácter fuera de Latin-1 y el lector la pinta con
+  // un byte nulo entre letra y letra: "C o t i z a c i ó n". Pasaba con la
+  // raya larga del título y con el ▸ de los bloques, y pasa con cualquier
+  // texto pegado desde Word (comillas tipográficas, puntos suspensivos…).
+  window.BNKPdfTxt = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/[‐-―]/g, '-')
+      .replace(/[‘’‚‛]/g, "'")
+      .replace(/[“”„‟]/g, '"')
+      .replace(/…/g, '...')
+      .replace(/[•▸►●·]/g, '»')
+      .replace(/→/g, '->')
+      .replace(/[   ]/g, ' ')
+      .replace(/[^\x00-\xFF]/g, '?');
+  };
+
+  // Se aplica envolviendo el text() del documento recién creado, así no hay que
+  // acordarse en cada una de las ~60 llamadas. Cada generador lo llama justo
+  // después de `new jsPDF(...)`.
+  window.BNKPdfSanea = function (doc) {
+    if (!doc || doc.__bnkSaneado) return doc;
+    var original = doc.text.bind(doc);
+    doc.text = function (texto, x, y, opciones, transform) {
+      if (typeof texto === 'string') texto = BNKPdfTxt(texto);
+      else if (Object.prototype.toString.call(texto) === '[object Array]') {
+        texto = texto.map(function (t) { return typeof t === 'string' ? BNKPdfTxt(t) : t; });
+      }
+      return original(texto, x, y, opciones, transform);
+    };
+    doc.__bnkSaneado = true;
+    return doc;
+  };
+
   // ── Currency format helper ──
   window.BNKFmt = {
     money: function (n) {
@@ -2193,24 +2296,24 @@
 </script>
 
 <!-- PDF rebuild + Módulos de página -->
-<script src="js/pdf-rebuild.js?v=2"></script>
-<script src="js/pdf-workorder.js?v=1"></script>
+<script src="js/pdf-rebuild.js?v=3"></script>
+<script src="js/pdf-workorder.js?v=2"></script>
 <script src="js/table-helpers.js?v=1"></script>
 <script src="js/ocupacion.js?v=1"></script>
-<script src="js/pages/documentos.js?v=1"></script>
-<script src="js/pages/cotizaciones.js?v=7"></script>
-<script src="js/pages/pipeline.js?v=8"></script>
-<script src="js/pages/clientes.js?v=8"></script>
-<script src="js/pages/proveedores.js?v=9"></script>
-<script src="js/pages/calendario.js?v=10"></script>
-<script src="js/pages/reportes.js?v=10"></script>
-<script src="js/pages/catalogo.js?v=7"></script>
-<script src="js/pages/usuarios.js?v=7"></script>
-<script src="js/pages/eventos.js?v=9"></script>
-<script src="js/pages/cotizar-mnt.js?v=9"></script>
-<script src="js/pages/cotizar-bnk.js?v=9"></script>
-<script src="js/pages/finanzas.js?v=10"></script>
-<script src="js/pages/actividad.js?v=10"></script>
+<script src="js/pages/documentos.js?v=2"></script>
+<script src="js/pages/cotizaciones.js?v=8"></script>
+<script src="js/pages/pipeline.js?v=9"></script>
+<script src="js/pages/clientes.js?v=9"></script>
+<script src="js/pages/proveedores.js?v=10"></script>
+<script src="js/pages/calendario.js?v=11"></script>
+<script src="js/pages/reportes.js?v=11"></script>
+<script src="js/pages/catalogo.js?v=8"></script>
+<script src="js/pages/usuarios.js?v=8"></script>
+<script src="js/pages/eventos.js?v=11"></script>
+<script src="js/pages/cotizar-mnt.js?v=11"></script>
+<script src="js/pages/cotizar-bnk.js?v=11"></script>
+<script src="js/pages/finanzas.js?v=11"></script>
+<script src="js/pages/actividad.js?v=11"></script>
 
 </body>
 </html>

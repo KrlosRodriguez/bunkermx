@@ -61,9 +61,16 @@
   }
 
   // ── Utilidades ──
-  function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
-  // de un atributo hace falta este, o el valor puede romper el atributo.
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
+  function _esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  // Igual que _esc() pero sin tratar los valores falsy como cadena vacía:
+  // _escAttr(0) devuelve '0'. Para atributos donde el cero importa.
   function _escAttr(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -122,15 +129,6 @@
     var wizard = document.getElementById('mntWizard');
     if (wizard) wizard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-
-  // Clickable progress steps (breadcrumbs)
-  document.querySelectorAll('.mnt-progress-step').forEach(function (el) {
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', function () {
-      var target = parseInt(this.getAttribute('data-step'));
-      if (target <= _currentStep) _goToStep(target);
-    });
-  });
 
   function _validateStep1() {
     var clienteEl = document.getElementById('mntCliente');
@@ -830,6 +828,10 @@
 
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
     var W = 210, margin = 20, contentW = W - margin * 2, H = 297;
 
     var isNeon = _pdfStyle === 'neon';
@@ -859,7 +861,7 @@
       }
       doc.setTextColor(HEADER_TEXT[0], HEADER_TEXT[1], HEADER_TEXT[2]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text('Cotización MUNET — ' + (evento || 'Evento'), 55, 12);
+      doc.text('Cotización MUNET - ' + (evento || 'Evento'), 55, 12);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
       doc.text(folio + ' | ' + cliente + ' | ' + contacto, 55, 18);
@@ -1058,7 +1060,7 @@
     BNK_DB.cotizaciones.create(data).then(function (saved) {
       result.doc.save('Cotizacion-MNT-' + folio + '.pdf');
       BNKToast.ok('Cotización ' + folio + ' generada.');
-      BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: data.folio, detalle: 'Cotización MNT creada para ' + (data.cliente || data.empresa) });
+      BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: data.folio, detalle: 'Cotización MNT creada para ' + (data.cliente || 'cliente sin nombre') });
       _resetWizard();
     }).catch(function (err) {
       BNKToast.error('Error al guardar: ' + err.message);
@@ -1134,16 +1136,14 @@
     // Generar
     document.getElementById('mntGenerar').addEventListener('click', _enviar);
 
-    // Progress steps clickeables
+    // Progress steps clickeables. _goToStep valida los pasos intermedios al
+    // avanzar, así que el mismo handler sirve hacia adelante y hacia atrás.
+    // Ojo: este binding estaba duplicado (también a nivel de módulo), así que
+    // cada clic ejecutaba _goToStep dos veces y duplicaba los toasts.
     document.querySelectorAll('.mnt-progress-step').forEach(function (step) {
+      step.style.cursor = 'pointer';
       step.addEventListener('click', function () {
-        var target = parseInt(this.getAttribute('data-step'));
-        // Allow going back freely, or forward one step at a time via _goToStep validation
-        if (target <= _currentStep) {
-          _goToStep(target);
-        } else {
-          _goToStep(target); // _goToStep validates all intermediate steps
-        }
+        _goToStep(parseInt(this.getAttribute('data-step'), 10));
       });
     });
 
