@@ -92,11 +92,16 @@
       _openFormModal(null);
     });
 
-    // Botón PLANTILLAS (admin only)
+    // Botón PLANTILLAS — solo admin (las reglas de plantillas son admin-only).
+    // Antes lo gobernaba la clase .fin-admin-only, que solo se activa dentro de
+    // #sec-finanzas: el botón quedaba oculto incluso para el admin.
     var btnPlantillas = document.getElementById('evtBtnPlantillas');
-    if (btnPlantillas) btnPlantillas.addEventListener('click', function () {
-      _openPlantillasCrud();
-    });
+    if (btnPlantillas) {
+      btnPlantillas.style.display = BNK_AUTH.currentRole() === 'admin' ? '' : 'none';
+      btnPlantillas.addEventListener('click', function () {
+        _openPlantillasCrud();
+      });
+    }
 
     // Modal crear/editar evento — cerrar
     var evtFormClose = document.getElementById('evtFormClose');
@@ -1045,7 +1050,14 @@
   }
 
   // ── XSS prevention ──
-  function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
+  function _esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 
   // ── Bootstrap ──
   BNK_AUTH.onReady(function (user) {

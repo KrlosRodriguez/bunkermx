@@ -539,7 +539,14 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
   .dash-indicators{grid-template-columns:1fr}
   .panel-title{font-size:14px;letter-spacing:1px}
   .dash-card-value{font-size:28px}
-  .panel-user{gap:6px}
+  /* El header no envuelve ni encoge: logo + título + nombre + rol + campana +
+     SALIR sumaban 451px y empujaban el scroll horizontal de toda la página a
+     375px. Se sacrifica el nombre (el rol sigue visible) y, más abajo, el
+     título. */
+  .panel-header{gap:8px}
+  .panel-brand{min-width:0}
+  .panel-user{gap:6px;min-width:0}
+  #panelUserName{display:none}
   .dash-tab{padding:8px 10px;font-size:10px;letter-spacing:1px}
   .mnt-spaces-grid{grid-template-columns:1fr}
   .bnk-concepto-row{grid-template-columns:1fr}
@@ -547,6 +554,9 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
   .ctz-card{padding:12px}
   .mnt-step-title{font-size:16px;letter-spacing:1px}
   .bnk-section-label{font-size:11px;letter-spacing:2px}
+}
+@media(max-width:480px){
+  .panel-title{display:none}
 }
 
 /* Pagination controls */
@@ -705,6 +715,14 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .dash-tab{min-height:44px;display:inline-flex;align-items:center}
 .ctz-actions button,.panel-btn-icon,.panel-btn-sm{min-height:44px;min-width:44px}
 .cot-popover-actions button{min-height:44px}
+/* Los botones chicos (steppers de montaje, flechas del calendario, acciones de
+   tabla) medían 24-28px y quedaban fuera del mínimo táctil. Solo se agrandan en
+   pantallas sin mouse fino, para no engordar la UI de escritorio. */
+@media(hover:none),(pointer:coarse){
+  .mnt-montaje-btn,.mnt-cal-nav,.tbl-action,.bnk-del-btn,.bnk-modo-toggle,.bnk-modal-close{
+    min-width:40px;min-height:40px}
+  .mnt-montaje-btn,.mnt-cal-nav{width:40px;height:40px}
+}
 
 /* ── RESPONSIVE 360px (P13) ── */
 @media(max-width:374px){
@@ -727,7 +745,8 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .act-bell{background:transparent;border:1px solid var(--bd);color:var(--tx);cursor:pointer;padding:4px 8px;font-size:16px;transition:all .2s;position:relative}
 .act-bell:hover{color:var(--g);border-color:var(--g)}
 .act-bell-badge{position:absolute;top:-6px;right:-6px;background:var(--red);color:var(--wh);font-family:'Space Mono',monospace;font-size:8px;padding:2px 5px;border-radius:50%;min-width:14px;text-align:center;line-height:1.2}
-.act-dropdown{display:none;position:absolute;top:100%;right:0;width:360px;max-height:420px;background:var(--dk);border:1px solid var(--bd);z-index:1000;overflow:hidden;margin-top:8px}
+/* El ancho fijo de 360px se desbordaba en pantallas de 375px */
+.act-dropdown{display:none;position:absolute;top:100%;right:0;width:360px;max-width:calc(100vw - 24px);max-height:420px;background:var(--dk);border:1px solid var(--bd);z-index:1000;overflow:hidden;margin-top:8px}
 .act-dropdown.visible{display:block}
 .act-dropdown-header{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--g);padding:12px 16px;border-bottom:1px solid var(--bd)}
 .act-dropdown-list{max-height:360px;overflow-y:auto}
@@ -742,6 +761,8 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 /* ── POPOVER CLIPPING FIX (P13) ── */
 .cot-popover{max-width:calc(100vw - 24px)}
 @media(max-width:600px){
-  .cot-popover{position:fixed;left:12px!important;right:12px;top:auto;bottom:12px;width:auto}
+  /* Sin !important: los módulos ya no escriben top/left inline cuando el ancho
+     es <=600px (ver la guarda en _openPopover / openEntityPopover). */
+  .cot-popover{position:fixed;left:12px;right:12px;top:auto;bottom:12px;width:auto}
   #entityPopover{position:fixed;left:12px;right:12px;top:auto;bottom:12px;width:auto;max-width:none}
 }

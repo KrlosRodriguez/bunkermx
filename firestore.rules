@@ -47,7 +47,11 @@ service cloud.firestore {
     // ────────────────────────────────────────────────────────────────
 
     match /usuarios/{uid} {
-      allow read: if isAdmin() || request.auth.uid == uid;
+      // Lectura para cualquier usuario activo: EVENTOS necesita la lista para
+      // el dropdown de responsable de tarea (eventos.js:_loadUsuarios). Con la
+      // lectura restringida a admin ese dropdown salía vacío en silencio para
+      // ventas y producción. El doc solo tiene nombre, email, rol y activo.
+      allow read: if isAuthenticated() || request.auth.uid == uid;
       // Lista blanca conservada a propósito: protege la escalación de rol.
       // Mantener sincronizada con usuarios.js y functions/index.js.
       allow create, update: if isAdmin() && request.resource.data.keys().hasOnly(['nombre','email','rol','activo','createdAt','updatedAt']);
@@ -62,6 +66,11 @@ service cloud.firestore {
       match /actividad/{actId} {
         allow read: if isAuthenticated();
         allow create: if isAdminOrVentas();
+        // Sin esto, borrar una cotización fallaba: cotizaciones.js limpia
+        // primero la subcolección de actividad (Firestore no borra
+        // subcolecciones en cascada) y el delete quedaba denegado, así que
+        // ninguna cotización con historial de estados se podía eliminar.
+        allow delete: if isAdmin();
       }
     }
 

@@ -24,9 +24,6 @@
   var _sortDir = 'asc';
   var _page = 1;
 
-  // Focus trap cleanup
-  var _focusTrapCleanup = null;
-
   // ── Mapeo campo backend → id de elemento HTML ──
   var CAMPO_ID = {
     razonSocial:          'prvRazonSocial',
@@ -104,11 +101,13 @@
   }
 
   // ── Helpers internos ──
+  // Escapa &, <, >, " y ': vale tanto para texto entre etiquetas como
+  // para interpolar dentro de un atributo (comillas incluidas).
   function _escapeHTML(str) {
     if (!str) return '';
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // Valida que una URL sea http/https antes de usarla en href
@@ -178,23 +177,16 @@
     _proveedores.forEach(function (p) { sumPct += calcCompletitud(p); });
     var avgPct   = total > 0 ? Math.round(sumPct / total) : 0;
 
-    if (window.BNKAnimate) {
-      BNKAnimate.staggerCountUp([
-        { element: _getEl('indPrvTotal'), value: total, options: {} },
-        { element: _getEl('indPrvPool'), value: pool, options: {} },
-        { element: _getEl('indPrvOneShot'), value: oneShot, options: {} },
-        { element: _getEl('indPrvCompletitud'), value: avgPct, options: { suffix: '%' } }
-      ]);
-    } else {
-      var elTotal   = _getEl('indPrvTotal');
-      var elPool    = _getEl('indPrvPool');
-      var elOneShot = _getEl('indPrvOneShot');
-      var elComp    = _getEl('indPrvCompletitud');
-      if (elTotal)   elTotal.textContent   = total;
-      if (elPool)    elPool.textContent    = pool;
-      if (elOneShot) elOneShot.textContent = oneShot;
-      if (elComp)    elComp.textContent    = avgPct + '%';
-    }
+    // (BNKAnimate vive en js/pages/panel-ui.js, del cotizador legacy: el panel
+    // no lo carga, así que los KPIs se escriben directo.)
+    var elTotal   = _getEl('indPrvTotal');
+    var elPool    = _getEl('indPrvPool');
+    var elOneShot = _getEl('indPrvOneShot');
+    var elComp    = _getEl('indPrvCompletitud');
+    if (elTotal)   elTotal.textContent   = total;
+    if (elPool)    elPool.textContent    = pool;
+    if (elOneShot) elOneShot.textContent = oneShot;
+    if (elComp)    elComp.textContent    = avgPct + '%';
   }
 
   // ── renderTable ──
@@ -444,11 +436,8 @@
     // Hacer visible el overlay
     overlay.classList.add('visible');
 
-    // Focus trap
-    if (_focusTrapCleanup) _focusTrapCleanup();
-    if (window.BNKAccessibility) {
-      _focusTrapCleanup = BNKAccessibility.trapFocus(overlay, cerrarModal);
-    }
+    // El focus trap y el ARIA de los modales los pone el helper genérico de
+    // dashboard.html; BNKAccessibility es del cotizador legacy y aquí no carga.
   }
 
   // ── Renderizar cotizaciones vinculadas ──
@@ -485,9 +474,6 @@
     overlay.classList.remove('visible');
     BNKDocumentos.destroy();
     _proveedorActivoId = null;
-
-    // Cleanup focus trap
-    if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
 
     // Re-habilitar inputs por si venía de modo 'ver'
     var inputs = overlay.querySelectorAll('input, select, textarea');
