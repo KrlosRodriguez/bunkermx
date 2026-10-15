@@ -19,11 +19,15 @@ BUNKER Creatividad Empresarial: sitio público corporativo + panel operativo int
 ## How to Run
 
 - **Sitio público**: `python -m http.server 5500` o Live Server desde la raíz. Ojo: el sitio usa **URLs limpias** (`/esencia`, no `/esencia.html`) resueltas por `.htaccess` en Apache; `python -m http.server` no las resuelve, así que en local hay que abrir `esencia.html` directamente o usar un server con rewrite.
-- **Panel**: `firebase deploy --only hosting --project bunker-panel`. No hay servidor local configurado; se prueba en producción o con `firebase emulators`.
+- **Panel**: `firebase deploy --only hosting --project bunker-panel`. No hay servidor local configurado.
+  - **Nunca pruebes contra producción.** Usa un canal de preview: `firebase hosting:channel:deploy <nombre> --project bunker-panel --expires 7d`. Da una URL temporal con las cabeceras y la CSP reales, y no toca la URL viva. Firebase autoriza solo el dominio del canal en Auth; si el login falla, agrégalo en Authentication → Settings → Authorized domains.
+  - El canal apunta a la **misma Firestore que producción**: lo que guardes ahí es un registro real.
+  - La sesión no se comparte entre el canal y producción (persistencia `SESSION`, por origen): hay que entrar en cada uno.
 - **Reglas**: `firebase deploy --only firestore:rules --project bunker-panel` / `--only storage`.
 - **Deploy completo panel**: `firebase deploy --only hosting,firestore:rules,storage --project bunker-panel`.
 - **Cloud Functions**: `firebase deploy --only functions --project bunker-panel` (plan Blaze, Node 18).
-- No hay build, lint ni tests en ningún subsistema.
+- No hay build ni lint en ningún subsistema. El único test automatizado es `node scripts/test-ocupacion.js` (sin dependencias), que cubre `panel/js/ocupacion.js`.
+- **`node --check` no basta.** Valida sintaxis, no alcance: un `function` insertado por error dentro del cuerpo de otra función pasa limpio y revienta en runtime (pasó el 2026-10-14 con `_escAttr` dentro de `_esc`, y dejó el tab CALENDARIO en blanco). Toda tarea que toque JS del panel se verifica **cargando la página en el navegador** y leyendo la consola, no solo con comprobaciones estáticas.
 
 ---
 
@@ -61,6 +65,7 @@ Plan: `docs/superpowers/plans/2026-10-07-rediseno-sitio-minuta.md`. Cada etapa v
 
 - `scripts/check_site.py` — verificación estática sin dependencias (enlaces internos, anclas, ids únicos, CSS versionados y comprobaciones por etapa). Correr antes de cada push.
 - `scripts/swap_block.py` — reemplaza/inserta bloques HTML entre marcadores exactos; aborta si un marcador no es único.
+- `scripts/test-ocupacion.js` — **del panel, no del sitio público**: `node scripts/test-ocupacion.js` verifica `panel/js/ocupacion.js` (fechas ISO, derivación, bisiesto, cruce de año, JSON corrupto, los dos esquemas de `desgloseVenues`). Correr al tocar esa lógica.
 - Los CSS de las páginas llevan `?v=N`: subirlo al modificar el archivo.
 
 ---
@@ -102,7 +107,7 @@ App interna Firebase. SDK compat **10.12.0** (app, auth, firestore, storage, fun
 - **`panel/js/auth.js`** (116) — `BNK_AUTH.currentUser()` es **función**, no propiedad. También `currentRole()`, `logout()`, `onReady(cb)`, `canEdit(section)`, `canView(section)`. Verifica `usuarios/{uid}.activo`.
 - **`panel/js/guard.js`** (30) — oculta `document.documentElement` con `visibility:hidden` hasta resolver auth, inyecta nombre/rol en header, oculta tabs según `data-require-role`. Si `firebase-config.js` falla, la página queda negra — de ahí la criticidad de los typeof guards.
 - **`panel/js/firestore.js`** (244) — `BNK_DB`, factory `collectionAPI(name, {orderBy})` con `list/get/create/update/delete/onSnapshot`.
-- **`panel/js/ocupacion.js`** (101) — `BNKOcupacion`: aritmética de fechas ISO, derivación de días de montaje/desmontaje e índice de ocupación de venues. Sin DOM ni Firebase; lo comparten `cotizar-mnt.js` y `calendario.js`. Se verifica con `node scripts/test-ocupacion.js`.
+- **`panel/js/ocupacion.js`** (106) — `BNKOcupacion`: aritmética de fechas ISO, derivación de días de montaje/desmontaje e índice de ocupación de venues. Sin DOM ni Firebase; lo comparten `cotizar-mnt.js` y `calendario.js`. Se verifica con `node scripts/test-ocupacion.js`.
 - **`panel/js/pdf-rebuild.js`** (426) — `BNKPdfRebuild.download(cotData, style)`: regenera PDFs MNT/BNK desde Firestore.
 - **`panel/js/pdf-workorder.js`** (205) — `BNKPdfWorkOrder.download(cotData, proveedorData, notas)`: Orden de Trabajo para proveedor.
 - **`panel/js/logo-data.js`** — `BUNKER_LOGO_B64`.
@@ -127,12 +132,12 @@ Helper: `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })`
 | Módulo | Líneas | Qué hace |
 |---|---|---|
 | `cotizaciones.js` | 1170 | Tabla con KPIs, filtros, sort, paginación, estado editable, PDF por fila, popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, OT), modales de vinculación y modal de Orden de Trabajo |
-| `cotizar-mnt.js` | 1180 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, días de montaje y desmontaje derivados, bloqueo de fechas ocupadas, precio especial por venue, PDF dual, selector de marca |
+| `cotizar-mnt.js` | 1222 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, días de montaje y desmontaje derivados, bloqueo de fechas ocupadas, precio especial por venue, PDF dual, selector de marca |
 | `cotizar-bnk.js` | 1065 | Formulario de servicios/producción, filas de conceptos en modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete de catálogo, bloques expandibles + modal picker, auto-vinculación de proveedores, plantillas de condiciones, PDF dual |
 | `pipeline.js` | 529 | Kanban con drag & drop HTML5 + touch, filtros (tipo/fechas/monto), KPI pipeline activo, `BNKConfirm` en Cancelada/Perdida, snapshot listener con cleanup en `beforeunload` |
 | `clientes.js` | 1059 | CRUD, modal 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud, chips de marcas, cotizaciones vinculadas (Vinculada vs Por nombre), detección de duplicados |
 | `proveedores.js` | 1359 | CRUD, modal 6 tabs (+ Fiscales, Servicios), doble precio (`costoUnitario`/`precioCliente`), bloques de servicios con precio manual |
-| `calendario.js` | 874 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues`, bloques de montaje y desmontaje para cotizaciones cerradas |
+| `calendario.js` | 898 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues`, bloques de montaje y desmontaje para cotizaciones cerradas |
 | `reportes.js` | 536 | 4 KPIs (revenue cerrado, costo estimado, margen bruto, conversión), Chart.js bar (revenue vs costo + línea de margen % en eje `yPct`) + doughnut (utilización venues), top clientes, funnel, filtro de período, export CSV con BOM UTF-8 |
 | `catalogo.js` | 364 | CRUD catálogo de precios con sort; campos extra (`precioWeekend`, `precioMontaje`) para categoría Venues |
 | `eventos.js` | 1056 | CRUD eventos, checklists con tareas inline (responsable desde usuarios, fechaLimite), detección de vencidas, drag reorder con batch `orden`, CRUD de plantillas, API cross-módulo `BNKEventos.crearEvento()` |
@@ -244,7 +249,12 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 
 - **Dos copias de `BNKSort`/`BNKPagination`/`BNKExport`/`BNKHelpers`**: `js/pages/panel-ui.js` (cotizador legacy) y `panel/js/table-helpers.js` (panel). Son independientes; un fix en una no llega a la otra.
 - El export CSV antepone `'` a celdas que empiezan con `+`, así que teléfonos tipo `+52 …` salen como `'+52 …` en Excel. Es intencional (protección contra formula injection).
-- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore`. Los campos de montaje/desmontaje del panel son aditivos: el Apps Script no los escribe y los lectores los derivan. Si algún día se agrega montaje al cotizador público, hay que actualizar también `writeToFirestore`.
+- La doble escritura Sheets → Firestore del Apps Script está marcada como "transitoria": al editar el esquema de `cotizaciones`, `clientes` o `proveedores` hay que actualizar también `writeToFirestore`. Los campos de montaje/desmontaje del panel son aditivos: el Apps Script no los escribe y los lectores los derivan.
+- **`desgloseVenues` tiene dos esquemas.** El panel escribe `nombre` y `montajeDays`; el Apps Script del cotizador público escribe `name` y `montajeDias` (`google-apps-script-munet.js:282-294`). `BNKOcupacion` acepta los dos. Cualquier lector nuevo de ese JSON tiene que contemplar ambos o ignorará en silencio todo lo que venga de la web.
+
+- **`_esc()` no escapa comillas.** Es `textContent` → `innerHTML`, así que cubre `&`, `<` y `>` pero deja pasar `"` y `'`. Dentro de un atributo (`title="…"`) eso rompe el atributo: ahí va `_escAttr()`, que existe en `cotizar-mnt.js` y `calendario.js`. Para texto entre etiquetas, `_esc()` sigue siendo lo correcto.
+- **El `?v=N` hay que subirlo también entre deploys de la misma tarea.** Una vez que una versión se sirvió (aunque sea a un canal de preview), el CDN y el navegador la cachean 1 h: cualquier cambio posterior necesita número nuevo o sigues viendo el archivo viejo.
+- **Los headers de `firebase.json` se aplican por ruta de petición, no de archivo.** Por eso `/dashboard` necesita su propio bloque además de `**/*.html`. Si se agrega otro rewrite con URL limpia, hay que repetirle las cabeceras o nacerá sin CSP.
 
 ## Otros archivos
 

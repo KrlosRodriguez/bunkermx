@@ -4,6 +4,22 @@
 **Fuente**: requerimiento del cliente (HaDeZ), sesión 2026-10-14
 **Alcance**: solo `/panel/` (wizard COTIZAR MNT y tab CALENDARIO). No toca el sitio público, el cotizador legacy `/cotizador-munet/`, el Apps Script ni `cotizar-bnk.js`.
 
+**Estado**: implementado y **desplegado a producción el 2026-10-14** (`bunker-panel.web.app`). Fusionado a `main` en `9c76fb0`. Plan de implementación: `docs/superpowers/plans/2026-10-14-mnt-montaje-desmontaje.md`.
+
+### Cambios respecto a lo que decía esta spec
+
+- Se añadió `panel/js/ocupacion.js` (`BNKOcupacion`), compartido por `cotizar-mnt.js` y `calendario.js`, con test en `node scripts/test-ocupacion.js`.
+- `desgloseVenues` tiene **dos esquemas**: el panel escribe `nombre`/`montajeDays`, el Apps Script del cotizador público escribe `name`/`montajeDias`. Esta spec afirmaba lo primero como si fuera universal; sin contemplar el segundo, el bloqueo no cubría ninguna reserva nacida en la web (§6.1 corregido).
+- El recorte automático revalida **todos** los días derivados, no solo el más externo: al mover las fechas del evento los intermedios también cambian de posición (§4.1).
+- La validación «Ese día ya es día de evento» es **inalcanzable** con la regla de derivación; queda como guard defensivo.
+- Tope de **30 días** de montaje o desmontaje por venue, confirmado con el cliente.
+- Fuera del alcance original pero necesario: `/dashboard` se servía sin CSP ni cabeceras de seguridad y con `max-age=3600`, lo que anulaba el cache busting. Corregido en `firebase.json`.
+
+### Pendiente de verificación manual
+
+1. Responsive a 375 px del bloque de dos steppers (medido sin desborde a 343 px de contenedor, pero sin ejercitar las media queries).
+2. Los PDFs en las dos paletas (neon y corporativa), que requieren guardar una cotización real.
+
 ---
 
 ## 1. Requerimiento
