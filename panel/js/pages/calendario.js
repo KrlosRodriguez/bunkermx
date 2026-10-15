@@ -128,7 +128,7 @@
 
       visible.forEach(function (b) {
         var tooltip = _buildTooltip(b);
-        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _esc(tooltip) + '"'
+        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _escAttr(tooltip) + '"'
           + (b.cotizacionId ? ' data-cot-id="' + _esc(b.cotizacionId) + '"' : '')
           + (b.eventoId ? ' data-evt-id="' + _esc(b.eventoId) + '"' : '')
           + '>'
@@ -226,7 +226,7 @@
       var bloques = _getBloquesDelDia(iso);
       html += '<div class="cal-week-allday-col" data-fecha="' + iso + '">';
       bloques.forEach(function (b) {
-        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _esc(_buildTooltip(b)) + '"'
+        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _escAttr(_buildTooltip(b)) + '"'
           + (b.cotizacionId ? ' data-cot-id="' + _esc(b.cotizacionId) + '"' : '')
           + (b.eventoId ? ' data-evt-id="' + _esc(b.eventoId) + '"' : '')
           + '>' + _esc(b.label) + '</div>';
@@ -385,7 +385,7 @@
       }
 
       lines.push('BEGIN:VEVENT');
-      lines.push('UID:' + uid);
+      lines.push('UID:' + _icsEscape(uid));
       lines.push('DTSTART;VALUE=DATE:' + dtstart);
       lines.push('DTEND;VALUE=DATE:' + dtstart);
       var prefijoICS = b.papel === 'montaje' ? 'MONTAJE — ' : (b.papel === 'desmontaje' ? 'DESMONTAJE — ' : '');
@@ -412,7 +412,8 @@
   }
 
   function _icsEscape(s) {
-    return (s || '').replace(/[,;\\]/g, function (c) { return '\\' + c; }).replace(/\n/g, '\\n');
+    return (s || '').replace(/[,;\\]/g, function (c) { return '\\' + c; })
+      .replace(/\r\n|\r|\n/g, '\\n');
   }
 
   // ──────────────────────────────────────────────
@@ -838,6 +839,13 @@
   }
 
   function _esc(s) {
+  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
+  // de un atributo hace falta este, o el valor puede romper el atributo.
+  function _escAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
     if (!s) return '';
     var d = document.createElement('div');
     d.textContent = s;

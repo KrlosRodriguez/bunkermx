@@ -170,8 +170,10 @@
     doc.text(_formatMXN(rentaTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
     doc.text('Montaje total', margin + 4, yRef.y + 4);
     doc.text(_formatMXN(montajeTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
-    doc.text('Desmontaje total', margin + 4, yRef.y + 4);
-    doc.text(_formatMXN(desmontajeTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
+    if (desmontajeTotal > 0) {
+      doc.text('Desmontaje total', margin + 4, yRef.y + 4);
+      doc.text(_formatMXN(desmontajeTotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
+    }
     doc.text('Subtotal (sin IVA)', margin + 4, yRef.y + 4);
     doc.text(_formatMXN(subtotal), W - margin - 4, yRef.y + 4, { align: 'right' }); yRef.y += 7;
     doc.text('IVA (16%)', margin + 4, yRef.y + 4);

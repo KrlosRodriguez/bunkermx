@@ -44,14 +44,16 @@
   }
 
   // Un elemento de desgloseVenues -> sus tres listas de fechas. Los registros
-  // anteriores a oct-2026 traen montajeDays sin fechas: se derivan al vuelo.
+  // anteriores a oct-2026 traen montajeDays sin fechas: se derivan al vuelo. El
+  // cotizador público (Apps Script) escribe `montajeDias`, con otro nombre.
   function fechasDeVenue(entry) {
     if (!entry) return { evento: [], montaje: [], desmontaje: [] };
     var evento = entry.eventDays || [];
     var montaje = entry.montajeDates;
     var desmontaje = entry.desmontajeDates;
     if (!montaje || !desmontaje) {
-      var d = derive(evento, entry.montajeDays, entry.desmontajeDays);
+      var nMontaje = entry.montajeDays != null ? entry.montajeDays : entry.montajeDias;
+      var d = derive(evento, nMontaje, entry.desmontajeDays);
       if (!montaje) montaje = d.montajeDates;
       if (!desmontaje) desmontaje = d.desmontajeDates;
     }
@@ -75,10 +77,13 @@
       if (!desglose || !desglose.length) return;
 
       desglose.forEach(function (entry) {
-        if (!entry || !entry.nombre) return;
+        if (!entry) return;
+        // El panel escribe `nombre`; el cotizador público (Apps Script) escribe `name`.
+        var venueNombre = entry.nombre || entry.name;
+        if (!venueNombre) return;
         var f = fechasDeVenue(entry);
-        if (!idx[entry.nombre]) idx[entry.nombre] = {};
-        var destino = idx[entry.nombre];
+        if (!idx[venueNombre]) idx[venueNombre] = {};
+        var destino = idx[venueNombre];
         ['evento', 'montaje', 'desmontaje'].forEach(function (tipo) {
           f[tipo].forEach(function (iso) {
             if (destino[iso]) return; // primera gana

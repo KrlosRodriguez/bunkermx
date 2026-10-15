@@ -500,7 +500,7 @@
       });
     });
 
-    area.querySelectorAll('.mnt-cal-day:not(.disabled):not(.empty)').forEach(function (cell) {
+    area.querySelectorAll('.mnt-cal-day:not(.disabled):not(.empty):not(.ocupado):not(.montaje):not(.desmontaje)').forEach(function (cell) {
       cell.addEventListener('click', function () {
         var vid = this.getAttribute('data-vid');
         var date = this.getAttribute('data-date');
@@ -925,8 +925,10 @@
     doc.text(_formatMXN(calc.rentaTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('Montaje total', margin + 4, y + 4);
     doc.text(_formatMXN(calc.montajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
-    doc.text('Desmontaje total', margin + 4, y + 4);
-    doc.text(_formatMXN(calc.desmontajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
+    if (calc.desmontajeTotal > 0) {
+      doc.text('Desmontaje total', margin + 4, y + 4);
+      doc.text(_formatMXN(calc.desmontajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
+    }
     doc.text('Subtotal (sin IVA)', margin + 4, y + 4);
     doc.text(_formatMXN(calc.subtotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('IVA (16%)', margin + 4, y + 4);

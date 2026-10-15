@@ -96,5 +96,29 @@ var segunda = { id: 'b', folio: 'MNT-B', estado: 'Ejecutado', fuente: 'MNT',
 eq('ante empate gana la primera de la lista',
   O.indexar([primera, segunda])['VELARIA']['2026-10-14'].folio, 'MNT-A');
 
+console.log('esquema del cotizador público (Apps Script)');
+// google-apps-script-munet.js escribe `name` y `montajeDias`, no `nombre`/`montajeDays`.
+var publica = {
+  id: 'p1', folio: 'MNT-261120-0001', estado: 'Cerrada', fuente: 'MNT',
+  desgloseVenues: JSON.stringify([{ name: 'VELARIA', eventDays: ['2026-11-20'], montajeDias: 2, montajeTotal: 5000 }])
+};
+eq('lee las fechas de un venue escrito por el Apps Script',
+  O.fechasDeVenue({ name: 'VELARIA', eventDays: ['2026-11-20'], montajeDias: 2 }),
+  { evento: ['2026-11-20'], montaje: ['2026-11-18', '2026-11-19'], desmontaje: [] });
+var idxPub = O.indexar([publica]);
+eq('indexa el venue aunque venga como `name`', Object.keys(idxPub), ['VELARIA']);
+eq('bloquea el día de evento del cotizador público', idxPub['VELARIA']['2026-11-20'],
+  { folio: 'MNT-261120-0001', tipo: 'evento', cotizacionId: 'p1' });
+eq('bloquea los días de montaje del cotizador público', idxPub['VELARIA']['2026-11-19'],
+  { folio: 'MNT-261120-0001', tipo: 'montaje', cotizacionId: 'p1' });
+eq('el campo `nombre` del panel sigue teniendo prioridad',
+  Object.keys(O.indexar([{ id: 'x', folio: 'F', estado: 'Cerrada', fuente: 'MNT',
+    desgloseVenues: JSON.stringify([{ nombre: 'LOBBY', name: 'OTRO', eventDays: ['2026-10-14'] }]) }])),
+  ['LOBBY']);
+
+noLanza('un venue null dentro del desglose no lanza', function () {
+  O.indexar([{ id: 'n1', folio: 'F', estado: 'Cerrada', fuente: 'MNT', desgloseVenues: '[null]' }]);
+});
+
 console.log(fails === 0 ? '\nTodo pasó.' : '\n' + fails + ' fallas.');
 process.exit(fails ? 1 : 0);

@@ -330,9 +330,9 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .mnt-cal-day.weekend{color:var(--ylw)}
 .mnt-cal-day.weekend.selected{background:rgba(240,192,64,.12);border-color:var(--ylw);color:var(--ylw)}
 .mnt-cal-day.disabled{opacity:.2;pointer-events:none}
-.mnt-cal-day.montaje{background:rgba(139,92,246,.14);border-color:var(--montaje);color:var(--montaje);font-weight:700;cursor:default;pointer-events:none}
-.mnt-cal-day.desmontaje{background:rgba(255,140,66,.14);border-color:var(--desmontaje);color:var(--desmontaje);font-weight:700;cursor:default;pointer-events:none}
-.mnt-cal-day.ocupado{background:rgba(255,68,85,.06);border-color:rgba(255,68,85,.35);color:var(--red);opacity:.55;cursor:not-allowed;pointer-events:none}
+.mnt-cal-day.montaje{background:rgba(139,92,246,.14);border-color:var(--montaje);color:var(--montaje);font-weight:700;cursor:default}
+.mnt-cal-day.desmontaje{background:rgba(255,140,66,.14);border-color:var(--desmontaje);color:var(--desmontaje);font-weight:700;cursor:default}
+.mnt-cal-day.ocupado{background:rgba(255,68,85,.06);border-color:rgba(255,68,85,.35);color:var(--red);opacity:.55;cursor:not-allowed}
 .mnt-cal-day.empty{visibility:hidden}
 
 /* ── CALENDAR LEGEND ── */
