@@ -828,6 +828,10 @@
 
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
     var W = 210, margin = 20, contentW = W - margin * 2, H = 297;
 
     var isNeon = _pdfStyle === 'neon';
@@ -857,7 +861,7 @@
       }
       doc.setTextColor(HEADER_TEXT[0], HEADER_TEXT[1], HEADER_TEXT[2]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text('Cotización MUNET — ' + (evento || 'Evento'), 55, 12);
+      doc.text('Cotización MUNET - ' + (evento || 'Evento'), 55, 12);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
       doc.text(folio + ' | ' + cliente + ' | ' + contacto, 55, 18);

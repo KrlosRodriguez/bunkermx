@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=13">
+<link rel="stylesheet" href="css/panel.css?v=14">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -2250,6 +2250,41 @@
     });
   })();
 
+  // ── Texto seguro para los PDFs ──
+  // jsPDF, con las fuentes estándar (WinAnsi), escribe en UTF-16 cualquier
+  // cadena que traiga un carácter fuera de Latin-1 y el lector la pinta con
+  // un byte nulo entre letra y letra: "C o t i z a c i ó n". Pasaba con la
+  // raya larga del título y con el ▸ de los bloques, y pasa con cualquier
+  // texto pegado desde Word (comillas tipográficas, puntos suspensivos…).
+  window.BNKPdfTxt = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/[‐-―]/g, '-')
+      .replace(/[‘’‚‛]/g, "'")
+      .replace(/[“”„‟]/g, '"')
+      .replace(/…/g, '...')
+      .replace(/[•▸►●·]/g, '»')
+      .replace(/→/g, '->')
+      .replace(/[   ]/g, ' ')
+      .replace(/[^\x00-\xFF]/g, '?');
+  };
+
+  // Se aplica envolviendo el text() del documento recién creado, así no hay que
+  // acordarse en cada una de las ~60 llamadas. Cada generador lo llama justo
+  // después de `new jsPDF(...)`.
+  window.BNKPdfSanea = function (doc) {
+    if (!doc || doc.__bnkSaneado) return doc;
+    var original = doc.text.bind(doc);
+    doc.text = function (texto, x, y, opciones, transform) {
+      if (typeof texto === 'string') texto = BNKPdfTxt(texto);
+      else if (Object.prototype.toString.call(texto) === '[object Array]') {
+        texto = texto.map(function (t) { return typeof t === 'string' ? BNKPdfTxt(t) : t; });
+      }
+      return original(texto, x, y, opciones, transform);
+    };
+    doc.__bnkSaneado = true;
+    return doc;
+  };
+
   // ── Currency format helper ──
   window.BNKFmt = {
     money: function (n) {
@@ -2261,8 +2296,8 @@
 </script>
 
 <!-- PDF rebuild + Módulos de página -->
-<script src="js/pdf-rebuild.js?v=2"></script>
-<script src="js/pdf-workorder.js?v=1"></script>
+<script src="js/pdf-rebuild.js?v=3"></script>
+<script src="js/pdf-workorder.js?v=2"></script>
 <script src="js/table-helpers.js?v=1"></script>
 <script src="js/ocupacion.js?v=1"></script>
 <script src="js/pages/documentos.js?v=2"></script>
@@ -2275,8 +2310,8 @@
 <script src="js/pages/catalogo.js?v=8"></script>
 <script src="js/pages/usuarios.js?v=8"></script>
 <script src="js/pages/eventos.js?v=11"></script>
-<script src="js/pages/cotizar-mnt.js?v=10"></script>
-<script src="js/pages/cotizar-bnk.js?v=10"></script>
+<script src="js/pages/cotizar-mnt.js?v=11"></script>
+<script src="js/pages/cotizar-bnk.js?v=11"></script>
 <script src="js/pages/finanzas.js?v=11"></script>
 <script src="js/pages/actividad.js?v=11"></script>
 

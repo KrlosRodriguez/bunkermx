@@ -414,7 +414,9 @@
       newRow.innerHTML =
         '<span class="bnk-bloque-badge">' + _esc(bloque.nombre) + '</span>'
         + '<div class="bnk-modo-manual" style="display:none"></div>'
-        + '<div class="bnk-modo-proveedor" style="display:none">'
+        // Sin display visible este div quedaba oculto y la fila del bloque se
+        // mostraba sin el nombre del servicio: solo badge, cantidad y precio.
+        + '<div class="bnk-modo-proveedor">'
         +   '<span class="bnk-prv-label">' + _esc(srv.servicio) + '</span>'
         + '</div>'
         + '<input type="number" class="bnk-cant" value="1" min="1" step="1">'
@@ -563,6 +565,10 @@
   function _generarPDF(data) {
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
     var W = 210, margin = 20, contentW = W - margin * 2, H = 297;
 
     var isNeon = _pdfStyle === 'neon';
@@ -587,7 +593,7 @@
       }
       doc.setTextColor(HEADER_TEXT[0], HEADER_TEXT[1], HEADER_TEXT[2]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text('Cotización — ' + (data.evento || 'Producción Integral'), 65, 12);
+      doc.text('Cotización - ' + (data.evento || 'Producción Integral'), 65, 12);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
       doc.text(data.folio + ' | ' + (data.empresa || '') + ' | ' + (data.contacto || ''), 65, 18);
@@ -661,7 +667,7 @@
         checkPage(10);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold');
         doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-        doc.text('\u25B8 ' + bName, margin + 2, y + 4);
+        doc.text('\u00BB ' + bName, margin + 2, y + 4);
         doc.setFont('helvetica', 'normal'); y += 6;
 
         bloquesEnCat[bName].forEach(function (c) {

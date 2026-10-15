@@ -79,6 +79,10 @@
     var p = _paleta(style || 'neon');
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
 
     var folio = data.folio || '';
     var cliente = data.cliente || '';
@@ -213,6 +217,10 @@
     var p = _paleta(style || 'neon');
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    // jsPDF escribe en UTF-16 (ilegible con las fuentes estandar) cualquier
+    // texto con caracteres fuera de Latin-1: rayas largas, comillas
+    // tipograficas, puntos suspensivos. BNKPdfSanea los convierte al vuelo.
+    if (window.BNKPdfSanea) BNKPdfSanea(doc);
 
     var folio = data.folio || '';
     var empresa = data.empresa || data.cliente || '';
@@ -307,7 +315,7 @@
         checkPageBNK(10);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold');
         doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
-        doc.text('\u25B8 ' + bName, margin + 2, yRef.y + 4);
+        doc.text('\u00BB ' + bName, margin + 2, yRef.y + 4);
         doc.setFont('helvetica', 'normal'); yRef.y += 6;
 
         bloquesEnCat[bName].forEach(function (c) {

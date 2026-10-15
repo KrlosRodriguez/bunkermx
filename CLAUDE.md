@@ -208,7 +208,7 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 - **Vinculación MNT↔BNK**: 1:N. BNK lleva `folioMNT` apuntando al folio padre.
 - **Vinculación Cliente↔Cotización**: `clienteId` + `clienteNombre`. Badge "Vinculada" (FK formal) vs "Por nombre" (fuzzy match por empresa).
 - **`cotizacionProveedores`**: simétrica a `cotizacionPartners`. `{ cotizacionId, cotizacionFolio, proveedorId, proveedorNombre, montoTotal, servicios }`, auto-creados al guardar BNK con conceptos de proveedor (`autoVinculado: true`). A diferencia de `cotizacionPartners` (admin), es **admin+ventas**: la escribe `cotizar-bnk.js`, que corre con rol ventas. La auto-vinculación va fuera de la cadena de éxito del guardado — si falla, avisa con un toast pero la cotización y el PDF se entregan igual.
-- **Bloques de proveedor**: `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Los servicios llevan `bloqueId`.
+- **Bloques de proveedor**: `proveedores/{id}/bloques/{bloqueId}` con `nombre`, `precioManual`, `usaPrecioManual`, `orden`. Los servicios llevan `bloqueId`. En COTIZAR BNK se insertan con el botón BLOQUE (modal `#bnkBloqueOverlay` → proveedor → bloque → vista previa) o eligiendo `bloque:<id>` en la cascada de la fila; en ambos casos `_expandBloque()` reemplaza la fila por una por servicio, con la clase `.bnk-bloque-child` y los ocultos `bloqueId`/`bloqueNombre` que luego agrupan el PDF y la Orden de Trabajo.
 - **Doble precio**: `costoUnitario` (costo real) + `precioCliente`. Si `precioCliente` es 0, se usa `costoUnitario`.
 - **Documentos de expediente**: `{entidad}/{id}/documentos/{docId}` + Storage en `documentos/{entidad}/{entityId}/{tipo}/{timestamp}_{filename}`. 7 tipos predefinidos + libres. Versionado con `vigente: true/false`. Indicador separado `N/M requeridos`, no afecta el % de completitud.
 - **Toggle "No aplica extranjero"**: excluye campos bancarios extranjeros del % de completitud. Persiste como `noAplicaExtranjero: true`.
@@ -220,6 +220,8 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 
 ### PDFs
 
+**Todo texto pasa por `BNKPdfSanea(doc)`** (helper inline en `dashboard.html`; se llama justo después de `new jsPDF(...)` en los cuatro generadores). jsPDF escribe en UTF-16 cualquier cadena con un carácter fuera de Latin-1 y, con las fuentes estándar, el lector la pinta con un byte nulo entre letra y letra. Pasaba con la raya larga de los títulos (`Cotización — evento`), con el `▸` de los bloques y con cualquier texto pegado desde Word. `BNKPdfTxt()` cambia rayas, comillas tipográficas, puntos suspensivos y viñetas por equivalentes Latin-1. Al escribir texto nuevo en un PDF, no usar caracteres por encima de U+00FF.
+
 Dos paletas con toggle en ambos cotizadores:
 - **Neon**: fondo `#050905`, acento `#00FF41`.
 - **Corporativa**: fondo `#FFFFFF`, acento `#C6A350`, header `#2C2419`.
@@ -228,7 +230,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-15): `panel.css?v=13`, `calendario.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=2`, `pdf-workorder?v=1`, `table-helpers?v=1`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=8`, `cotizar-bnk?v=10`, `cotizar-mnt?v=10`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=9`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-15): `panel.css?v=14`, `calendario.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=3`, `pdf-workorder?v=2`, `table-helpers?v=1`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=8`, `cotizar-bnk?v=11`, `cotizar-mnt?v=11`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=9`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 
