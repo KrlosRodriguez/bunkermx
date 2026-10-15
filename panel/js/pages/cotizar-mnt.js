@@ -2,6 +2,18 @@
 (function () {
   'use strict';
 
+  // Si ocupacion.js no cargó, el módulo sigue funcionando sin montaje ni bloqueo
+  // en vez de dejar la sección en blanco.
+  var _OCU = (typeof BNKOcupacion !== 'undefined') ? BNKOcupacion : {
+    ESTADOS_BLOQUEAN: ['Cerrada', 'En Producción', 'Ejecutado'],
+    isoAdd: function (iso) { return iso; },
+    hoy: function () { return ''; },
+    derive: function () { return { montajeDates: [], desmontajeDates: [] }; },
+    fechasDeVenue: function (e) { return { evento: (e && e.eventDays) || [], montaje: [], desmontaje: [] }; },
+    indexar: function () { return {}; }
+  };
+
+
   var _venues = [];      // datos de catalogo categoría Venues
   var _clientes = [];    // lista de clientes para autocompletado
   var _selected = {};    // { docId: { montajeDays: 0, desmontajeDays: 0, eventDays: [...], calMonth: Date } }
@@ -35,7 +47,7 @@
         _ocupacion = {};
         BNKToast.warn('No se pudo verificar la ocupación de los espacios. Revisa las fechas a mano.');
       } else {
-        _ocupacion = BNKOcupacion.indexar(results[2]);
+        _ocupacion = _OCU.indexar(results[2]);
       }
       if (loadingEl.parentNode) loadingEl.remove();
       if (wizard) wizard.style.opacity = '';
@@ -547,9 +559,10 @@
   function _fechasDerivadas(vid) {
     var sel = _selected[vid];
     if (!sel) return { montajeDates: [], desmontajeDates: [] };
-    return BNKOcupacion.derive(sel.eventDays, sel.montajeDays, sel.desmontajeDays);
+    return _OCU.derive(sel.eventDays, sel.montajeDays, sel.desmontajeDays);
   }
 
+  var MAX_DIAS = 30;   // tope de días de montaje o desmontaje por venue
   var MESES_CORTO_MSG = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
   function _fechaCorta(iso) {
@@ -557,18 +570,30 @@
     return parseInt(p[2], 10) + ' ' + MESES_CORTO_MSG[parseInt(p[1], 10) - 1];
   }
 
+  // ['2026-10-12','2026-10-13'] -> '12, 13 oct'; agrupa por mes si se cruzan.
+  function _fechasCortas(isos) {
+    var grupos = [], orden = [];
+    (isos || []).forEach(function (iso) {
+      var p = iso.split('-');
+      var mes = MESES_CORTO_MSG[parseInt(p[1], 10) - 1];
+      if (!grupos[mes]) { grupos[mes] = []; orden.push(mes); }
+      grupos[mes].push(parseInt(p[2], 10));
+    });
+    return orden.map(function (mes) { return grupos[mes].join(', ') + ' ' + mes; }).join(' · ');
+  }
+
   // La n-ésima fecha (1-based) de montaje o desmontaje para las fechas actuales.
   function _isoDe(sel, tipo, n) {
     var ordenados = sel.eventDays.slice().sort();
     return tipo === 'montaje'
-      ? BNKOcupacion.isoAdd(ordenados[0], -n)
-      : BNKOcupacion.isoAdd(ordenados[ordenados.length - 1], n);
+      ? _OCU.isoAdd(ordenados[0], -n)
+      : _OCU.isoAdd(ordenados[ordenados.length - 1], n);
   }
 
   // Motivo por el que ese día concreto no se puede reservar, o null si se puede.
   function _motivoDia(vid, venue, tipo, iso) {
     var sel = _selected[vid];
-    if (iso < BNKOcupacion.hoy()) return 'El ' + tipo + ' caería en una fecha pasada.';
+    if (iso < _OCU.hoy()) return 'El ' + tipo + ' caería en una fecha pasada.';
     // Defensivo: con la regla de derivación actual un día derivado nunca cae
     // sobre un día de evento, pero si la regla cambia esto lo detiene.
     if (sel.eventDays.indexOf(iso) >= 0) return 'Ese día ya es día de evento.';
@@ -582,6 +607,7 @@
     var sel = _selected[vid];
     if (!sel.eventDays.length) return 'Selecciona primero los días del evento.';
     var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+    if ((sel[prop] || 0) >= MAX_DIAS) return 'Máximo ' + MAX_DIAS + ' días de ' + tipo + '.';
     return _motivoDia(vid, venue, tipo, _isoDe(sel, tipo, (sel[prop] || 0) + 1));
   }
 
@@ -756,9 +782,9 @@
         + _esc(d.nombre)
         + '<span class="mnt-edit-venue" data-idx="' + idx + '" title="Editar fechas">&#9998;</span>'
         + '</div>'
-        + (d.montajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--montaje)">Montaje: ' + _esc(d.montajeDates.join(', ')) + '</span></div>' : '')
-        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Evento: ' + _esc(d.eventDays.join(', ')) + '</span></div>'
-        + (d.desmontajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--desmontaje)">Desmontaje: ' + _esc(d.desmontajeDates.join(', ')) + '</span></div>' : '')
+        + (d.montajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--montaje)">Montaje: ' + _esc(_fechasCortas(d.montajeDates)) + '</span></div>' : '')
+        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Evento: ' + _esc(_fechasCortas(d.eventDays)) + '</span></div>'
+        + (d.desmontajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--desmontaje)">Desmontaje: ' + _esc(_fechasCortas(d.desmontajeDates)) + '</span></div>' : '')
         + '<div class="mnt-resumen-row"><span>Días regulares (Lun-Jue): ' + d.diasRegular + '</span><span>' + _formatMXN(d.diasRegular * d.precioRegular) + '</span></div>'
         + (d.diasWeekend > 0 ? '<div class="mnt-resumen-row"><span>Días weekend (Vie-Sáb): ' + d.diasWeekend + '</span><span>' + _formatMXN(d.diasWeekend * d.precioWeekend) + '</span></div>' : '')
         + (d.montajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días montaje: ' + d.montajeDays + '</span><span>' + _formatMXN(d.montaje) + '</span></div>' : '')
@@ -1176,6 +1202,20 @@
   }
 
   // ── Init ──
+  // El índice es una foto del arranque: si alguien cierra una cotización mientras
+  // la sesión sigue abierta, hay que releerlo al volver a entrar al tab.
+  function _recargarOcupacion() {
+    if (!_venues.length) return;   // aún no inicializa; init() ya lo carga
+    BNK_DB.cotizaciones.list().then(function (cots) {
+      _ocupacion = _OCU.indexar(cots);
+      if (Object.keys(_selected).length) _renderCalendars();
+    }).catch(function (err) {
+      console.error('[BNK] No se pudo refrescar la ocupación:', err);
+    });
+  }
+
+  window.BNKCotizarMNT = { recargarOcupacion: _recargarOcupacion };
+
   BNK_AUTH.onReady(function (user) {
     if (user) init();
   });

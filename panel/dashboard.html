@@ -1992,6 +1992,11 @@
     if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
     var sec = document.getElementById('sec-' + target);
     if (sec) sec.classList.add('active');
+    // El wizard MNT cachea la ocupación de venues al arrancar; al volver a entrar
+    // se relee por si alguien cerró una cotización mientras tanto.
+    if (target === 'cotizar-mnt' && window.BNKCotizarMNT) {
+      window.BNKCotizarMNT.recargarOcupacion();
+    }
   }
 
   tabs.forEach(function (tab) {

@@ -2,6 +2,18 @@
 (function () {
   'use strict';
 
+  // Si ocupacion.js no cargó, el módulo sigue funcionando sin montaje ni bloqueo
+  // en vez de dejar la sección en blanco.
+  var _OCU = (typeof BNKOcupacion !== 'undefined') ? BNKOcupacion : {
+    ESTADOS_BLOQUEAN: ['Cerrada', 'En Producción', 'Ejecutado'],
+    isoAdd: function (iso) { return iso; },
+    hoy: function () { return ''; },
+    derive: function () { return { montajeDates: [], desmontajeDates: [] }; },
+    fechasDeVenue: function (e) { return { evento: (e && e.eventDays) || [], montaje: [], desmontaje: [] }; },
+    indexar: function () { return {}; }
+  };
+
+
   var _now = new Date();
   var _mes = _now.getMonth();
   var _anio = _now.getFullYear();
@@ -435,18 +447,21 @@
     var bloques = [];
 
     _cotizaciones.forEach(function (c) {
-      var esCerrada = BNKOcupacion.ESTADOS_BLOQUEAN.indexOf(c.estado) !== -1;
+      var esCerrada = _OCU.ESTADOS_BLOQUEAN.indexOf(c.estado) !== -1;
 
       // Qué papel juega esta fecha en esta cotización.
       var papel = null;
       if (c.desgloseVenues) {
         try {
           var desglose = JSON.parse(c.desgloseVenues);
-          for (var i = 0; i < desglose.length && !papel; i++) {
-            var f = BNKOcupacion.fechasDeVenue(desglose[i]);
-            if (f.evento.indexOf(fecha) !== -1) papel = 'evento';
-            else if (esCerrada && f.montaje.indexOf(fecha) !== -1) papel = 'montaje';
-            else if (esCerrada && f.desmontaje.indexOf(fecha) !== -1) papel = 'desmontaje';
+          // Precedencia entre venues de la misma cotización: un día de evento de
+          // cualquier venue gana sobre el montaje o desmontaje de otro.
+          for (var i = 0; i < desglose.length; i++) {
+            var f = _OCU.fechasDeVenue(desglose[i]);
+            if (f.evento.indexOf(fecha) !== -1) { papel = 'evento'; break; }
+            if (!esCerrada || papel) continue;
+            if (f.montaje.indexOf(fecha) !== -1) papel = 'montaje';
+            else if (f.desmontaje.indexOf(fecha) !== -1) papel = 'desmontaje';
           }
         } catch (e) { /* documento ilegible: se ignora */ }
       }
