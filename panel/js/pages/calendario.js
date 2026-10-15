@@ -2,6 +2,18 @@
 (function () {
   'use strict';
 
+  // Si ocupacion.js no cargó, el módulo sigue funcionando sin montaje ni bloqueo
+  // en vez de dejar la sección en blanco.
+  var _OCU = (typeof BNKOcupacion !== 'undefined') ? BNKOcupacion : {
+    ESTADOS_BLOQUEAN: ['Cerrada', 'En Producción', 'Ejecutado'],
+    isoAdd: function (iso) { return iso; },
+    hoy: function () { return ''; },
+    derive: function () { return { montajeDates: [], desmontajeDates: [] }; },
+    fechasDeVenue: function (e) { return { evento: (e && e.eventDays) || [], montaje: [], desmontaje: [] }; },
+    indexar: function () { return {}; }
+  };
+
+
   var _now = new Date();
   var _mes = _now.getMonth();
   var _anio = _now.getFullYear();
@@ -128,7 +140,7 @@
 
       visible.forEach(function (b) {
         var tooltip = _buildTooltip(b);
-        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _esc(tooltip) + '"'
+        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _escAttr(tooltip) + '"'
           + (b.cotizacionId ? ' data-cot-id="' + _esc(b.cotizacionId) + '"' : '')
           + (b.eventoId ? ' data-evt-id="' + _esc(b.eventoId) + '"' : '')
           + '>'
@@ -226,7 +238,7 @@
       var bloques = _getBloquesDelDia(iso);
       html += '<div class="cal-week-allday-col" data-fecha="' + iso + '">';
       bloques.forEach(function (b) {
-        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _esc(_buildTooltip(b)) + '"'
+        html += '<div class="cal-bloque cal-bloque--' + b.tipo + '" title="' + _escAttr(_buildTooltip(b)) + '"'
           + (b.cotizacionId ? ' data-cot-id="' + _esc(b.cotizacionId) + '"' : '')
           + (b.eventoId ? ' data-evt-id="' + _esc(b.eventoId) + '"' : '')
           + '>' + _esc(b.label) + '</div>';
@@ -370,7 +382,8 @@
 
     bloques.forEach(function (b) {
       var dtstart = b.fecha.replace(/-/g, '');
-      var uid = (b.folio || b.cotizacionId || b.eventoId || b.fecha + '-' + Math.random().toString(36).slice(2)) + '@bunker-panel';
+      var uid = (b.folio || b.cotizacionId || b.eventoId || b.fecha + '-' + Math.random().toString(36).slice(2))
+        + '-' + (b.papel || 'evento') + '-' + dtstart + '@bunker-panel';
 
       // Look up monto from cotizacion data
       var monto = 0;
@@ -384,10 +397,11 @@
       }
 
       lines.push('BEGIN:VEVENT');
-      lines.push('UID:' + uid);
+      lines.push('UID:' + _icsEscape(uid));
       lines.push('DTSTART;VALUE=DATE:' + dtstart);
       lines.push('DTEND;VALUE=DATE:' + dtstart);
-      lines.push('SUMMARY:' + _icsEscape(b.cliente + ' - ' + (b.evento || b.label)));
+      var prefijoICS = b.papel === 'montaje' ? 'MONTAJE — ' : (b.papel === 'desmontaje' ? 'DESMONTAJE — ' : '');
+      lines.push('SUMMARY:' + _icsEscape(prefijoICS + b.cliente + ' - ' + (b.evento || b.label)));
       lines.push('DESCRIPTION:' + _icsEscape(
         'Folio: ' + (b.folio || '') +
         '\\nEstado: ' + (b.estado || '') +
@@ -410,7 +424,8 @@
   }
 
   function _icsEscape(s) {
-    return (s || '').replace(/[,;\\]/g, function (c) { return '\\' + c; }).replace(/\n/g, '\\n');
+    return (s || '').replace(/[,;\\]/g, function (c) { return '\\' + c; })
+      .replace(/\r\n|\r|\n/g, '\\n');
   }
 
   // ──────────────────────────────────────────────
@@ -419,6 +434,8 @@
 
   function _buildTooltip(b) {
     var parts = [];
+    if (b.papel === 'montaje') parts.push('MONTAJE');
+    if (b.papel === 'desmontaje') parts.push('DESMONTAJE');
     if (b.cliente) parts.push(b.cliente);
     if (b.evento) parts.push(b.evento);
     if (b.folio) parts.push(b.folio);
@@ -430,26 +447,32 @@
     var bloques = [];
 
     _cotizaciones.forEach(function (c) {
-      var matchesFecha = false;
+      var esCerrada = _OCU.ESTADOS_BLOQUEAN.indexOf(c.estado) !== -1;
+
+      // Qué papel juega esta fecha en esta cotización.
+      var papel = null;
       if (c.desgloseVenues) {
         try {
           var desglose = JSON.parse(c.desgloseVenues);
+          // Precedencia entre venues de la misma cotización: un día de evento de
+          // cualquier venue gana sobre el montaje o desmontaje de otro.
           for (var i = 0; i < desglose.length; i++) {
-            if (desglose[i].eventDays && desglose[i].eventDays.indexOf(fecha) !== -1) {
-              matchesFecha = true;
-              break;
-            }
+            var f = _OCU.fechasDeVenue(desglose[i]);
+            if (f.evento.indexOf(fecha) !== -1) { papel = 'evento'; break; }
+            if (!esCerrada || papel) continue;
+            if (f.montaje.indexOf(fecha) !== -1) papel = 'montaje';
+            else if (f.desmontaje.indexOf(fecha) !== -1) papel = 'desmontaje';
           }
-        } catch (e) { /* ignore parse errors */ }
+        } catch (e) { /* documento ilegible: se ignora */ }
       }
-      if (!matchesFecha) {
+      if (!papel) {
         var fechaEvento = c.fechaEvento || c.fecha || c.createdAt || '';
         if (typeof fechaEvento === 'object' && fechaEvento.toDate) {
           fechaEvento = fechaEvento.toDate().toISOString().substring(0, 10);
         }
-        if (String(fechaEvento).substring(0, 10) === fecha) matchesFecha = true;
+        if (String(fechaEvento).substring(0, 10) === fecha) papel = 'evento';
       }
-      if (!matchesFecha) return;
+      if (!papel) return;
 
       if (_espacioFiltro !== 'todos') {
         var espacios = _normalizarTexto(c.espacios || '');
@@ -462,16 +485,21 @@
         if (!match) return;
       }
 
-      var estadosCerrados = ['Cerrada', 'En Producción', 'Ejecutado'];
-      var tipo = estadosCerrados.indexOf(c.estado) !== -1 ? 'confirmado' : 'cotizado';
+      var tipo;
+      if (papel === 'montaje' || papel === 'desmontaje') tipo = papel;
+      else tipo = esCerrada ? 'confirmado' : 'cotizado';
+
+      var prefijo = papel === 'montaje' ? 'MON ↑ ' : (papel === 'desmontaje' ? 'DES ↓ ' : '');
+
       bloques.push({
         tipo: tipo,
+        papel: papel,
         cliente: c.cliente || '',
         evento: c.evento || '',
         folio: c.folio || '',
         espacio: c.espacios || '',
         estado: c.estado || '',
-        label: (c.cliente || '').substring(0, 12),
+        label: prefijo + (c.cliente || '').substring(0, 12),
         cotizacionId: c.id
       });
     });
@@ -830,6 +858,14 @@
     var d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
+  // de un atributo hace falta este, o el valor puede romper el atributo.
+  function _escAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // ──────────────────────────────────────────────

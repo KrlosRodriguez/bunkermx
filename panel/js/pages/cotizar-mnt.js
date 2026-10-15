@@ -2,13 +2,26 @@
 (function () {
   'use strict';
 
+  // Si ocupacion.js no cargó, el módulo sigue funcionando sin montaje ni bloqueo
+  // en vez de dejar la sección en blanco.
+  var _OCU = (typeof BNKOcupacion !== 'undefined') ? BNKOcupacion : {
+    ESTADOS_BLOQUEAN: ['Cerrada', 'En Producción', 'Ejecutado'],
+    isoAdd: function (iso) { return iso; },
+    hoy: function () { return ''; },
+    derive: function () { return { montajeDates: [], desmontajeDates: [] }; },
+    fechasDeVenue: function (e) { return { evento: (e && e.eventDays) || [], montaje: [], desmontaje: [] }; },
+    indexar: function () { return {}; }
+  };
+
+
   var _venues = [];      // datos de catalogo categoría Venues
   var _clientes = [];    // lista de clientes para autocompletado
-  var _selected = {};    // { docId: { montajeDays: 0, eventDays: [...], calMonth: Date } }
+  var _selected = {};    // { docId: { montajeDays: 0, desmontajeDays: 0, eventDays: [...], calMonth: Date } }
   var _currentStep = 1;
   var _tipo = 'privado'; // 'privado' o 'publico'
   var _pdfStyle = 'neon';
   var _expandedVid = null; // venue con calendario expandido (accordion)
+  var _ocupacion = {};   // { nombreVenue: { iso: { folio, tipo, cotizacionId } } }
 
   function init() {
     var wizard = document.getElementById('mntWizard');
@@ -20,11 +33,22 @@
 
     Promise.all([
       BNK_DB.catalogo.list(),
-      BNK_DB.clientes.list()
+      BNK_DB.clientes.list(),
+      BNK_DB.cotizaciones.list().catch(function (err) {
+        // Sin el índice se puede cotizar igual, solo sin verificación de ocupación.
+        console.error('[BNK] No se pudo cargar la ocupación:', err);
+        return null;
+      })
     ]).then(function (results) {
       var allCatalogo = results[0];
       _venues = allCatalogo.filter(function (c) { return c.categoria === 'Venues' && c.activo !== false; });
       _clientes = results[1];
+      if (results[2] === null) {
+        _ocupacion = {};
+        BNKToast.warn('No se pudo verificar la ocupación de los espacios. Revisa las fechas a mano.');
+      } else {
+        _ocupacion = _OCU.indexar(results[2]);
+      }
       if (loadingEl.parentNode) loadingEl.remove();
       if (wizard) wizard.style.opacity = '';
       _renderSpaces();
@@ -38,7 +62,19 @@
 
   // ── Utilidades ──
   function _esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
+  // de un atributo hace falta este, o el valor puede romper el atributo.
+  function _escAttr(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
   function _formatMXN(n) { return '$' + (Number(n) || 0).toLocaleString('es-MX'); }
+
+  function _ocupado(venueNombre, iso) {
+    var porVenue = _ocupacion[venueNombre];
+    return (porVenue && porVenue[iso]) ? porVenue[iso] : null;
+  }
 
   function _generarFolio() {
     var now = new Date();
@@ -316,7 +352,7 @@
           card.classList.remove('selected');
           if (_expandedVid === vid) _expandedVid = null;
         } else {
-          _selected[vid] = { montajeDays: 0, eventDays: [], calMonth: new Date() };
+          _selected[vid] = { montajeDays: 0, desmontajeDays: 0, eventDays: [], calMonth: new Date() };
           card.classList.add('selected');
           _expandedVid = vid;
         }
@@ -375,6 +411,7 @@
     var parts = [];
     if (sel.eventDays.length > 0) parts.push(sel.eventDays.length + ' día' + (sel.eventDays.length > 1 ? 's' : '') + ' evento');
     if (sel.montajeDays > 0) parts.push(sel.montajeDays + ' montaje');
+    if (sel.desmontajeDays > 0) parts.push(sel.desmontajeDays + ' desmontaje');
     return parts.length > 0 ? parts.join(', ') : 'Sin fechas';
   }
 
@@ -420,15 +457,27 @@
           + '<div class="mnt-cal-grid">'
           + _buildCalendarDays(vid, venue, cm)
           + '</div>'
-          + '<div class="mnt-cal-legend"><span style="color:var(--ylw)">■</span> TARIFA WEEKEND (VIE-SÁB)</div>';
+          + '<div class="mnt-cal-legend-row">'
+          + '<span class="mnt-legend-chip mnt-legend-chip--weekend">TARIFA WEEKEND (VIE-SÁB)</span>'
+          + '<span class="mnt-legend-chip mnt-legend-chip--montaje">MONTAJE</span>'
+          + '<span class="mnt-legend-chip mnt-legend-chip--desmontaje">DESMONTAJE</span>'
+          + '</div>';
 
-        // Montaje stepper
+        // Steppers de montaje y desmontaje
         var montLabel = venue.precioMontaje > 0 ? _formatMXN(venue.precioMontaje) + ' / DÍA' : 'SIN COSTO';
-        html += '<div class="mnt-montaje">'
+        html += '<div class="mnt-steppers">'
+          + '<div class="mnt-montaje">'
           + '<span class="mnt-montaje-label">DÍAS DE MONTAJE (' + montLabel + ')</span>'
-          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="-1">−</button>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="montaje" data-dir="-1">&minus;</button>'
           + '<span class="mnt-montaje-val" id="montVal-' + vid + '">' + (sel.montajeDays || 0) + '</span>'
-          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-dir="1">+</button>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="montaje" data-dir="1">+</button>'
+          + '</div>'
+          + '<div class="mnt-montaje">'
+          + '<span class="mnt-montaje-label">DÍAS DE DESMONTAJE (' + montLabel + ')</span>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="desmontaje" data-dir="-1">&minus;</button>'
+          + '<span class="mnt-montaje-val" id="desmVal-' + vid + '">' + (sel.desmontajeDays || 0) + '</span>'
+          + '<button class="mnt-montaje-btn" data-vid="' + vid + '" data-tipo="desmontaje" data-dir="1">+</button>'
+          + '</div>'
           + '</div>';
 
         html += '</div>'; // close accordion-body
@@ -463,37 +512,41 @@
       });
     });
 
-    area.querySelectorAll('.mnt-cal-day:not(.disabled):not(.empty)').forEach(function (cell) {
+    area.querySelectorAll('.mnt-cal-day:not(.disabled):not(.empty):not(.ocupado):not(.montaje):not(.desmontaje)').forEach(function (cell) {
       cell.addEventListener('click', function () {
         var vid = this.getAttribute('data-vid');
         var date = this.getAttribute('data-date');
         var days = _selected[vid].eventDays;
         var idx = days.indexOf(date);
-        if (idx >= 0) { days.splice(idx, 1); this.classList.remove('selected'); }
-        else { days.push(date); this.classList.add('selected'); }
-        // Update summary in header
-        var wrap = this.closest('.mnt-calendar-wrap');
-        if (wrap) {
-          var sumEl = wrap.querySelector('.mnt-accordion-summary');
-          if (sumEl) sumEl.textContent = _venueSummary(vid);
+        if (idx >= 0) { days.splice(idx, 1); }
+        else { days.push(date); }
+
+        var venue = _venues.find(function (v) { return v.id === vid; });
+        if (venue && _recortarDias(vid, venue)) {
+          BNKToast.warn('Se ajustaron los días de montaje o desmontaje por el cambio de fechas.');
         }
+        _renderCalendars();
       });
     });
 
     area.querySelectorAll('.mnt-montaje-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var vid = this.getAttribute('data-vid');
+        var tipo = this.getAttribute('data-tipo');
         var dir = parseInt(this.getAttribute('data-dir'));
         var sel = _selected[vid];
-        sel.montajeDays = Math.max(0, (sel.montajeDays || 0) + dir);
-        var valEl = document.getElementById('montVal-' + vid);
-        if (valEl) valEl.textContent = sel.montajeDays;
-        // Update summary in header
-        var wrap = this.closest('.mnt-calendar-wrap');
-        if (wrap) {
-          var sumEl = wrap.querySelector('.mnt-accordion-summary');
-          if (sumEl) sumEl.textContent = _venueSummary(vid);
+        var venue = _venues.find(function (v) { return v.id === vid; });
+        if (!sel || !venue) return;
+        var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+
+        if (dir > 0) {
+          var motivo = _porQueNoSePuede(vid, venue, tipo);
+          if (motivo) { BNKToast.warn(motivo); return; }
+          sel[prop] = (sel[prop] || 0) + 1;
+        } else {
+          sel[prop] = Math.max(0, (sel[prop] || 0) - 1);
         }
+        _renderCalendars();
       });
     });
   }
@@ -501,6 +554,88 @@
   function _getMonthLabel(calMonth) {
     var meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
     return meses[calMonth.getMonth()] + ' ' + calMonth.getFullYear();
+  }
+
+  function _fechasDerivadas(vid) {
+    var sel = _selected[vid];
+    if (!sel) return { montajeDates: [], desmontajeDates: [] };
+    return _OCU.derive(sel.eventDays, sel.montajeDays, sel.desmontajeDays);
+  }
+
+  var MAX_DIAS = 30;   // tope de días de montaje o desmontaje por venue
+  var MESES_CORTO_MSG = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  function _fechaCorta(iso) {
+    var p = iso.split('-');
+    return parseInt(p[2], 10) + ' ' + MESES_CORTO_MSG[parseInt(p[1], 10) - 1];
+  }
+
+  // ['2026-10-12','2026-10-13'] -> '12, 13 oct'; agrupa por mes si se cruzan.
+  function _fechasCortas(isos) {
+    var grupos = [], orden = [];
+    (isos || []).forEach(function (iso) {
+      var p = iso.split('-');
+      var mes = MESES_CORTO_MSG[parseInt(p[1], 10) - 1];
+      if (!grupos[mes]) { grupos[mes] = []; orden.push(mes); }
+      grupos[mes].push(parseInt(p[2], 10));
+    });
+    return orden.map(function (mes) { return grupos[mes].join(', ') + ' ' + mes; }).join(' · ');
+  }
+
+  // La n-ésima fecha (1-based) de montaje o desmontaje para las fechas actuales.
+  function _isoDe(sel, tipo, n) {
+    var ordenados = sel.eventDays.slice().sort();
+    return tipo === 'montaje'
+      ? _OCU.isoAdd(ordenados[0], -n)
+      : _OCU.isoAdd(ordenados[ordenados.length - 1], n);
+  }
+
+  // Motivo por el que ese día concreto no se puede reservar, o null si se puede.
+  function _motivoDia(vid, venue, tipo, iso) {
+    var sel = _selected[vid];
+    if (iso < _OCU.hoy()) return 'El ' + tipo + ' caería en una fecha pasada.';
+    // Defensivo: con la regla de derivación actual un día derivado nunca cae
+    // sobre un día de evento, pero si la regla cambia esto lo detiene.
+    if (sel.eventDays.indexOf(iso) >= 0) return 'Ese día ya es día de evento.';
+    var ocupa = _ocupado(venue.concepto, iso);
+    if (ocupa) return 'No disponible: ' + ocupa.folio + ' ocupa el ' + _fechaCorta(iso) + '.';
+    return null;
+  }
+
+  // null si se puede sumar un día más de ese tipo; si no, el motivo.
+  function _porQueNoSePuede(vid, venue, tipo) {
+    var sel = _selected[vid];
+    if (!sel.eventDays.length) return 'Selecciona primero los días del evento.';
+    var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+    if ((sel[prop] || 0) >= MAX_DIAS) return 'Máximo ' + MAX_DIAS + ' días de ' + tipo + '.';
+    return _motivoDia(vid, venue, tipo, _isoDe(sel, tipo, (sel[prop] || 0) + 1));
+  }
+
+  // Cuántos días de ese tipo siguen siendo válidos con las fechas de evento
+  // actuales. Revisa TODOS los días derivados, no solo el más externo: al mover
+  // las fechas del evento, los días de en medio también cambian de posición.
+  function _maxDias(vid, venue, tipo) {
+    var sel = _selected[vid];
+    if (!sel.eventDays.length) return 0;
+    var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+    var n = 0;
+    while (n < (sel[prop] || 0)) {
+      if (_motivoDia(vid, venue, tipo, _isoDe(sel, tipo, n + 1)) !== null) break;
+      n++;
+    }
+    return n;
+  }
+
+  // Tras cambiar los días de evento, baja los contadores al máximo válido.
+  function _recortarDias(vid, venue) {
+    var sel = _selected[vid];
+    var recortado = false;
+    ['montaje', 'desmontaje'].forEach(function (tipo) {
+      var prop = tipo === 'montaje' ? 'montajeDays' : 'desmontajeDays';
+      var max = _maxDias(vid, venue, tipo);
+      if ((sel[prop] || 0) > max) { sel[prop] = max; recortado = true; }
+    });
+    return recortado;
   }
 
   function _buildCalendarDays(vid, venue, calMonth) {
@@ -518,6 +653,8 @@
 
     var isSalas = venue.concepto === 'SALAS CAPACIT.';
 
+    var derivadas = _fechasDerivadas(vid);
+
     for (var d = 1; d <= daysInMonth; d++) {
       var date = new Date(year, month, d);
       var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
@@ -525,11 +662,30 @@
       var isWeekend = dow === 5 || dow === 6; // Vie-Sáb
       var isPast = date < today;
       var isSelected = _selected[vid] && _selected[vid].eventDays.indexOf(iso) >= 0;
+      var esMontaje = derivadas.montajeDates.indexOf(iso) >= 0;
+      var esDesmontaje = derivadas.desmontajeDates.indexOf(iso) >= 0;
+      var ocupa = _ocupado(venue.concepto, iso);
       var disabled = isPast || (isSalas && isWeekend);
-      var disabledTitle = disabled ? ' title="' + (isPast ? 'Fecha pasada \u2014 no disponible' : 'No disponible para este tipo de evento') + '"' : '';
 
-      html += '<div class="mnt-cal-day' + (isWeekend ? ' weekend' : '') + (isSelected ? ' selected' : '') + (disabled ? ' disabled' : '')
-        + '"' + disabledTitle + ' data-vid="' + vid + '" data-date="' + iso + '">' + d + '</div>';
+      // Precedencia: ocupado por otra cotización > derivado de esta > no disponible.
+      var extraClass = '', title = '';
+      if (ocupa) {
+        extraClass = ' ocupado';
+        title = 'Ocupado \u2014 ' + ocupa.folio + ' (' + ocupa.tipo + ')';
+      } else if (esMontaje) {
+        extraClass = ' montaje';
+        title = 'Día de montaje';
+      } else if (esDesmontaje) {
+        extraClass = ' desmontaje';
+        title = 'Día de desmontaje';
+      } else if (disabled) {
+        title = isPast ? 'Fecha pasada \u2014 no disponible' : 'No disponible para este tipo de evento';
+      }
+
+      html += '<div class="mnt-cal-day' + (isWeekend ? ' weekend' : '') + (isSelected ? ' selected' : '')
+        + (disabled ? ' disabled' : '') + extraClass + '"'
+        + (title ? ' title="' + _escAttr(title) + '"' : '')
+        + ' data-vid="' + vid + '" data-date="' + iso + '">' + d + '</div>';
     }
     return html;
   }
@@ -538,6 +694,7 @@
   function _calcular() {
     var rentaTotal = 0;
     var montajeTotal = 0;
+    var desmontajeTotal = 0;
     var desglose = [];
 
     Object.keys(_selected).forEach(function (vid) {
@@ -562,9 +719,12 @@
 
       var renta = (diasRegular * precioRegularEfectivo) + (diasWeekend * precioWeekendEfectivo);
       var montaje = (sel.montajeDays || 0) * (venue.precioMontaje || 0);
+      var desmontaje = (sel.desmontajeDays || 0) * (venue.precioMontaje || 0);
+      var derivadas = _fechasDerivadas(vid);
 
       rentaTotal += renta;
       montajeTotal += montaje;
+      desmontajeTotal += desmontaje;
 
       desglose.push({
         nombre: venue.concepto,
@@ -572,6 +732,9 @@
         diasWeekend: diasWeekend,
         diasTotal: diasRegular + diasWeekend,
         montajeDays: sel.montajeDays || 0,
+        montajeDates: derivadas.montajeDates,
+        desmontajeDays: sel.desmontajeDays || 0,
+        desmontajeDates: derivadas.desmontajeDates,
         eventDays: sel.eventDays.slice().sort(),
         precioRegular: precioRegularEfectivo,
         precioWeekend: precioWeekendEfectivo,
@@ -580,11 +743,12 @@
         precioMontaje: venue.precioMontaje || 0,
         renta: renta,
         montaje: montaje,
-        total: renta + montaje
+        desmontaje: desmontaje,
+        total: renta + montaje + desmontaje
       });
     });
 
-    var subtotal = rentaTotal + montajeTotal;
+    var subtotal = rentaTotal + montajeTotal + desmontajeTotal;
     var iva = Math.round(subtotal * 0.16);
     var total = subtotal + iva;
 
@@ -592,6 +756,7 @@
       desglose: desglose,
       rentaTotal: rentaTotal,
       montajeTotal: montajeTotal,
+      desmontajeTotal: desmontajeTotal,
       subtotal: subtotal,
       iva: iva,
       total: total
@@ -617,10 +782,13 @@
         + _esc(d.nombre)
         + '<span class="mnt-edit-venue" data-idx="' + idx + '" title="Editar fechas">&#9998;</span>'
         + '</div>'
-        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Fechas: ' + _esc(d.eventDays.join(', ')) + '</span></div>'
+        + (d.montajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--montaje)">Montaje: ' + _esc(_fechasCortas(d.montajeDates)) + '</span></div>' : '')
+        + '<div class="mnt-resumen-row mnt-resumen-fechas"><span>Evento: ' + _esc(_fechasCortas(d.eventDays)) + '</span></div>'
+        + (d.desmontajeDates.length > 0 ? '<div class="mnt-resumen-row mnt-resumen-fechas"><span style="color:var(--desmontaje)">Desmontaje: ' + _esc(_fechasCortas(d.desmontajeDates)) + '</span></div>' : '')
         + '<div class="mnt-resumen-row"><span>Días regulares (Lun-Jue): ' + d.diasRegular + '</span><span>' + _formatMXN(d.diasRegular * d.precioRegular) + '</span></div>'
         + (d.diasWeekend > 0 ? '<div class="mnt-resumen-row"><span>Días weekend (Vie-Sáb): ' + d.diasWeekend + '</span><span>' + _formatMXN(d.diasWeekend * d.precioWeekend) + '</span></div>' : '')
         + (d.montajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días montaje: ' + d.montajeDays + '</span><span>' + _formatMXN(d.montaje) + '</span></div>' : '')
+        + (d.desmontajeDays > 0 ? '<div class="mnt-resumen-row"><span>Días desmontaje: ' + d.desmontajeDays + '</span><span>' + _formatMXN(d.desmontaje) + '</span></div>' : '')
         + '<div class="mnt-resumen-row" style="font-weight:700;color:var(--wh)"><span>Total espacio</span><span>' + _formatMXN(d.total) + '</span></div>'
         + '</div>';
     });
@@ -628,6 +796,7 @@
     html += '<div class="mnt-resumen" style="margin-top:16px">'
       + '<div class="mnt-resumen-row"><span>Renta total</span><span>' + _formatMXN(calc.rentaTotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>Montaje total</span><span>' + _formatMXN(calc.montajeTotal) + '</span></div>'
+      + '<div class="mnt-resumen-row"><span>Desmontaje total</span><span>' + _formatMXN(calc.desmontajeTotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>Subtotal (sin IVA)</span><span>' + _formatMXN(calc.subtotal) + '</span></div>'
       + '<div class="mnt-resumen-row"><span>IVA (16%)</span><span>' + _formatMXN(calc.iva) + '</span></div>'
       + '<div class="mnt-resumen-total">' + _formatMXN(calc.total) + '</div>'
@@ -759,6 +928,12 @@
         doc.text(_formatMXN(d.montaje), W - margin - 4, y + 4, { align: 'right' });
         doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]); y += 7;
       }
+      if (d.desmontajeDays > 0) {
+        doc.text(d.desmontajeDays + ' día(s) desmontaje × ' + _formatMXN(d.precioMontaje), margin + 4, y + 4);
+        doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
+        doc.text(_formatMXN(d.desmontaje), W - margin - 4, y + 4, { align: 'right' });
+        doc.setTextColor(TEXT[0], TEXT[1], TEXT[2]); y += 7;
+      }
       y += 4;
     });
 
@@ -776,6 +951,10 @@
     doc.text(_formatMXN(calc.rentaTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('Montaje total', margin + 4, y + 4);
     doc.text(_formatMXN(calc.montajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
+    if (calc.desmontajeTotal > 0) {
+      doc.text('Desmontaje total', margin + 4, y + 4);
+      doc.text(_formatMXN(calc.desmontajeTotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
+    }
     doc.text('Subtotal (sin IVA)', margin + 4, y + 4);
     doc.text(_formatMXN(calc.subtotal), W - margin - 4, y + 4, { align: 'right' }); y += 7;
     doc.text('IVA (16%)', margin + 4, y + 4);
@@ -867,6 +1046,7 @@
       notas: (document.getElementById('mntNotas') || {}).value || '',
       rentaTotal: calc.rentaTotal,
       montajeTotal: calc.montajeTotal,
+      desmontajeTotal: calc.desmontajeTotal,
       subtotal: calc.subtotal,
       iva: calc.iva,
       total: calc.total,
@@ -1022,6 +1202,20 @@
   }
 
   // ── Init ──
+  // El índice es una foto del arranque: si alguien cierra una cotización mientras
+  // la sesión sigue abierta, hay que releerlo al volver a entrar al tab.
+  function _recargarOcupacion() {
+    if (!_venues.length) return;   // aún no inicializa; init() ya lo carga
+    BNK_DB.cotizaciones.list().then(function (cots) {
+      _ocupacion = _OCU.indexar(cots);
+      if (Object.keys(_selected).length) _renderCalendars();
+    }).catch(function (err) {
+      console.error('[BNK] No se pudo refrescar la ocupación:', err);
+    });
+  }
+
+  window.BNKCotizarMNT = { recargarOcupacion: _recargarOcupacion };
+
   BNK_AUTH.onReady(function (user) {
     if (user) init();
   });
