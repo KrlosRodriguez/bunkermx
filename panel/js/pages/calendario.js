@@ -854,17 +854,18 @@
   }
 
   function _esc(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
   // _esc() no escapa comillas (textContent -> innerHTML): para interpolar dentro
   // de un atributo hace falta este, o el valor puede romper el atributo.
   function _escAttr(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-    if (!s) return '';
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
   }
 
   // ──────────────────────────────────────────────
