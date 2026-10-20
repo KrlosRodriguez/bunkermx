@@ -209,7 +209,7 @@
       html += '<tr data-id="' + _esc(d.id) + '">'
         + '<td class="col-folio" data-pop-id="' + _esc(d.id) + '" style="cursor:pointer">' + _esc(d.folio) + '</td>'
         + '<td>' + _esc(fechaFormatted) + '</td>'
-        + '<td>' + _esc(d.cliente) + '</td>'
+        + '<td>' + (d.cliente ? _esc(d.cliente) : '<span class="cot-sin-cliente">— sin cliente —</span>') + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + _esc(d.marca || '\u2014') + '</td>'
         + '<td>' + _esc(d.evento || '\u2014') + '</td>'
         + '<td><span class="tipo-badge ' + tipoClass + '">' + _esc(d.fuente || 'MNT') + '</span></td>'

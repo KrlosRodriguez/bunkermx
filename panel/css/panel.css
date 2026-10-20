@@ -432,6 +432,7 @@ th.sortable.sort-desc::after{content:'\u25BC';opacity:1}
 .cot-popover-bnk-item .bnk-folio{font-family:'Space Mono',monospace;color:var(--ylw);letter-spacing:.5px}
 .cot-popover-bnk-item .bnk-total{color:var(--tx)}
 .cot-popover-bnk-empty{font-size:11px;color:var(--tx);font-style:italic;padding:2px 0}
+.cot-sin-cliente{color:var(--tx);font-style:italic}
 .cot-popover-chips{display:flex;gap:8px;padding:8px 16px;border-top:1px solid var(--bd)}
 .cot-popover-chip{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.5px;color:var(--tx);padding:4px 10px;border:1px solid var(--bd);display:flex;align-items:center;gap:4px;cursor:default}
 .cot-popover-chip.has-items{border-color:rgba(0,255,65,.3);color:var(--g)}

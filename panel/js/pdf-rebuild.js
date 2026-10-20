@@ -105,7 +105,7 @@
     var yRef = {
       y: 0,
       _headerTitle: 'Cotización MUNET — ' + (evento || 'Evento'),
-      _headerSub: folio + ' | ' + cliente + ' | ' + contacto
+      _headerSub: [folio, cliente, contacto].filter(function (t) { return !!t; }).join(' | ')
     };
 
     // Página 1
@@ -238,7 +238,7 @@
     var yRef = {
       y: 0,
       _headerTitle: 'Cotización — ' + (evento || 'Producción Integral'),
-      _headerSub: folio + ' | ' + empresa + ' | ' + contacto
+      _headerSub: [folio, empresa, contacto].filter(function (t) { return !!t; }).join(' | ')
     };
 
     // Header BNK usa logo más grande

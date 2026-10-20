@@ -6,7 +6,7 @@
 <title>BUNKER — Panel Operativo</title>
 <link rel="icon" type="image/webp" href="img/logo-bunker.webp">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/panel.css?v=14">
+<link rel="stylesheet" href="css/panel.css?v=15">
 <!-- Firebase SDKs (compat mode for vanilla JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -307,7 +307,7 @@
         <div class="ctz-card">
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
-            <label class="bnk-label">CLIENTE / EMPRESA *</label>
+            <label class="bnk-label">CLIENTE / EMPRESA <span class="bnk-hint">* cliente o evento</span></label>
             <div class="bnk-input-icon-wrap">
               <span class="bnk-input-icon">&#128269;</span>
               <input type="text" class="bnk-input" id="mntCliente" placeholder="Buscar cliente..." autocomplete="off">
@@ -323,20 +323,20 @@
             <input type="text" class="bnk-input" id="mntAgencia" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">NOMBRE DEL EVENTO *</label>
+            <label class="bnk-label">NOMBRE DEL EVENTO <span class="bnk-hint">* cliente o evento</span></label>
             <input type="text" class="bnk-input" id="mntEvento" placeholder="Nombre del evento">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">CONTACTO *</label>
-            <input type="text" class="bnk-input" id="mntContacto" placeholder="Persona de contacto">
+            <label class="bnk-label">CONTACTO</label>
+            <input type="text" class="bnk-input" id="mntContacto" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">TELÉFONO <span class="bnk-hint">* al menos uno</span></label>
-            <input type="tel" class="bnk-input" id="mntTelefono" placeholder="Teléfono">
+            <label class="bnk-label">TELÉFONO</label>
+            <input type="tel" class="bnk-input" id="mntTelefono" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">CORREO <span class="bnk-hint">* al menos uno</span></label>
-            <input type="email" class="bnk-input" id="mntCorreo" placeholder="correo@empresa.com">
+            <label class="bnk-label">CORREO</label>
+            <input type="email" class="bnk-input" id="mntCorreo" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
             <label class="bnk-label">ASISTENTES</label>
@@ -2296,12 +2296,12 @@
 </script>
 
 <!-- PDF rebuild + Módulos de página -->
-<script src="js/pdf-rebuild.js?v=3"></script>
+<script src="js/pdf-rebuild.js?v=4"></script>
 <script src="js/pdf-workorder.js?v=2"></script>
 <script src="js/table-helpers.js?v=1"></script>
 <script src="js/ocupacion.js?v=1"></script>
 <script src="js/pages/documentos.js?v=2"></script>
-<script src="js/pages/cotizaciones.js?v=8"></script>
+<script src="js/pages/cotizaciones.js?v=9"></script>
 <script src="js/pages/pipeline.js?v=9"></script>
 <script src="js/pages/clientes.js?v=9"></script>
 <script src="js/pages/proveedores.js?v=10"></script>
@@ -2310,7 +2310,7 @@
 <script src="js/pages/catalogo.js?v=8"></script>
 <script src="js/pages/usuarios.js?v=8"></script>
 <script src="js/pages/eventos.js?v=11"></script>
-<script src="js/pages/cotizar-mnt.js?v=11"></script>
+<script src="js/pages/cotizar-mnt.js?v=13"></script>
 <script src="js/pages/cotizar-bnk.js?v=11"></script>
 <script src="js/pages/finanzas.js?v=11"></script>
 <script src="js/pages/actividad.js?v=11"></script>
