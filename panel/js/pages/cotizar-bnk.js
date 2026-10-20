@@ -9,6 +9,7 @@
   var _allBloques = [];
   var _serviciosCategorias = [];
   var _conceptoCounter = 0;
+  var _clienteSel = null; // { id, nombre } del cliente elegido en el autocompletado
   var _pdfStyle = 'neon';
 
   var PLANTILLAS = {
@@ -140,11 +141,15 @@
       _acIndex = -1;
       // Mostrar selector de marca si tiene marcas
       var clienteId = item.getAttribute('data-cliente-id') || '';
+      // Guardamos la FK para que la cotización nazca vinculada al expediente
+      _clienteSel = clienteId ? { id: clienteId, nombre: item.getAttribute('data-empresa') || '' } : null;
       _showMarcaSelector('bnk', clienteId);
     }
 
     input.addEventListener('input', function () {
       _acIndex = -1;
+      // Si editan el nombre a mano, la vinculación elegida deja de ser válida
+      if (_clienteSel && input.value.trim() !== _clienteSel.nombre) _clienteSel = null;
       var val = input.value.trim().toLowerCase();
       if (val.length < 2) { dropdown.classList.remove('visible'); return; }
 
@@ -539,12 +544,12 @@
     // Clear previous
     [empresaEl, eventoEl, telEl, correoEl].forEach(function (el) { BNKValidate.clear(el); });
 
-    if (!empresaEl.value.trim()) { BNKValidate.error(empresaEl, 'Empresa requerida'); BNKToast.warn('La empresa es requerida.'); return false; }
-    if (!eventoEl.value.trim()) { BNKValidate.error(eventoEl, 'Evento requerido'); BNKToast.warn('El nombre del evento es requerido.'); return false; }
-    if (!telEl.value.trim() && !correoEl.value.trim()) {
-      BNKValidate.error(telEl, 'Teléfono o correo requerido');
-      BNKValidate.error(correoEl, 'Teléfono o correo requerido');
-      BNKToast.warn('Ingresa al menos teléfono o correo.');
+    // Cotización rápida: basta con poder identificar el registro (empresa o evento).
+    // El cliente se puede vincular después desde COTIZACIONES una vez dado de alta.
+    if (!empresaEl.value.trim() && !eventoEl.value.trim()) {
+      BNKValidate.error(empresaEl, 'Empresa o evento requerido');
+      BNKValidate.error(eventoEl, 'Empresa o evento requerido');
+      BNKToast.warn('Captura al menos la empresa o el nombre del evento.');
       return false;
     }
     if (correoEl.value.trim() && !BNKValidate.email(correoEl)) {
@@ -596,7 +601,8 @@
       doc.text('Cotización - ' + (data.evento || 'Producción Integral'), 65, 12);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.setTextColor(ACCENT[0], ACCENT[1], ACCENT[2]);
-      doc.text(data.folio + ' | ' + (data.empresa || '') + ' | ' + (data.contacto || ''), 65, 18);
+      var subHeader = [data.folio, data.empresa, data.contacto].filter(function (t) { return !!t; }).join(' | ');
+      doc.text(subHeader, 65, 18);
     }
 
     function drawFooter() {
@@ -827,9 +833,16 @@
       creadoPor: BNK_AUTH.currentUser() ? BNK_AUTH.currentUser().uid : ''
     };
 
+    // Si el cliente se eligió del autocompletado, la cotización nace vinculada.
+    // Si se escribió a mano (o se dejó vacío), se vincula después desde COTIZACIONES.
+    if (_clienteSel && _clienteSel.id && firestoreData.empresa === _clienteSel.nombre) {
+      firestoreData.clienteId = _clienteSel.id;
+      firestoreData.clienteNombre = _clienteSel.nombre;
+    }
+
     BNK_DB.cotizaciones.create(firestoreData).then(function (saved) {
       // La cotización ya quedó guardada: entregar PDF y confirmar primero.
-      doc.save('Cotizacion-BNK-' + folio + '.pdf');
+      doc.save('Cotizacion-' + folio + '.pdf');
       BNKToast.ok('Cotización ' + folio + ' generada.');
       BNK_DB.logActividad({ tipo: 'cotizacion_creada', entidad: 'cotizacion', entidadId: saved.id, referencia: firestoreData.folio, detalle: 'Cotización BNK creada para ' + (firestoreData.empresa || '') });
 
@@ -902,6 +915,7 @@
 
   function _doLimpiar() {
     _clearBnkDraft();
+    _clienteSel = null;
     ['bnkEmpresa','bnkContacto','bnkTelefono','bnkCorreo','bnkEvento','bnkFechaEvento','bnkFolioMNT'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.value = '';
     });

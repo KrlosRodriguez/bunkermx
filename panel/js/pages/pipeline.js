@@ -72,7 +72,7 @@
     if (_filter) {
       var q = _filter.toLowerCase();
       result = result.filter(function (d) {
-        return ((d.cliente || '') + ' ' + (d.evento || '') + ' ' + (d.folio || '')).toLowerCase().indexOf(q) !== -1;
+        return ((d.cliente || d.empresa || '') + ' ' + (d.evento || '') + ' ' + (d.folio || '')).toLowerCase().indexOf(q) !== -1;
       });
     }
     // Tipo filter
@@ -168,7 +168,7 @@
 
           html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '" draggable="true" tabindex="0" role="button">'
             + '<div class="pipeline-card-top">'
-            + '<span class="pipeline-card-cliente">' + _esc(d.cliente) + '</span>'
+            + '<span class="pipeline-card-cliente">' + _esc(d.cliente || d.empresa || '\u2014 sin cliente \u2014') + '</span>'
             + '<span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span>'
             + '</div>'
             + '<div class="pipeline-card-folio">' + _esc(d.folio || '') + '</div>'
@@ -449,7 +449,7 @@
     document.getElementById('pipeDetailTitle').textContent = d.folio || 'DETALLE';
     var tipoBadge = d.fuente === 'BNK' ? 'tipo-BNK' : 'tipo-MNT';
     var info = '<div class="pipe-detail-grid">'
-      + '<div><span class="bnk-label">CLIENTE</span><div>' + _esc(d.cliente) + '</div></div>'
+      + '<div><span class="bnk-label">CLIENTE</span><div>' + _esc(d.cliente || d.empresa || '\u2014') + '</div></div>'
       + '<div><span class="bnk-label">EVENTO</span><div>' + _esc(d.evento || '\u2014') + '</div></div>'
       + '<div><span class="bnk-label">TIPO</span><div><span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span></div></div>'
       + '<div><span class="bnk-label">TOTAL</span><div>' + _formatMXN(d.total) + '</div></div>'

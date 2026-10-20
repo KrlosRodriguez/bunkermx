@@ -116,7 +116,7 @@
 
     return _data.filter(function (d) {
       if (search) {
-        var hay = [d.folio, d.cliente, d.marca, d.evento, d.espacios, d.folioMNT].join(' ').toLowerCase();
+        var hay = [d.folio, d.cliente, d.empresa, d.marca, d.evento, d.espacios, d.folioMNT].join(' ').toLowerCase();
         if (hay.indexOf(search) === -1) return false;
       }
       var dEstado = d.estado || 'Recorrido';
@@ -209,7 +209,7 @@
       html += '<tr data-id="' + _esc(d.id) + '">'
         + '<td class="col-folio" data-pop-id="' + _esc(d.id) + '" style="cursor:pointer">' + _esc(d.folio) + '</td>'
         + '<td>' + _esc(fechaFormatted) + '</td>'
-        + '<td>' + (d.cliente ? _esc(d.cliente) : '<span class="cot-sin-cliente">— sin cliente —</span>') + '</td>'
+        + '<td>' + ((d.cliente || d.empresa) ? _esc(d.cliente || d.empresa) : '<span class="cot-sin-cliente">— sin cliente —</span>') + '</td>'
         + '<td style="color:var(--tx);font-size:12px">' + _esc(d.marca || '\u2014') + '</td>'
         + '<td>' + _esc(d.evento || '\u2014') + '</td>'
         + '<td><span class="tipo-badge ' + tipoClass + '">' + _esc(d.fuente || 'MNT') + '</span></td>'
@@ -503,7 +503,7 @@
     var tipoBadge = document.getElementById('popTipo');
     tipoBadge.textContent = fuente;
     tipoBadge.className = 'tipo-badge tipo-' + fuente;
-    document.getElementById('popCliente').textContent = cot.cliente || '\u2014';
+    document.getElementById('popCliente').textContent = cot.cliente || cot.empresa || '\u2014';
     document.getElementById('popEvento').textContent = cot.evento || '\u2014';
     document.getElementById('popTotal').textContent = _formatMXN(cot.total);
     var estadoEl = document.getElementById('popEstado');

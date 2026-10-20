@@ -429,7 +429,7 @@
       } else {
         doc = rebuildMNT(cotData, style);
       }
-      var filename = 'Cotizacion-' + fuente + '-' + (cotData.folio || 'sin-folio') + '.pdf';
+      var filename = 'Cotizacion-' + (cotData.folio || fuente + '-sin-folio') + '.pdf';
       doc.save(filename);
     }
   };

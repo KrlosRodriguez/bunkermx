@@ -443,7 +443,7 @@
         <div class="bnk-section-label">DATOS DEL CLIENTE</div>
         <div class="bnk-form-grid">
           <div class="bnk-form-group">
-            <label class="bnk-label">EMPRESA *</label>
+            <label class="bnk-label">EMPRESA <span class="bnk-hint">* empresa o evento</span></label>
             <div class="bnk-input-icon-wrap">
               <span class="bnk-input-icon">🔍</span>
               <input type="text" class="bnk-input" id="bnkEmpresa" placeholder="Buscar cliente..." autocomplete="off">
@@ -456,18 +456,18 @@
           </div>
           <div class="bnk-form-group">
             <label class="bnk-label">CONTACTO</label>
-            <input type="text" class="bnk-input" id="bnkContacto" placeholder="Persona de contacto">
+            <input type="text" class="bnk-input" id="bnkContacto" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">TELÉFONO <span class="bnk-hint">(mín. teléfono o correo)</span></label>
-            <input type="tel" class="bnk-input" id="bnkTelefono" placeholder="Teléfono">
+            <label class="bnk-label">TELÉFONO</label>
+            <input type="tel" class="bnk-input" id="bnkTelefono" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">CORREO <span class="bnk-hint">(mín. teléfono o correo)</span></label>
-            <input type="email" class="bnk-input" id="bnkCorreo" placeholder="correo@empresa.com">
+            <label class="bnk-label">CORREO</label>
+            <input type="email" class="bnk-input" id="bnkCorreo" placeholder="Opcional">
           </div>
           <div class="bnk-form-group">
-            <label class="bnk-label">EVENTO *</label>
+            <label class="bnk-label">EVENTO <span class="bnk-hint">* empresa o evento</span></label>
             <input type="text" class="bnk-input" id="bnkEvento" placeholder="Nombre del evento">
           </div>
           <div class="bnk-form-group">
@@ -711,7 +711,7 @@
           <!-- Tab General -->
           <div class="modal-tab-content active" id="cliTabGeneral">
             <div class="bnk-form-grid">
-              <div class="bnk-form-group"><label class="bnk-label">EMPRESA *</label><input type="text" class="bnk-input" id="cliEmpresa"></div>
+              <div class="bnk-form-group"><label class="bnk-label">EMPRESA <span class="bnk-hint">* empresa o evento</span></label><input type="text" class="bnk-input" id="cliEmpresa"></div>
               <div class="bnk-form-group"><label class="bnk-label">MARCAS</label>
                 <div class="bnk-chips-wrap" id="cliMarcasWrap">
                   <input type="text" class="bnk-chips-input" id="cliMarcasInput" placeholder="Escribe y presiona Enter...">
@@ -2296,13 +2296,13 @@
 </script>
 
 <!-- PDF rebuild + Módulos de página -->
-<script src="js/pdf-rebuild.js?v=4"></script>
+<script src="js/pdf-rebuild.js?v=5"></script>
 <script src="js/pdf-workorder.js?v=2"></script>
 <script src="js/table-helpers.js?v=1"></script>
 <script src="js/ocupacion.js?v=1"></script>
 <script src="js/pages/documentos.js?v=2"></script>
-<script src="js/pages/cotizaciones.js?v=9"></script>
-<script src="js/pages/pipeline.js?v=9"></script>
+<script src="js/pages/cotizaciones.js?v=10"></script>
+<script src="js/pages/pipeline.js?v=10"></script>
 <script src="js/pages/clientes.js?v=9"></script>
 <script src="js/pages/proveedores.js?v=10"></script>
 <script src="js/pages/calendario.js?v=11"></script>
@@ -2311,7 +2311,7 @@
 <script src="js/pages/usuarios.js?v=8"></script>
 <script src="js/pages/eventos.js?v=11"></script>
 <script src="js/pages/cotizar-mnt.js?v=13"></script>
-<script src="js/pages/cotizar-bnk.js?v=11"></script>
+<script src="js/pages/cotizar-bnk.js?v=12"></script>
 <script src="js/pages/finanzas.js?v=11"></script>
 <script src="js/pages/actividad.js?v=11"></script>
 
