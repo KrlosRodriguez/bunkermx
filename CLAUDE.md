@@ -222,6 +222,8 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 
 ### PDFs
 
+**El logo se rompe en silencio.** `panel/js/logo-data.js` se quedó truncado (6,939 de 16,775 bytes: el IDAT incompleto y sin IEND) y jsPDF tiraba `Incomplete or corrupt PNG file` dentro del `try/catch` de `addImage`, así que **todos los PDF del panel salían sin logo**. Restaurado el 2026-10-20 desde la copia íntegra de `cotizador-munet/js/logo-data.js`. Si se vuelve a tocar ese archivo, verificar que el base64 decodifique a un PNG completo (IHDR + IDAT + IEND), porque el `catch` vacío no avisa.
+
 **Todo texto pasa por `BNKPdfSanea(doc)`** (helper inline en `dashboard.html`; se llama justo después de `new jsPDF(...)` en los cuatro generadores). jsPDF escribe en UTF-16 cualquier cadena con un carácter fuera de Latin-1 y, con las fuentes estándar, el lector la pinta con un byte nulo entre letra y letra. Pasaba con la raya larga de los títulos (`Cotización — evento`), con el `▸` de los bloques y con cualquier texto pegado desde Word. `BNKPdfTxt()` cambia rayas, comillas tipográficas, puntos suspensivos y viñetas por equivalentes Latin-1. Al escribir texto nuevo en un PDF, no usar caracteres por encima de U+00FF.
 
 Dos paletas con toggle en ambos cotizadores:
@@ -232,7 +234,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-20): `panel.css?v=15`, `calendario.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=5`, `pdf-workorder?v=2`, `table-helpers?v=1`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=10`, `cotizar-bnk?v=12`, `cotizar-mnt?v=13`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=10`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-20): `panel.css?v=15`, `calendario.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=7`, `pdf-workorder?v=2`, `table-helpers?v=1`, `logo-data?v=3`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=10`, `cotizar-bnk?v=14`, `cotizar-mnt?v=13`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=10`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 

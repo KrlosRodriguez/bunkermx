@@ -278,11 +278,14 @@
       fechaEmision = hoy.getDate() + '/' + (hoy.getMonth() + 1) + '/' + hoy.getFullYear();
     }
     doc.text('Fecha de emisión: ' + fechaEmision, W - margin, yRef.y - 2, { align: 'right' });
+    yRef.y += 4; // la fecha va alineada a la derecha sobre el ancho útil: sin este hueco pisa la primera línea del intro
 
     // Intro
     doc.setFontSize(8); doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
-    var intro = 'En atención a su solicitud, BÚNKER presenta la siguiente propuesta de producción integral para el evento '
-      + evento + (fechaEvento ? ', a realizarse el ' + fechaEvento : '')
+    // Sin nombre de evento la frase no debe quedar con un hueco ("para el evento  en las ...")
+    var intro = 'En atención a su solicitud, BÚNKER presenta la siguiente propuesta de producción integral'
+      + (evento ? ' para el evento ' + evento : '')
+      + (fechaEvento ? ', a realizarse el ' + fechaEvento : '')
       + ' en las instalaciones de ' + sede + '.';
     var introLines = doc.splitTextToSize(intro, contentW);
     doc.text(introLines, margin, yRef.y); yRef.y += introLines.length * 4 + 6;
