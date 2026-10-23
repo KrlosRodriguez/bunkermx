@@ -22,12 +22,22 @@
   // Recorta el texto al ancho disponible: jsPDF no ajusta ni corta, así que un
   // nombre largo se sale de la hoja o se encima con la columna de al lado.
   // Llamar siempre después de setFont/setFontSize.
+  // Se acota la entrada y se busca el prefijo por bisección: quitar letra por
+  // letra midiendo cada vez es cuadrático y un campo con miles de caracteres
+  // (pegado desde Word, o un payload raro en Firestore) congelaba la pestaña.
+  var FIT_MAX = 300; // muy por encima de cualquier nombre real
   function _fit(doc, txt, maxW) {
     txt = String(txt === null || txt === undefined ? '' : txt);
-    if (!txt || doc.getTextWidth(txt) <= maxW) return txt;
-    var cut = txt;
-    while (cut.length > 1 && doc.getTextWidth(cut + '...') > maxW) cut = cut.slice(0, -1);
-    return cut + '...';
+    if (!txt) return '';
+    if (txt.length > FIT_MAX) txt = txt.slice(0, FIT_MAX);
+    if (doc.getTextWidth(txt) <= maxW) return txt;
+    var lo = 1, hi = txt.length, mid;
+    while (lo < hi) {
+      mid = Math.floor((lo + hi + 1) / 2);
+      if (doc.getTextWidth(txt.slice(0, mid) + '...') <= maxW) lo = mid;
+      else hi = mid - 1;
+    }
+    return txt.slice(0, lo) + '...';
   }
   var HEADER_H = 28, FOOTER_H = 20, CONTENT_TOP = 36, MAX_Y = H - FOOTER_H;
 
