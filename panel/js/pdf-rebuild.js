@@ -18,6 +18,17 @@
   }
 
   var W = 210, margin = 20, contentW = W - margin * 2, H = 297;
+
+  // Recorta el texto al ancho disponible: jsPDF no ajusta ni corta, así que un
+  // nombre largo se sale de la hoja o se encima con la columna de al lado.
+  // Llamar siempre después de setFont/setFontSize.
+  function _fit(doc, txt, maxW) {
+    txt = String(txt === null || txt === undefined ? '' : txt);
+    if (!txt || doc.getTextWidth(txt) <= maxW) return txt;
+    var cut = txt;
+    while (cut.length > 1 && doc.getTextWidth(cut + '...') > maxW) cut = cut.slice(0, -1);
+    return cut + '...';
+  }
   var HEADER_H = 28, FOOTER_H = 20, CONTENT_TOP = 36, MAX_Y = H - FOOTER_H;
 
   // ── Helpers de página ──
@@ -52,10 +63,10 @@
     }
     doc.setTextColor(p.HEADER_TEXT[0], p.HEADER_TEXT[1], p.HEADER_TEXT[2]);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-    doc.text(title || '', 55, 12);
+    doc.text(_fit(doc, title, W - margin - 55), 55, 12);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
-    doc.text(sub || '', 55, 18);
+    doc.text(_fit(doc, sub, W - margin - 55), 55, 18);
   }
 
   function _drawFooter(doc, p, label) {
@@ -133,7 +144,7 @@
       doc.rect(margin, yRef.y, contentW, 8, 'F');
       doc.setTextColor(p.HEADER_TEXT[0], p.HEADER_TEXT[1], p.HEADER_TEXT[2]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-      doc.text(d.nombre || '', margin + 4, yRef.y + 5.5); yRef.y += 10;
+      doc.text(_fit(doc, d.nombre, contentW - 8), margin + 4, yRef.y + 5.5); yRef.y += 10;
 
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
       doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
@@ -251,10 +262,10 @@
       }
       doc.setTextColor(p.HEADER_TEXT[0], p.HEADER_TEXT[1], p.HEADER_TEXT[2]);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text(yRef._headerTitle, 65, 12);
+      doc.text(_fit(doc, yRef._headerTitle, W - margin - 65), 65, 12);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
       doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
-      doc.text(yRef._headerSub, 65, 18);
+      doc.text(_fit(doc, yRef._headerSub, W - margin - 65), 65, 18);
     }
 
     function checkPageBNK(needed) {
@@ -324,7 +335,7 @@
         bloquesEnCat[bName].forEach(function (c) {
           checkPageBNK(7);
           doc.setFontSize(8); doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
-          doc.text('  ' + (c.concepto || ''), margin + 6, yRef.y + 4);
+          doc.text(_fit(doc, '  ' + (c.concepto || ''), 94 - 6), margin + 6, yRef.y + 4);
           doc.text(String(c.cantidad || 1) + ' ' + (c.unidad || ''), margin + 100, yRef.y + 4);
           doc.text(_formatMXN(c.precioUnit), W - margin - 35, yRef.y + 4);
           doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
@@ -339,7 +350,7 @@
       sinBloque.forEach(function (c) {
         checkPageBNK(7);
         doc.setFontSize(8); doc.setTextColor(p.TEXT[0], p.TEXT[1], p.TEXT[2]);
-        doc.text(c.concepto || '', margin + 4, yRef.y + 4);
+        doc.text(_fit(doc, c.concepto, 94 - 4), margin + 4, yRef.y + 4);
         doc.text(String(c.cantidad || 1) + ' ' + (c.unidad || ''), margin + 100, yRef.y + 4);
         doc.text(_formatMXN(c.precioUnit), W - margin - 35, yRef.y + 4);
         doc.setTextColor(p.ACCENT[0], p.ACCENT[1], p.ACCENT[2]);
