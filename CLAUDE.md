@@ -134,7 +134,7 @@ Helper: `BNK_DB.logActividad({ tipo, entidad, entidadId, referencia, detalle })`
 | `cotizaciones.js` | 1170 | Tabla con KPIs, filtros, sort, paginación, estado editable, PDF por fila, popover de folio (BNK vinculadas, indicadores partner/proveedor/cliente, crear BNK, OT), modales de vinculación y modal de Orden de Trabajo |
 | `cotizar-mnt.js` | 1222 | Wizard 4 pasos (Contacto → Evento → Espacios → Resumen), venue cards desde catálogo, calendario, tarifas regular/weekend/montaje, días de montaje y desmontaje derivados, bloqueo de fechas ocupadas, precio especial por venue, PDF dual, selector de marca |
 | `cotizar-bnk.js` | 1065 | Formulario de servicios/producción, filas de conceptos en modo dual (manual + proveedor), cascada categoría→proveedor→servicio/bloque, autocomplete de catálogo, bloques expandibles + modal picker, auto-vinculación de proveedores, plantillas de condiciones, PDF dual |
-| `pipeline.js` | 529 | Kanban con drag & drop HTML5 + touch, filtros (tipo/fechas/monto), KPI pipeline activo, `BNKConfirm` en Cancelada/Perdida, snapshot listener con cleanup en `beforeunload` |
+| `pipeline.js` | 623 | Kanban con arrastre propio (pointer events para ratón/pluma + touch), autoscroll del tablero al llegar a los bordes, filtros (tipo/fechas/monto), KPI pipeline activo, `BNKConfirm` en Cancelada/Perdida, snapshot listener con cleanup en `beforeunload` |
 | `clientes.js` | 1059 | CRUD, modal 5 tabs (General, Contacto, Facturación, Bancarios, Documentos), % completitud, chips de marcas, cotizaciones vinculadas (Vinculada vs Por nombre), detección de duplicados |
 | `proveedores.js` | 1359 | CRUD, modal 6 tabs (+ Fiscales, Servicios), doble precio (`costoUnitario`/`precioCliente`), bloques de servicios con precio manual |
 | `calendario.js` | 898 | 3 vistas (mes/semana/día), export iCal RFC 5545, tooltips enriquecidos, overflow "+N más", filtros por venue, soporta múltiples fechas MNT vía `desgloseVenues`, bloques de montaje y desmontaje para cotizaciones cerradas |
@@ -170,7 +170,7 @@ Tokens propios en `panel/css/panel.css` (**no** los de `system.css`): `--bk` `#0
 
 - **`panel.css`** (762) — base: header, tabs, buttons, tables, modals, forms, wizard MNT, form BNK, `.ctz-card`, progress, calendar, popovers, vinculación, bloque badges, toggle "no aplica", `.doc-*`, `.bnk-toast-retry`, `.bnk-offline`, `.act-*`, touch targets 44px, breakpoint 360px, responsive.
 - **`login.css`** (97) — tokens propios `--accent`, `--accent-dim`, `--accent-glow`.
-- **`pipeline.css`** (84), **`reportes.css`** (65), **`eventos.css`** (90), **`calendario.css`** (85), **`finanzas.css`** (114) — cargados inline dentro de su sección en `dashboard.html`.
+- **`pipeline.css`** (86), **`reportes.css`** (65), **`eventos.css`** (90), **`calendario.css`** (85), **`finanzas.css`** (114) — cargados inline dentro de su sección en `dashboard.html`.
 
 ### Infraestructura
 
@@ -234,7 +234,7 @@ BNK agrupa por categoría con sub-agrupación por bloque de proveedor y añade c
 
 ### Cache busting
 
-Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-20): `panel.css?v=15`, `calendario.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=7`, `pdf-workorder?v=2`, `table-helpers?v=1`, `logo-data?v=3`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=10`, `cotizar-bnk?v=14`, `cotizar-mnt?v=13`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=10`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
+Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la versión al modificar un JS o CSS**, o el CDN de Firebase Hosting sirve la copia vieja. Versiones actuales (2026-10-20): `panel.css?v=15`, `calendario.css?v=9`, `pipeline.css?v=9`, `auth?v=2`, `guard?v=2`, `login.css?v=2`, `firebase-config?v=6`, `firestore?v=5`, `ocupacion?v=1`, `pdf-rebuild?v=7`, `pdf-workorder?v=2`, `table-helpers?v=1`, `logo-data?v=3`, `actividad?v=11`, `calendario?v=11`, `catalogo?v=8`, `clientes?v=9`, `cotizaciones?v=10`, `cotizar-bnk?v=14`, `cotizar-mnt?v=13`, `documentos?v=2`, `eventos?v=11`, `finanzas?v=11`, `pipeline?v=11`, `proveedores?v=10`, `reportes?v=11`, `usuarios?v=8`. El sitio público usa `js/system.js?v=4`, `css/system.css?v=3`, `css/pages/dashboard.css?v=2`, `js/pages/dashboard.js?v=2`, `js/pages/proyectos.js?v=2`; el cotizador legacy carga `panel-ui.js?v=2`.
 
 ---
 
@@ -262,6 +262,8 @@ Los scripts/CSS del panel llevan `?v=N` en `dashboard.html`. **Incrementar la ve
 - **El `?v=N` hay que subirlo también entre deploys de la misma tarea.** Una vez que una versión se sirvió (aunque sea a un canal de preview), el CDN y el navegador la cachean 1 h: cualquier cambio posterior necesita número nuevo o sigues viendo el archivo viejo.
 - **El Apps Script sobrescribe el documento completo en Firestore.** `writeToFirestore()` hace `PATCH` sin `updateMask`, así que los campos que el formulario legacy no manda se **borran**. En `clientes` y `proveedores` eso incluye lo que solo existe en el panel (`marcas`, `noAplicaExtranjero`, `createdAt`): editar un cliente desde `cotizador-munet/dashboard.html` lo vacía en el panel. Mientras no se agregue el `updateMask`, los expedientes se editan desde el panel.
 - **El arranque del panel lee `cotizaciones` cuatro veces** (tres listeners `onSnapshot` en COTIZACIONES, PIPELINE y CALENDARIO + un `list()` en COTIZAR MNT) y cada módulo carga sus datos aunque su tab no se abra. Con el volumen actual no se nota; es lo primero que hay que mirar si las lecturas de Firestore se disparan.
+- **El kanban de PIPELINE ya no usa el drag & drop nativo de HTML5.** Con el ratón la tarjeta se quedaba atorada: no se movía y el estado no cambiaba (sí funcionaba el cambio manual desde el modal). El arrastre se reimplementó con pointer events en `pipeline.js` — ghost propio, resaltado de columna, autoscroll horizontal del tablero y vertical de la columna, y columna más cercana cuando se suelta en el padding o en el hueco entre columnas. Las tarjetas ya **no** llevan `draggable="true"`: si se vuelve a poner, el drag nativo del navegador se come los `pointermove` y vuelve a romperse. El arrastre táctil sigue con eventos `touch` aparte; `pointerdown` ignora `pointerType === 'touch'` para que no corran los dos.
+- **El tablero del kanban mide ~1930px** (8 columnas de 220 + gaps + padding) y no cabe en 1440: sin el autoscroll las últimas columnas eran inalcanzables para soltar una tarjeta.
 - **Los headers de `firebase.json` se aplican por ruta de petición, no de archivo.** Por eso `/dashboard` necesita su propio bloque además de `**/*.html`. Si se agrega otro rewrite con URL limpia, hay que repetirle las cabeceras o nacerá sin CSP.
 
 ## Otros archivos

@@ -22,6 +22,7 @@
   var _currentDetailId = null;
   var _dragId = null;
   var _dragEstadoOrigen = null;
+  var _mSuppressClick = false;
 
   function init() {
     BNK_DB.config.get('alertas').then(function (cfg) {
@@ -166,7 +167,7 @@
             }
           }
 
-          html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '" draggable="true" tabindex="0" role="button">'
+          html += '<div class="pipeline-card ' + alertClass + '" data-id="' + _esc(d.id) + '" tabindex="0" role="button">'
             + '<div class="pipeline-card-top">'
             + '<span class="pipeline-card-cliente">' + _esc(d.cliente || d.empresa || '\u2014 sin cliente \u2014') + '</span>'
             + '<span class="tipo-badge ' + tipoBadge + '">' + _esc(d.fuente || 'MNT') + '</span>'
@@ -213,6 +214,11 @@
     return 'hace ' + dias + 'd';
   }
 
+  function _estadoDeCard(card) {
+    var col = card ? card.closest('.pipeline-col') : null;
+    return col ? col.getAttribute('data-estado') : null;
+  }
+
   function _changeEstado(id, newEstado, prevEstado) {
     var user = BNK_AUTH.currentUser();
     BNK_DB.cotizaciones.update(id, { estado: newEstado }).then(function () {
@@ -233,6 +239,7 @@
 
     // Click to open detail
     board.addEventListener('click', function (e) {
+      if (_mSuppressClick) { _mSuppressClick = false; return; }
       var card = e.target.closest('.pipeline-card');
       if (!card) return;
       _openDetail(card.getAttribute('data-id'));
@@ -246,70 +253,150 @@
       _openDetail(card.getAttribute('data-id'));
     });
 
-    // ── Drag & Drop ──
-    board.addEventListener('dragstart', function (e) {
-      var card = e.target.closest('.pipeline-card');
-      if (!card) return;
-      _dragId = card.getAttribute('data-id');
-      var col = card.closest('.pipeline-col');
-      _dragEstadoOrigen = col ? col.getAttribute('data-estado') : null;
-      card.classList.add('pipeline-card--dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', _dragId);
-    });
+    // ── Arrastre de tarjetas (pointer events) ──
+    // Antes esto usaba el drag & drop nativo de HTML5 y en la práctica la
+    // tarjeta se quedaba atorada: no se movía y el estado no cambiaba. Se
+    // reemplaza por un arrastre propio, que además desplaza el tablero al
+    // llegar a los bordes — el kanban mide ~1930px y no cabe en pantalla,
+    // así que las últimas columnas quedaban inalcanzables para el drop.
+    // El arrastre táctil sigue más abajo con eventos touch.
+    var _mCard = null;
+    var _mGhost = null;
+    var _mX0 = 0, _mY0 = 0;
+    var _mDragging = false;
+    var _mScrollRAF = null;
+    var _mLastX = 0, _mLastY = 0;
 
-    board.addEventListener('dragend', function (e) {
-      var card = e.target.closest('.pipeline-card');
-      if (card) card.classList.remove('pipeline-card--dragging');
-      _dragId = null;
-      _dragEstadoOrigen = null;
-      // Remove all drop-target classes
+    function _mClearTargets() {
       board.querySelectorAll('.pipeline-col--drop-target').forEach(function (el) {
         el.classList.remove('pipeline-col--drop-target');
       });
-    });
+    }
 
-    board.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      var col = e.target.closest('.pipeline-col');
-      if (col && !col.classList.contains('pipeline-col--drop-target')) {
-        board.querySelectorAll('.pipeline-col--drop-target').forEach(function (el) {
-          el.classList.remove('pipeline-col--drop-target');
-        });
-        col.classList.add('pipeline-col--drop-target');
+    function _mColEn(x, y) {
+      var el = document.elementFromPoint(x, y);
+      var col = el ? el.closest('.pipeline-col') : null;
+      if (col) return col;
+      // El punto cayó en el padding del tablero o en el hueco entre dos
+      // columnas (30px y 16px): se toma la columna más cercana para que el
+      // drop no se pierda justo en el borde, que es donde se autoscrollea.
+      var mejor = null, dmin = Infinity;
+      board.querySelectorAll('.pipeline-col').forEach(function (c) {
+        var cr = c.getBoundingClientRect();
+        var dx = x < cr.left ? cr.left - x : (x > cr.right ? x - cr.right : 0);
+        var dy = y < cr.top ? cr.top - y : (y > cr.bottom ? y - cr.bottom : 0);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < dmin) { dmin = d; mejor = c; }
+      });
+      return dmin <= 40 ? mejor : null;
+    }
+
+    // Autoscroll: horizontal del tablero y vertical de la columna apuntada.
+    function _mAutoScroll() {
+      _mScrollRAF = null;
+      if (!_mDragging) return;
+      var r = board.getBoundingClientRect();
+      var BORDE = 70, PASO = 22;
+      if (_mLastX > r.right - BORDE) board.scrollLeft += PASO;
+      else if (_mLastX < r.left + BORDE) board.scrollLeft -= PASO;
+
+      var col = _mColEn(_mLastX, _mLastY);
+      var body = col ? col.querySelector('.pipeline-col-body') : null;
+      if (body) {
+        var rb = body.getBoundingClientRect();
+        if (_mLastY > rb.bottom - 50) body.scrollTop += PASO;
+        else if (_mLastY < rb.top + 50) body.scrollTop -= PASO;
       }
-    });
+      _mScrollRAF = requestAnimationFrame(_mAutoScroll);
+    }
 
-    board.addEventListener('dragleave', function (e) {
-      var col = e.target.closest('.pipeline-col');
-      if (col && !col.contains(e.relatedTarget)) {
-        col.classList.remove('pipeline-col--drop-target');
+    function _mStart() {
+      _mDragging = true;
+      _mCard.classList.add('pipeline-card--dragging');
+      _mGhost = _mCard.cloneNode(true);
+      _mGhost.classList.remove('pipeline-card--dragging');
+      _mGhost.classList.add('pipeline-card--ghost');
+      _mGhost.style.width = _mCard.offsetWidth + 'px';
+      document.body.appendChild(_mGhost);
+      document.body.classList.add('pipe-dragging');
+      var sel = window.getSelection && window.getSelection();
+      if (sel && sel.removeAllRanges) sel.removeAllRanges();
+      if (!_mScrollRAF) _mScrollRAF = requestAnimationFrame(_mAutoScroll);
+    }
+
+    function _mMueve(x, y) {
+      _mLastX = x; _mLastY = y;
+      if (_mGhost) {
+        _mGhost.style.left = (x - _mGhost.offsetWidth / 2) + 'px';
+        _mGhost.style.top = (y - 20) + 'px';
       }
+      var col = _mColEn(x, y);
+      _mClearTargets();
+      if (col) col.classList.add('pipeline-col--drop-target');
+    }
+
+    function _mFin() {
+      if (_mGhost) { _mGhost.remove(); _mGhost = null; }
+      if (_mScrollRAF) { cancelAnimationFrame(_mScrollRAF); _mScrollRAF = null; }
+      _mClearTargets();
+      document.body.classList.remove('pipe-dragging');
+      if (_mCard) _mCard.classList.remove('pipeline-card--dragging');
+      var card = _mCard, arrastro = _mDragging;
+      _mCard = null;
+      _mDragging = false;
+      return arrastro ? card : null;
+    }
+
+    board.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'touch' || e.button !== 0) return;
+      var card = e.target.closest('.pipeline-card');
+      if (!card) return;
+      _mCard = card;
+      _mX0 = e.clientX; _mY0 = e.clientY;
+      _mLastX = e.clientX; _mLastY = e.clientY;
+      _mDragging = false;
     });
 
-    board.addEventListener('drop', function (e) {
+    document.addEventListener('pointermove', function (e) {
+      if (!_mCard) return;
+      if (!_mDragging) {
+        if (Math.abs(e.clientX - _mX0) + Math.abs(e.clientY - _mY0) < 6) return;
+        _mStart();
+      }
       e.preventDefault();
-      var col = e.target.closest('.pipeline-col');
-      if (!col || !_dragId) return;
-      col.classList.remove('pipeline-col--drop-target');
+      _mMueve(e.clientX, e.clientY);
+    });
 
+    document.addEventListener('pointerup', function (e) {
+      if (!_mCard) return;
+      var x = e.clientX, y = e.clientY;
+      var card = _mFin();
+      if (!card) return; // fue un clic, no un arrastre
+
+      // El clic que sigue al arrastre no debe abrir el detalle. Se limpia
+      // en el siguiente tick por si el navegador no llega a emitirlo.
+      _mSuppressClick = true;
+      setTimeout(function () { _mSuppressClick = false; }, 0);
+
+      var col = _mColEn(x, y);
+      if (!col) return;
       var newEstado = col.getAttribute('data-estado');
-      if (!newEstado || newEstado === _dragEstadoOrigen) return;
+      var prevEstado = _estadoDeCard(card);
+      if (!newEstado || newEstado === prevEstado) return;
 
-      var id = _dragId;
-      var prevEstado = _dragEstadoOrigen;
-      _dragId = null;
-      _dragEstadoOrigen = null;
-
+      var id = card.getAttribute('data-id');
       if (newEstado === 'Cancelada' || newEstado === 'Perdida') {
-        BNKConfirm.show('\u00bfCambiar estado a "' + newEstado + '"?', 'CONFIRMAR').then(function (ok) {
+        BNKConfirm.show('¿Cambiar estado a "' + newEstado + '"?', 'CONFIRMAR').then(function (ok) {
           if (ok) _changeEstado(id, newEstado, prevEstado);
         });
       } else {
         _changeEstado(id, newEstado, prevEstado);
       }
     });
+
+    document.addEventListener('pointercancel', function () { if (_mCard) _mFin(); });
+    // Si se suelta el botón fuera de la ventana no llega el pointerup.
+    window.addEventListener('blur', function () { if (_mCard) _mFin(); });
 
     // ── Touch drag support ──
     var _touchCard = null;

@@ -11,7 +11,7 @@
 /* Empty column placeholder */
 .pipeline-empty-col{text-align:center;color:var(--tx);opacity:.4;padding:24px 8px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;border:1px dashed var(--bd)}
 
-.pipeline-card{background:var(--card);border:1px solid var(--bd);padding:12px;cursor:pointer;transition:all .2s}
+.pipeline-card{background:var(--card);border:1px solid var(--bd);padding:12px;cursor:grab;transition:all .2s}
 .pipeline-card:hover{border-color:rgba(0,255,65,.3);background:rgba(0,255,65,.02)}
 .pipeline-card:focus-visible{outline:2px solid var(--g);outline-offset:2px}
 .pipeline-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
@@ -53,6 +53,8 @@
 /* Drag & drop */
 .pipeline-card--dragging{opacity:.4;border:1px dashed var(--g)}
 .pipeline-col--drop-target{background:rgba(0,255,65,.04);outline:2px dashed rgba(0,255,65,.3);outline-offset:-2px}
+body.pipe-dragging{user-select:none;cursor:grabbing}
+body.pipe-dragging .pipeline-card{cursor:grabbing}
 .pipeline-card--ghost{position:fixed;pointer-events:none;z-index:9999;width:200px;opacity:.85;transform:rotate(2deg);background:var(--card);border:1px solid var(--g);padding:12px}
 
 /* BNK line */
